@@ -1,0 +1,62 @@
+import React, { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useAuthStore } from './stores/useAuthStore';
+import { Layout } from './components/layout/Layout';
+import { Login } from './pages/Login';
+import { Register } from './pages/Register';
+import { Dashboard } from './pages/Dashboard';
+import { TasksPage } from './pages/TasksPage';
+import { VerificationsPage } from './pages/VerificationsPage';
+import { AccountsPage } from './pages/AccountsPage';
+import { DailyRoutinesPage } from './pages/DailyRoutinesPage';
+import { LeaderboardPage } from './pages/LeaderboardPage';
+import { ProfilePage } from './pages/ProfilePage';
+
+// Protected Route Guard
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, token } = useAuthStore();
+  if (!isAuthenticated && !token) {
+    return <Navigate to="/login" replace />;
+  }
+  return <>{children}</>;
+};
+
+export const App: React.FC = () => {
+  const { fetchMe, token } = useAuthStore();
+
+  useEffect(() => {
+    if (token) {
+      fetchMe();
+    }
+  }, [token]);
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
+        {/* Protected Dashboard & App Routes */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Layout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="tasks" element={<TasksPage />} />
+          <Route path="verifications" element={<VerificationsPage />} />
+          <Route path="accounts" element={<AccountsPage />} />
+          <Route path="daily" element={<DailyRoutinesPage />} />
+          <Route path="leaderboard" element={<LeaderboardPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+};
+
+export default App;
