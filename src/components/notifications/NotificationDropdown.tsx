@@ -113,23 +113,26 @@ export const NotificationDropdown: React.FC = () => {
         )}
       </button>
 
-      {/* Mobile Backdrop to prevent background touches & close smoothly */}
+      {/* Mobile Backdrop to prevent background touches & close smoothly without blurring the top bar */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 sm:hidden"
+          className="fixed inset-x-0 top-16 bottom-0 bg-black/30 z-40 sm:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      {/* Dropdown Menu */}
+      {/* Dropdown Menu - Strong frosted glassmorphism */}
       {isOpen && (
-        <div className="fixed sm:absolute top-16 sm:top-full inset-x-2 sm:inset-x-auto sm:right-0 mt-1 sm:mt-2 w-auto sm:w-96 max-h-[calc(100dvh-5rem)] flex flex-col rounded-2xl bg-[#0B0F1A]/98 border border-slate-800 shadow-2xl backdrop-blur-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <div
+          className="fixed sm:absolute top-16 sm:top-full inset-x-2 sm:inset-x-auto sm:right-0 mt-1 sm:mt-2 w-auto sm:w-96 max-h-[calc(100dvh-5rem)] flex flex-col rounded-2xl bg-[#090D16]/70 backdrop-blur-3xl backdrop-blur-[32px] border border-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.85)] ring-1 ring-white/10 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
+          style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)' }}
+        >
           {/* Header */}
-          <div className="p-3 sm:p-3.5 border-b border-slate-800 flex items-center justify-between flex-shrink-0">
+          <div className="p-3 sm:p-3.5 border-b border-white/10 bg-slate-900/30 backdrop-blur-xl flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-2">
               <span className="font-bold text-white text-sm">{t('common.notifications')}</span>
               {unreadCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/30">
+                <span className="px-1.5 py-0.2 rounded-full bg-indigo-500/25 text-indigo-300 text-[10px] font-bold border border-indigo-400/40 shadow-sm">
                   {unreadCount} {t('common.new')}
                 </span>
               )}
@@ -146,12 +149,12 @@ export const NotificationDropdown: React.FC = () => {
           </div>
 
           {/* Filter Pills */}
-          <div className="px-3 sm:px-3.5 py-2 border-b border-slate-800/60 flex items-center gap-2 bg-slate-950/40 text-xs flex-shrink-0">
+          <div className="px-3 sm:px-3.5 py-2 border-b border-white/5 flex items-center gap-2 bg-slate-950/25 backdrop-blur-lg text-xs flex-shrink-0">
             <button
               onClick={() => setActiveFilter('all')}
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
                 activeFilter === 'all'
-                  ? 'bg-slate-800 text-white font-semibold'
+                  ? 'bg-slate-800/80 text-white font-semibold shadow-sm border border-white/15'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -161,7 +164,7 @@ export const NotificationDropdown: React.FC = () => {
               onClick={() => setActiveFilter('unread')}
               className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
                 activeFilter === 'unread'
-                  ? 'bg-indigo-600/30 text-indigo-300 font-semibold border border-indigo-500/30'
+                  ? 'bg-indigo-600/40 text-indigo-200 font-semibold border border-indigo-500/50 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
