@@ -1,0 +1,41 @@
+import React from 'react';
+import { useTranslation } from 'react-i18next';
+import { Globe } from 'lucide-react';
+
+interface LanguageSwitcherProps {
+  className?: string;
+  variant?: 'pill' | 'button';
+}
+
+export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
+  className = '',
+  variant = 'pill',
+}) => {
+  const { i18n } = useTranslation();
+  const currentLang = i18n.language || 'bn';
+
+  const toggleLanguage = () => {
+    const nextLang = currentLang.startsWith('bn') ? 'en' : 'bn';
+    i18n.changeLanguage(nextLang);
+  };
+
+  const isBangla = currentLang.startsWith('bn');
+
+  return (
+    <button
+      onClick={toggleLanguage}
+      className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+        isBangla
+          ? 'bg-emerald-950/40 text-emerald-300 border-emerald-500/30 hover:border-emerald-500/60 shadow-sm'
+          : 'bg-slate-900/80 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white'
+      } ${className}`}
+      title={isBangla ? 'Switch to English' : 'বাংলায় দেখুন'}
+    >
+      <Globe className="w-3.5 h-3.5 text-emerald-400" />
+      <span>{isBangla ? 'বাংলা' : 'EN'}</span>
+      <span className="text-[10px] text-slate-400 font-normal">
+        {isBangla ? '/ EN' : '/ বাং'}
+      </span>
+    </button>
+  );
+};

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useTaskStore } from '../stores/useTaskStore';
 import { TaskCard } from '../components/tasks/TaskCard';
@@ -28,6 +29,7 @@ import {
 } from 'lucide-react';
 
 export const TasksPage: React.FC = () => {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const {
     tasks,
@@ -120,12 +122,10 @@ export const TasksPage: React.FC = () => {
             </div>
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                {isAdmin ? 'Facebook Tasks Hub' : 'Available Tasks & Submissions'}
+                {isAdmin ? t('tasks.title') : t('tasks.title')}
               </h1>
               <p className="text-xs sm:text-sm text-slate-400 mt-0.5">
-                {isAdmin
-                  ? 'Create, assign, and broadcast engagement tasks to your SMM team.'
-                  : 'Browse high-reward Facebook tasks, submit proof, and track verification status.'}
+                {t('tasks.subtitle')}
               </p>
             </div>
           </div>
@@ -142,17 +142,17 @@ export const TasksPage: React.FC = () => {
               leftIcon={<PlusCircle className="w-4 h-4" />}
               className="shadow-glow-brand"
             >
-              Create New Task
+              {t('tasks.createNewTask')}
             </Button>
           ) : (
             <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-transparent border border-amber-500/20 rounded-2xl p-2 px-3.5 text-xs">
               <Coins className="w-4 h-4 text-amber-400 animate-bounce" />
               <div>
                 <span className="text-[10px] text-slate-400 block font-semibold leading-tight">
-                  Total Points Available
+                  {t('tasks.totalPointsAvailable')}
                 </span>
                 <span className="text-sm font-black text-amber-300">
-                  +{totalRewardPointsAvailable} PTS
+                  +{totalRewardPointsAvailable} {t('common.pts')}
                 </span>
               </div>
             </div>
@@ -173,12 +173,12 @@ export const TasksPage: React.FC = () => {
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-indigo-300 uppercase tracking-wider">
-                Available Tasks
+                {t('tasks.availableTasks')}
               </span>
               <Sparkles className="w-4 h-4 text-indigo-400" />
             </div>
             <div className="text-2xl font-black text-white mt-2">{availableTasks.length}</div>
-            <p className="text-[11px] text-indigo-300/80 mt-1">Ready to work & earn</p>
+            <p className="text-[11px] text-indigo-300/80 mt-1">{t('tasks.readyToEarn')}</p>
           </div>
 
           <div
@@ -191,12 +191,12 @@ export const TasksPage: React.FC = () => {
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-amber-300 uppercase tracking-wider">
-                Under Review
+                {t('tasks.underReview')}
               </span>
               <Clock className="w-4 h-4 text-amber-400 animate-pulse" />
             </div>
             <div className="text-2xl font-black text-white mt-2">{pendingSubmissions.length}</div>
-            <p className="text-[11px] text-amber-300/80 mt-1">Awaiting admin verification</p>
+            <p className="text-[11px] text-amber-300/80 mt-1">{t('tasks.awaitingReview')}</p>
           </div>
 
           <div
@@ -209,12 +209,12 @@ export const TasksPage: React.FC = () => {
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-emerald-300 uppercase tracking-wider">
-                Completed & Paid
+                {t('tasks.completedAndPaid')}
               </span>
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="text-2xl font-black text-white mt-2">{approvedSubmissions.length}</div>
-            <p className="text-[11px] text-emerald-300/80 mt-1">+{totalRewardPointsEarned} pts earned</p>
+            <p className="text-[11px] text-emerald-300/80 mt-1">+{totalRewardPointsEarned} {t('tasks.pointsEarned')}</p>
           </div>
 
           <div
@@ -227,12 +227,12 @@ export const TasksPage: React.FC = () => {
           >
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                Needs Revision
+                {t('tasks.needsRevision')}
               </span>
               <AlertCircle className="w-4 h-4 text-rose-400" />
             </div>
             <div className="text-2xl font-black text-white mt-2">{rejectedSubmissions.length}</div>
-            <p className="text-[11px] text-slate-400 mt-1">Requires fix / resubmission</p>
+            <p className="text-[11px] text-slate-400 mt-1">{t('tasks.requiresFix')}</p>
           </div>
         </div>
       )}
@@ -248,7 +248,7 @@ export const TasksPage: React.FC = () => {
           }`}
         >
           <Sparkles className="w-4 h-4" />
-          <span>Available Tasks ({availableTasks.length})</span>
+          <span>{t('tasks.availableTasks')} ({availableTasks.length})</span>
         </button>
 
         {!isAdmin && (
@@ -262,7 +262,7 @@ export const TasksPage: React.FC = () => {
               }`}
             >
               <Clock className="w-4 h-4" />
-              <span>Under Review</span>
+              <span>{t('tasks.underReview')}</span>
               {pendingSubmissions.length > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold">
                   {pendingSubmissions.length}
@@ -279,7 +279,7 @@ export const TasksPage: React.FC = () => {
               }`}
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>Completed & Paid ({approvedSubmissions.length})</span>
+              <span>{t('tasks.completedAndPaid')} ({approvedSubmissions.length})</span>
             </button>
 
             {rejectedSubmissions.length > 0 && (
@@ -292,7 +292,7 @@ export const TasksPage: React.FC = () => {
                 }`}
               >
                 <AlertCircle className="w-4 h-4 text-rose-400" />
-                <span>Needs Revision ({rejectedSubmissions.length})</span>
+                <span>{t('tasks.needsRevision')} ({rejectedSubmissions.length})</span>
               </button>
             )}
           </>
@@ -307,12 +307,11 @@ export const TasksPage: React.FC = () => {
             {/* Category filters */}
             <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
               {[
-                { id: 'all', label: 'All Tasks' },
-                { id: 'create_account', label: 'Account Creation' },
-                { id: 'comment_post', label: 'Post Comments' },
-                { id: 'community_reply', label: 'Community Replies' },
-                { id: 'story_post', label: 'Story Posts' },
-                { id: 'group_join', label: 'Group Joins' },
+                { id: 'all', label: t('common.all') },
+                { id: 'create_account', label: t('taskTypes.group_join') || 'Account Creation' },
+                { id: 'comment_post', label: t('taskTypes.comment_group_post') },
+                { id: 'community_reply', label: t('daily.communityReplies') },
+                { id: 'story_post', label: t('taskTypes.story_post') },
               ].map((tab) => (
                 <button
                   key={tab.id}
@@ -334,7 +333,7 @@ export const TasksPage: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search available tasks..."
+                placeholder={t('tasks.searchPlaceholder')}
                 className="w-full px-3.5 py-2 pl-9 rounded-xl glass-input text-xs"
               />
               <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
@@ -345,7 +344,7 @@ export const TasksPage: React.FC = () => {
           {filteredAvailableTasks.length === 0 ? (
             <div className="glass-card rounded-2xl p-12 text-center border border-dashed border-slate-800 space-y-3">
               <CheckSquare className="w-12 h-12 text-slate-600 mx-auto" />
-              <h3 className="text-base font-bold text-white">No Tasks Available in this Category</h3>
+              <h3 className="text-base font-bold text-white">{t('tasks.noTasksFound')}</h3>
               <p className="text-xs text-slate-400 max-w-sm mx-auto">
                 {searchQuery
                   ? 'No tasks matched your search query.'
@@ -395,7 +394,7 @@ export const TasksPage: React.FC = () => {
                 onClick={() => handleTabChange('available')}
                 leftIcon={<Sparkles className="w-4 h-4" />}
               >
-                Browse Available Tasks
+                {t('tasks.availableTasks')}
               </Button>
             </div>
           ) : (
@@ -414,7 +413,7 @@ export const TasksPage: React.FC = () => {
                             {task?.title || 'Facebook Task'}
                           </h4>
                           <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold flex items-center gap-1">
-                            <Clock className="w-3 h-3 text-amber-400 animate-spin" /> UNDER REVIEW
+                            <Clock className="w-3 h-3 text-amber-400 animate-spin" /> {t('common.underReview')}
                           </span>
                         </div>
                         <p className="text-xs text-slate-400 mt-0.5">
@@ -424,7 +423,7 @@ export const TasksPage: React.FC = () => {
 
                       <div className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-xl flex items-center gap-1.5 text-xs font-bold">
                         <Coins className="w-3.5 h-3.5 text-amber-400" />
-                        <span>+{task?.rewardPoints || 50} PTS Pending</span>
+                        <span>+{task?.rewardPoints || 50} {t('common.pts')} Pending</span>
                       </div>
                     </div>
 
@@ -432,7 +431,7 @@ export const TasksPage: React.FC = () => {
                       <div className="space-y-2">
                         {sub.profileUrl && (
                           <div className="flex items-center gap-2 text-slate-300">
-                            <span className="text-slate-400 font-semibold">Proof Link:</span>
+                            <span className="text-slate-400 font-semibold">{t('tasks.proofLink')}:</span>
                             <a
                               href={sub.profileUrl}
                               target="_blank"
@@ -448,7 +447,7 @@ export const TasksPage: React.FC = () => {
                         {sub.smmNotes && (
                           <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 text-slate-300">
                             <span className="text-slate-400 font-semibold block text-[11px] mb-0.5">
-                              My Submission Notes:
+                              {t('tasks.myNotes')}:
                             </span>
                             <p className="text-[11px]">{sub.smmNotes}</p>
                           </div>
@@ -467,7 +466,7 @@ export const TasksPage: React.FC = () => {
                               className="w-full h-full object-cover"
                             />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-1">
-                              <ZoomIn className="w-4 h-4" /> Zoom Screenshot Proof
+                              <ZoomIn className="w-4 h-4" /> {t('common.zoomScreenshot')}
                             </div>
                           </div>
                         ) : (
@@ -496,7 +495,7 @@ export const TasksPage: React.FC = () => {
               </span>
             </div>
             <span className="font-extrabold text-emerald-300 whitespace-nowrap">
-              +{totalRewardPointsEarned} PTS Total
+              +{totalRewardPointsEarned} {t('common.pts')} Total
             </span>
           </div>
 
@@ -524,7 +523,7 @@ export const TasksPage: React.FC = () => {
                             {task?.title || 'Facebook Task'}
                           </h4>
                           <span className="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold flex items-center gap-1">
-                            <CheckCircle2 className="w-3 h-3 text-emerald-400" /> COMPLETED & REWARDED
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400" /> {t('common.completed')}
                           </span>
                         </div>
                         <p className="text-xs text-slate-400 mt-0.5">
@@ -534,7 +533,7 @@ export const TasksPage: React.FC = () => {
 
                       <div className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-xl flex items-center gap-1.5 text-xs font-bold shadow-sm">
                         <Coins className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>+{sub.pointsAwarded || task?.rewardPoints} PTS Credited</span>
+                        <span>+{sub.pointsAwarded || task?.rewardPoints} {t('common.pts')} Credited</span>
                       </div>
                     </div>
 
@@ -542,7 +541,7 @@ export const TasksPage: React.FC = () => {
                       <div className="space-y-2">
                         {sub.profileUrl && (
                           <div className="flex items-center gap-2 text-slate-300">
-                            <span className="text-slate-400 font-semibold">Proof Link:</span>
+                            <span className="text-slate-400 font-semibold">{t('tasks.proofLink')}:</span>
                             <a
                               href={sub.profileUrl}
                               target="_blank"
@@ -557,7 +556,7 @@ export const TasksPage: React.FC = () => {
 
                         {sub.adminNote && (
                           <div className="p-2.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300">
-                            <span className="font-bold block text-[11px] mb-0.5">Admin Note:</span>
+                            <span className="font-bold block text-[11px] mb-0.5">{t('tasks.adminFeedback')}:</span>
                             <p className="text-[11px]">{sub.adminNote}</p>
                           </div>
                         )}
@@ -575,7 +574,7 @@ export const TasksPage: React.FC = () => {
                               className="w-full h-full object-cover"
                             />
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold gap-1">
-                              <ZoomIn className="w-4 h-4" /> Zoom Screenshot
+                              <ZoomIn className="w-4 h-4" /> {t('common.zoomScreenshot')}
                             </div>
                           </div>
                         ) : null}
@@ -621,7 +620,7 @@ export const TasksPage: React.FC = () => {
                             {task?.title || 'Facebook Task'}
                           </h4>
                           <span className="px-2 py-0.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">
-                            REVISION REQUIRED
+                            {t('tasks.needsRevision')}
                           </span>
                         </div>
                         <p className="text-xs text-slate-400 mt-0.5">
@@ -635,7 +634,7 @@ export const TasksPage: React.FC = () => {
                         onClick={() => setProofModalTask(task)}
                         className="text-xs"
                       >
-                        Resubmit Proof
+                        {t('common.resubmitProof')}
                       </Button>
                     </div>
 
@@ -644,7 +643,7 @@ export const TasksPage: React.FC = () => {
                       <div className="p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs flex items-start gap-2">
                         <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
                         <div>
-                          <span className="font-bold block text-[11px]">Admin Feedback / Required Fix:</span>
+                          <span className="font-bold block text-[11px]">{t('tasks.adminFeedback')}:</span>
                           <p className="text-[11px] mt-0.5">{sub.adminNote}</p>
                         </div>
                       </div>

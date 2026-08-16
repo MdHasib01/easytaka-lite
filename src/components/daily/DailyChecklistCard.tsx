@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { DailyRoutineCardData, RoutineItemState, DynamicTaskItem } from '../../types';
 import { ProgressBar } from '../ui/ProgressBar';
 import { Button } from '../ui/Button';
@@ -29,6 +30,7 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
   cardData,
   onUpdate,
 }) => {
+  const { t } = useTranslation();
   const { account, routine } = cardData;
   const items = routine.items || {
     feedScrollDone: false,
@@ -75,8 +77,8 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
   };
 
   const handleToggleDynamicTask = (index: number) => {
-    const updated = dynamicTasks.map((t, idx) =>
-      idx === index ? { ...t, isDone: !t.isDone, completedAt: !t.isDone ? new Date().toISOString() : undefined } : t
+    const updated = dynamicTasks.map((tItem, idx) =>
+      idx === index ? { ...tItem, isDone: !tItem.isDone, completedAt: !tItem.isDone ? new Date().toISOString() : undefined } : tItem
     );
     onUpdate(account.id, { dynamicChecklist: updated });
   };
@@ -89,7 +91,7 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
   };
 
   const handleMarkAllDone = () => {
-    const updatedDynamic = dynamicTasks.map((t) => ({ ...t, isDone: true }));
+    const updatedDynamic = dynamicTasks.map((tItem) => ({ ...tItem, isDone: true }));
     onUpdate(account.id, {
       commentsCount: targets.feedComments,
       communityRepliesCount: targets.communityReplies,
@@ -155,7 +157,7 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
                 className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-0.5"
               >
                 <ExternalLink className="w-3 h-3" />
-                <span>View Facebook Profile</span>
+                <span>{t('common.openLink')}</span>
               </a>
             </div>
           </div>
@@ -168,7 +170,7 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
                   : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'
               }`}
             >
-              {routine.completionPercentage}% Done
+              {routine.completionPercentage}% {t('common.done')}
             </span>
           </div>
         </div>
@@ -187,9 +189,9 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
                 <MessageCircle className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-xs font-semibold text-slate-200">Post Comments</div>
+                <div className="text-xs font-semibold text-slate-200">{t('daily.postComments')}</div>
                 <div className="text-[11px] text-slate-400">
-                  Target: {targets.feedComments} comments on target niche
+                  Target: {targets.feedComments}
                 </div>
               </div>
             </div>
@@ -224,9 +226,9 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
                 <Share2 className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-xs font-semibold text-slate-200">Community / Group Replies</div>
+                <div className="text-xs font-semibold text-slate-200">{t('daily.communityReplies')}</div>
                 <div className="text-[11px] text-slate-400">
-                  Target: {targets.communityReplies} replies to help members
+                  Target: {targets.communityReplies}
                 </div>
               </div>
             </div>
@@ -269,7 +271,7 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
                   <Image className="w-4 h-4" />
                 </div>
                 <div>
-                  <div className="text-xs font-semibold text-slate-200">Post Daily Story / Reel</div>
+                  <div className="text-xs font-semibold text-slate-200">{t('daily.storyReelPost')}</div>
                   <div className="text-[11px] text-slate-400">Engage followers with fresh stories</div>
                 </div>
               </div>
@@ -299,9 +301,9 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
               </div>
               <div>
                 <div className="text-xs font-semibold text-slate-200">
-                  Feed Warmup Scrolling ({targets.feedScrollMinutes || 10} min)
+                  {t('daily.feedWarmup')} ({targets.feedScrollMinutes || 10} min)
                 </div>
-                <div className="text-[11px] text-slate-400">Scroll feed & react naturally to maintain trust</div>
+                <div className="text-[11px] text-slate-400">Scroll feed & react naturally</div>
               </div>
             </div>
 
@@ -315,13 +317,13 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
           </div>
         </div>
 
-        {/* Dynamic Assigned Daily Tasks (Rotated Global & Quota Campaigns) */}
+        {/* Dynamic Assigned Daily Tasks */}
         {dynamicTasks.length > 0 && (
           <div className="mt-4 pt-3 border-t border-slate-800/80 space-y-2.5">
             <div className="flex items-center justify-between">
               <span className="text-[11px] font-bold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                Assigned Engagement Tasks Today ({dynamicTasks.filter((t) => t.isDone).length}/
+                {t('daily.assignedTasksToday')} ({dynamicTasks.filter((tItem) => tItem.isDone).length}/
                 {dynamicTasks.length})
               </span>
             </div>
@@ -364,7 +366,7 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
                                   : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
                               }`}
                             >
-                              {isQuota ? 'TARGETED' : 'ROTATED'}
+                              {isQuota ? t('daily.targetedCampaign') : t('daily.globalRotation')}
                             </span>
                           </div>
                           {dTask.description && (
@@ -397,11 +399,11 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
                         >
                           {copiedCaptionIndex === idx ? (
                             <>
-                              <Check className="w-3 h-3 text-emerald-400" /> Copied!
+                              <Check className="w-3 h-3 text-emerald-400" /> {t('common.copied')}
                             </>
                           ) : (
                             <>
-                              <Copy className="w-3 h-3" /> Copy Caption
+                              <Copy className="w-3 h-3" /> {t('common.copyCaption')}
                             </>
                           )}
                         </button>
@@ -418,7 +420,7 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
                           onClick={(e) => e.stopPropagation()}
                           className="text-[11px] text-blue-400 hover:text-blue-300 font-semibold flex items-center gap-1 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20"
                         >
-                          <ExternalLink className="w-3 h-3" /> Open Target Link
+                          <ExternalLink className="w-3 h-3" /> {t('common.openLink')}
                         </a>
                       </div>
                     )}
@@ -432,7 +434,7 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
 
       {/* Card Action Footer */}
       <div className="mt-4 pt-3 border-t border-slate-800/80 flex items-center justify-between">
-        <span className="text-[11px] text-slate-500">Auto-saved live</span>
+        <span className="text-[11px] text-slate-500">{t('common.autoSaved')}</span>
         {!isCompleted ? (
           <Button
             variant="ghost"
@@ -441,11 +443,11 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
             leftIcon={<Sparkles className="w-3.5 h-3.5 text-indigo-400" />}
             className="text-xs text-indigo-300"
           >
-            Complete All Checklist
+            {t('daily.completeAllChecklist')}
           </Button>
         ) : (
           <span className="text-xs text-emerald-400 flex items-center gap-1 font-semibold">
-            <CheckCircle2 className="w-3.5 h-3.5" /> 100% Routine Completed!
+            <CheckCircle2 className="w-3.5 h-3.5" /> {t('daily.allDone')}
           </span>
         )}
       </div>

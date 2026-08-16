@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useStatsStore } from '../../stores/useStatsStore';
 import { useTaskStore } from '../../stores/useTaskStore';
@@ -14,7 +15,6 @@ import {
   Clock,
   CheckCircle2,
   Sparkles,
-  Zap,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -24,6 +24,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const { t } = useTranslation();
   const { user } = useAuthStore();
   const { adminStats, smmStats } = useStatsStore();
   const { tasks, mySubmissions } = useTaskStore();
@@ -37,33 +38,33 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   const navItems = isAdmin
     ? [
-        { name: 'Admin Dashboard', path: '/', icon: LayoutDashboard },
+        { name: t('nav.adminDashboard'), path: '/', icon: LayoutDashboard },
         {
-          name: 'Tasks Hub',
+          name: t('nav.tasksHub'),
           path: '/tasks',
           icon: CheckSquare,
           highlight: true,
         },
         {
-          name: 'Daily Task Manager',
+          name: t('nav.dailyTaskManager'),
           path: '/daily-tasks',
           icon: CalendarCheck,
         },
         {
-          name: 'Verification Portal',
+          name: t('nav.verificationPortal'),
           path: '/verifications',
           icon: ShieldCheck,
           badge: adminStats?.pendingVerifications ? `${adminStats.pendingVerifications}` : undefined,
           badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
         },
-        { name: 'All FB Accounts', path: '/accounts', icon: Users },
-        { name: 'SMM Leaderboard', path: '/leaderboard', icon: Trophy },
-        { name: 'My Profile', path: '/profile', icon: UserCheck },
+        { name: t('nav.allAccounts'), path: '/accounts', icon: Users },
+        { name: t('nav.smmLeaderboard'), path: '/leaderboard', icon: Trophy },
+        { name: t('nav.myProfile'), path: '/profile', icon: UserCheck },
       ]
     : [
-        { name: 'SMM Dashboard', path: '/', icon: LayoutDashboard },
+        { name: t('nav.smmDashboard'), path: '/', icon: LayoutDashboard },
         {
-          name: 'Available Tasks',
+          name: t('nav.availableTasks'),
           path: '/tasks?tab=available',
           basePath: '/tasks',
           tabId: 'available',
@@ -71,7 +72,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           highlight: true,
         },
         {
-          name: 'Under Review',
+          name: t('nav.underReview'),
           path: '/tasks?tab=under_review',
           basePath: '/tasks',
           tabId: 'under_review',
@@ -80,7 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
         },
         {
-          name: 'Completed Tasks',
+          name: t('nav.completedTasks'),
           path: '/tasks?tab=completed',
           basePath: '/tasks',
           tabId: 'completed',
@@ -88,10 +89,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           badge: approvedCount > 0 ? `${approvedCount}` : undefined,
           badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
         },
-        { name: 'Daily Fixed Routines', path: '/daily', icon: CalendarCheck },
-        { name: 'My Facebook Accounts', path: '/accounts', icon: Users },
-        { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
-        { name: 'Profile & Points', path: '/profile', icon: UserCheck },
+        { name: t('nav.dailyFixedRoutines'), path: '/daily', icon: CalendarCheck },
+        { name: t('nav.myAccounts'), path: '/accounts', icon: Users },
+        { name: t('nav.leaderboard'), path: '/leaderboard', icon: Trophy },
+        { name: t('nav.profilePoints'), path: '/profile', icon: UserCheck },
       ];
 
   return (
@@ -115,7 +116,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           {/* Section Label */}
           <div className="px-3 pt-2">
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-              {isAdmin ? 'Management Console' : 'SMM Workspace'}
+              {isAdmin ? t('nav.managementConsole') : t('nav.smmWorkspace')}
             </p>
           </div>
 
@@ -184,7 +185,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
           </div>
           <p className="text-[11px] text-slate-400">
-            {isAdmin ? 'Admin Management Console' : 'Complete available tasks to earn points'}
+            {isAdmin ? 'Admin Console Online' : 'Complete available tasks to earn points'}
           </p>
         </div>
       </aside>

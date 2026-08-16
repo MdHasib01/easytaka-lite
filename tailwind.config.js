@@ -34,7 +34,8 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Inter', 'Outfit', 'system-ui', 'sans-serif'],
+        sans: ['"Anek Bangla"', 'Inter', 'Outfit', 'system-ui', 'sans-serif'],
+        bangla: ['"Anek Bangla"', 'sans-serif'],
       },
       boxShadow: {
         'glow-brand': '0 0 20px -5px rgba(99, 102, 241, 0.4)',

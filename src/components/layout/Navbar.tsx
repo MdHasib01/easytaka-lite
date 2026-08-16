@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useAccountStore } from '../../stores/useAccountStore';
 import { useDailyStore } from '../../stores/useDailyStore';
 import { NotificationDropdown } from '../notifications/NotificationDropdown';
+import { LanguageSwitcher } from '../ui/LanguageSwitcher';
 import { Button } from '../ui/Button';
 import {
   Coins,
@@ -23,6 +25,7 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { user, logout, demoLogin } = useAuthStore();
   const { accounts, selectedAccount, setSelectedAccount } = useAccountStore();
@@ -45,7 +48,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
           <Link to="/" className="flex items-center gap-2.5 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-0.5 shadow-glow-fb flex items-center justify-center">
               <div className="w-full h-full bg-[#090D16] rounded-[10px] flex items-center justify-center">
-                <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 text-lg">
+                <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 text-lg font-sans">
                   ET
                 </span>
               </div>
@@ -65,12 +68,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
         </div>
 
         {/* Center/Right Items */}
-        <div className="flex items-center gap-2 sm:gap-3.5">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* SMM: Active Account Selector */}
           {!isAdmin && accounts.length > 0 && (
             <div className="hidden lg:flex items-center bg-slate-900/90 border border-slate-800 rounded-xl p-1 px-2.5 gap-2 text-xs">
               <span className="text-slate-400 flex items-center gap-1">
-                <Layers className="w-3.5 h-3.5 text-indigo-400" /> Account:
+                <Layers className="w-3.5 h-3.5 text-indigo-400" /> {t('common.account')}:
               </span>
               <select
                 value={selectedAccount?._id || ''}
@@ -112,16 +115,19 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
           <div className="flex items-center gap-1.5 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-xl px-3 py-1.5 text-amber-300 text-xs font-semibold shadow-sm">
             <Coins className="w-4 h-4 text-amber-400 animate-bounce" style={{ animationDuration: '3s' }} />
             <span>{user?.rewardPoints ?? 0}</span>
-            <span className="text-[10px] text-amber-400/80 font-normal">pts</span>
+            <span className="text-[10px] text-amber-400/80 font-normal">{t('common.pts')}</span>
           </div>
 
           {/* SMM Streak Pill */}
           {!isAdmin && (user?.streakDays || 0) > 0 && (
             <div className="hidden sm:flex items-center gap-1 bg-orange-500/10 border border-orange-500/20 rounded-xl px-2.5 py-1.5 text-orange-400 text-xs font-semibold">
               <Flame className="w-3.5 h-3.5 fill-orange-500" />
-              <span>{user?.streakDays}d Streak</span>
+              <span>{user?.streakDays}{t('common.daysStreak')}</span>
             </div>
           )}
+
+          {/* Language Switcher (EN / বাংলা) */}
+          <LanguageSwitcher />
 
           {/* Live Notification Dropdown Bell */}
           <NotificationDropdown />
@@ -134,7 +140,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
               title="Quickly switch demo role to test Admin and SMM views"
             >
               <Sparkles className="w-3 h-3 text-indigo-400" />
-              Switch to {isAdmin ? 'SMM' : 'Admin'}
+              {t('common.switchRole')} {isAdmin ? 'SMM' : 'Admin'}
             </button>
           </div>
 
@@ -174,7 +180,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             <button
               onClick={logout}
               className="p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
-              title="Log out"
+              title={t('nav.logout')}
             >
               <LogOut className="w-4 h-4" />
             </button>
