@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useStatsStore } from '../../stores/useStatsStore';
+import { useTaskStore } from '../../stores/useTaskStore';
 import {
   LayoutDashboard,
   CheckSquare,
@@ -10,11 +11,9 @@ import {
   CalendarCheck,
   Trophy,
   UserCheck,
-  PlusCircle,
   Clock,
+  CheckCircle2,
   Sparkles,
-  HelpCircle,
-  Shuffle,
   Zap,
 } from 'lucide-react';
 import { clsx } from 'clsx';
@@ -26,14 +25,30 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { user } = useAuthStore();
-  const { adminStats } = useStatsStore();
+  const { adminStats, smmStats } = useStatsStore();
+  const { tasks, mySubmissions } = useTaskStore();
   const location = useLocation();
 
   const isAdmin = user?.role === 'admin';
+  const currentTab = new URLSearchParams(location.search).get('tab') || 'available';
+
+  const pendingCount = mySubmissions.filter((s) => s.status === 'pending').length || smmStats?.pendingSubmissions || 0;
+  const approvedCount = mySubmissions.filter((s) => s.status === 'approved').length || smmStats?.approvedSubmissions || 0;
 
   const navItems = isAdmin
     ? [
         { name: 'Admin Dashboard', path: '/', icon: LayoutDashboard },
+        {
+          name: 'Tasks Hub',
+          path: '/tasks',
+          icon: CheckSquare,
+          highlight: true,
+        },
+        {
+          name: 'Daily Task Manager',
+          path: '/daily-tasks',
+          icon: CalendarCheck,
+        },
         {
           name: 'Verification Portal',
           path: '/verifications',
@@ -41,23 +56,40 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           badge: adminStats?.pendingVerifications ? `${adminStats.pendingVerifications}` : undefined,
           badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
         },
-        {
-          name: 'Daily Task Manager',
-          path: '/daily-tasks',
-          icon: CalendarCheck,
-          highlight: true,
-        },
-        { name: 'Task Manager', path: '/tasks', icon: CheckSquare },
         { name: 'All FB Accounts', path: '/accounts', icon: Users },
         { name: 'SMM Leaderboard', path: '/leaderboard', icon: Trophy },
         { name: 'My Profile', path: '/profile', icon: UserCheck },
       ]
     : [
         { name: 'SMM Dashboard', path: '/', icon: LayoutDashboard },
-        { name: 'Daily Fixed Tasks', path: '/daily', icon: CalendarCheck, highlight: true },
+        {
+          name: 'Available Tasks',
+          path: '/tasks?tab=available',
+          basePath: '/tasks',
+          tabId: 'available',
+          icon: Sparkles,
+          highlight: true,
+        },
+        {
+          name: 'Under Review',
+          path: '/tasks?tab=under_review',
+          basePath: '/tasks',
+          tabId: 'under_review',
+          icon: Clock,
+          badge: pendingCount > 0 ? `${pendingCount}` : undefined,
+          badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+        },
+        {
+          name: 'Completed Tasks',
+          path: '/tasks?tab=completed',
+          basePath: '/tasks',
+          tabId: 'completed',
+          icon: CheckCircle2,
+          badge: approvedCount > 0 ? `${approvedCount}` : undefined,
+          badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
+        },
+        { name: 'Daily Fixed Routines', path: '/daily', icon: CalendarCheck },
         { name: 'My Facebook Accounts', path: '/accounts', icon: Users },
-        { name: 'Available Tasks', path: '/tasks', icon: CheckSquare },
-        { name: 'My Submissions', path: '/verifications', icon: Clock },
         { name: 'Leaderboard', path: '/leaderboard', icon: Trophy },
         { name: 'Profile & Points', path: '/profile', icon: UserCheck },
       ];
@@ -91,7 +123,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <nav className="space-y-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = location.pathname === item.path;
+
+              let isActive = false;
+              if (item.tabId) {
+                isActive = location.pathname === item.basePath && currentTab === item.tabId;
+              } else if (item.path === '/') {
+                isActive = location.pathname === '/';
+              } else {
+                isActive = location.pathname.startsWith(item.path);
+              }
 
               return (
                 <NavLink
@@ -101,7 +141,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   className={clsx(
                     'flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group',
                     isActive
-                      ? 'bg-indigo-600/15 text-indigo-300 border border-indigo-500/30 shadow-sm'
+                      ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/40 shadow-glow-brand font-semibold'
+                      : item.highlight
+                      ? 'text-slate-200 hover:text-white hover:bg-slate-800/60 bg-slate-900/40 border border-slate-800/80'
                       : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
                   )}
                 >
@@ -109,7 +151,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                     <Icon
                       className={clsx(
                         'w-4 h-4 transition-colors',
-                        isActive ? 'text-indigo-400' : 'text-slate-400 group-hover:text-slate-200'
+                        isActive
+                          ? 'text-indigo-400'
+                          : item.highlight
+                          ? 'text-indigo-400 group-hover:text-indigo-300'
+                          : 'text-slate-400 group-hover:text-slate-200'
                       )}
                     />
                     <span>{item.name}</span>
@@ -118,7 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                   {item.badge && (
                     <span
                       className={clsx(
-                        'text-[11px] font-semibold px-2 py-0.5 rounded-full border',
+                        'text-[11px] font-bold px-2 py-0.5 rounded-full border',
                         item.badgeColor || 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
                       )}
                     >
@@ -138,7 +184,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
           </div>
           <p className="text-[11px] text-slate-400">
-            {isAdmin ? 'Admin Daily Task Engine Online' : 'Complete daily routines to boost streak'}
+            {isAdmin ? 'Admin Management Console' : 'Complete available tasks to earn points'}
           </p>
         </div>
       </aside>
