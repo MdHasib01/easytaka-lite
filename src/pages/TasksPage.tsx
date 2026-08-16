@@ -308,7 +308,7 @@ export const TasksPage: React.FC = () => {
             <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
               {[
                 { id: 'all', label: t('common.all') },
-                { id: 'create_account', label: t('taskTypes.group_join') || 'Account Creation' },
+                { id: 'create_account', label: t('taskTypes.create_account') || 'Create FB Account' },
                 { id: 'comment_post', label: t('taskTypes.comment_group_post') },
                 { id: 'community_reply', label: t('daily.communityReplies') },
                 { id: 'story_post', label: t('taskTypes.story_post') },

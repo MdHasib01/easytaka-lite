@@ -15,6 +15,7 @@ import {
   Clock,
   CheckCircle2,
   Sparkles,
+  UserPlus,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -72,6 +73,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           highlight: true,
         },
         {
+          name: t('nav.createAccountTask') || 'Create FB Account Task',
+          path: '/accounts',
+          icon: UserPlus,
+        },
+        { name: t('nav.dailyFixedRoutines'), path: '/daily', icon: CalendarCheck },
+        {
           name: t('nav.underReview'),
           path: '/tasks?tab=under_review',
           basePath: '/tasks',
@@ -86,11 +93,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           basePath: '/tasks',
           tabId: 'completed',
           icon: CheckCircle2,
-          badge: approvedCount > 0 ? `${approvedCount}` : undefined,
-          badgeColor: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30',
         },
-        { name: t('nav.dailyFixedRoutines'), path: '/daily', icon: CalendarCheck },
-        { name: t('nav.myAccounts'), path: '/accounts', icon: Users },
         { name: t('nav.leaderboard'), path: '/leaderboard', icon: Trophy },
         { name: t('nav.profilePoints'), path: '/profile', icon: UserCheck },
       ];

@@ -4,6 +4,7 @@
     "smmDashboard": "SMM Dashboard",
     "adminDashboard": "Admin Dashboard",
     "availableTasks": "Available Tasks",
+    "createAccountTask": "Create FB Account Task",
     "underReview": "Under Review",
     "completedTasks": "Completed Tasks",
     "dailyFixedRoutines": "Daily Fixed Routines",
@@ -101,6 +102,7 @@
     "targetedCampaign": "TARGETED CAMPAIGN"
   },
   "taskTypes": {
+    "create_account": "Create Facebook Account",
     "personal_profile_post": "Personal Profile Post",
     "react_group_post": "React to Group Post",
     "comment_group_post": "Comment on Group Post",

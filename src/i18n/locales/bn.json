@@ -4,6 +4,7 @@
     "smmDashboard": "এসএমএম ড্যাশবোর্ড",
     "adminDashboard": "অ্যাডমিন ড্যাশবোর্ড",
     "availableTasks": "উপলব্ধ টাস্কসমূহ",
+    "createAccountTask": "ফেসবুক অ্যাকাউন্ট তৈরি টাস্ক",
     "underReview": "পর্যালোচনাধীন",
     "completedTasks": "সম্পন্ন টাস্কসমূহ",
     "dailyFixedRoutines": "দৈনিক নির্দিষ্ট রুটিন",
@@ -101,6 +102,7 @@
     "targetedCampaign": "টার্গেটেড ক্যাম্পেইন"
   },
   "taskTypes": {
+    "create_account": "ফেসবুক অ্যাকাউন্ট তৈরি",
     "personal_profile_post": "ব্যক্তিগত প্রোফাইল পোস্ট",
     "react_group_post": "গ্রুপ পোস্টে রিঅ্যাক্ট",
     "comment_group_post": "গ্রুপ পোস্টে কমেন্ট",
