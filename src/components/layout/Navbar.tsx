@@ -33,26 +33,26 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-[#090D16]/90 backdrop-blur-xl">
-      <div className="flex h-16 items-center justify-between px-3 sm:px-6 gap-2">
+      <div className="flex h-16 items-center justify-between px-2.5 sm:px-4 md:px-6 gap-1.5 sm:gap-2.5">
         {/* Left: Hamburger & Logo */}
-        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0 min-w-0">
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink min-w-0">
           <button
             onClick={onToggleSidebar}
-            className="p-2 -ml-1 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 md:hidden flex-shrink-0"
+            className="p-1.5 sm:p-2 -ml-1 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/60 md:hidden flex-shrink-0"
             aria-label="Toggle navigation menu"
           >
             <Menu className="w-5 h-5" />
           </button>
 
-          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group flex-shrink-0">
+          <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group min-w-0 flex-shrink">
             <img
               src="/assets/logo.png"
               alt="EsyTaka Lite"
-              className="h-8 sm:h-9 w-auto object-contain flex-shrink-0 drop-shadow-md group-hover:scale-105 transition-transform"
+              className="h-7 sm:h-8 md:h-9 w-auto object-contain flex-shrink-0 drop-shadow-md group-hover:scale-105 transition-transform"
             />
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-nowrap">
-                <span className="font-bold text-sm sm:text-base tracking-tight text-white group-hover:text-indigo-300 transition-colors font-sans whitespace-nowrap">
+                <span className="font-bold text-xs sm:text-sm md:text-base tracking-tight text-white group-hover:text-indigo-300 transition-colors font-sans whitespace-nowrap">
                   EsyTaka <span className="text-indigo-400 font-light">Lite</span>
                 </span>
                 <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.2 bg-blue-500/10 text-blue-400 border border-blue-500/20 rounded hidden md:inline-block">
@@ -65,7 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
         </div>
 
         {/* Center/Right Items */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 lg:gap-3 flex-shrink-0">
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-2.5 flex-shrink-0">
           {/* SMM: Active Account Selector */}
           {!isAdmin && accounts.length > 0 && (
             <div className="hidden xl:flex items-center bg-slate-900/90 border border-slate-800 rounded-xl p-1 px-2.5 gap-2 text-xs flex-shrink-0">
@@ -111,20 +111,20 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
           {/* Reward Points Pill (Links to Withdraw Points / Cashout) */}
           <Link
             to="/withdraw"
-            className="flex items-center gap-1 sm:gap-1.5 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 hover:border-amber-500/40 hover:bg-amber-500/15 transition-all rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 text-amber-300 text-xs font-semibold shadow-sm flex-shrink-0 group cursor-pointer"
+            className="flex items-center gap-1 sm:gap-1.5 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 hover:border-amber-500/40 hover:bg-amber-500/15 transition-all rounded-xl px-2 sm:px-2.5 py-1 sm:py-1.5 text-amber-300 text-xs font-semibold shadow-sm flex-shrink-0 group cursor-pointer"
             title="Click to Withdraw Points to bKash"
           >
             <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 group-hover:scale-110 transition-transform animate-bounce flex-shrink-0" style={{ animationDuration: '3s' }} />
-            <span className="font-bold tabular-nums">{user?.rewardPoints ?? 0}</span>
-            <span className="text-[10px] text-amber-400/80 font-normal hidden min-[400px]:inline">{t('common.pts')}</span>
-            <span className="hidden xl:inline text-[9px] font-bold text-pink-400 bg-pink-500/20 px-1 py-0.2 rounded ml-0.5">৳ Cashout</span>
+            <span className="font-bold tabular-nums text-xs">{user?.rewardPoints ?? 0}</span>
+            <span className="text-[10px] text-amber-400/80 font-normal hidden md:inline">{t('common.pts')}</span>
+            <span className="hidden 2xl:inline text-[9px] font-bold text-pink-400 bg-pink-500/20 px-1 py-0.2 rounded ml-0.5">৳ Cashout</span>
           </Link>
 
           {/* SMM Streak Pill */}
           {!isAdmin && (user?.streakDays || 0) > 0 && (
-            <div className="hidden sm:flex items-center gap-1 bg-orange-500/10 border border-orange-500/20 rounded-xl px-2 sm:px-2.5 py-1 sm:py-1.5 text-orange-400 text-xs font-semibold flex-shrink-0">
-              <Flame className="w-3.5 h-3.5 fill-orange-500" />
-              <span>{user?.streakDays}{t('common.daysStreak')}</span>
+            <div className="hidden md:flex items-center gap-1 bg-orange-500/10 border border-orange-500/20 rounded-xl px-2 sm:px-2.5 py-1 sm:py-1.5 text-orange-400 text-xs font-semibold flex-shrink-0">
+              <Flame className="w-3.5 h-3.5 fill-orange-500 flex-shrink-0" />
+              <span className="whitespace-nowrap">{user?.streakDays} {t('common.daysStreak')}</span>
             </div>
           )}
 
@@ -135,9 +135,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
           <NotificationDropdown />
 
           {/* User Profile & Role Pill */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 pl-1.5 sm:pl-2.5 border-l border-slate-800 flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <div className="relative">
+          <div className="flex items-center gap-1 sm:gap-2 pl-1 sm:pl-2 border-l border-slate-800 flex-shrink-0">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <div className="relative flex-shrink-0">
                 <img
                   src={
                     user?.avatar ||
@@ -169,7 +169,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
 
             <button
               onClick={logout}
-              className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+              className="p-1.5 sm:p-2 rounded-xl text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition-colors flex-shrink-0"
               title={t('nav.logout')}
             >
               <LogOut className="w-4 h-4" />

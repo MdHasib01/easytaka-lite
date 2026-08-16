@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useNotificationStore } from '../../stores/useNotificationStore';
 import {
   CheckCircle2,
@@ -15,6 +16,7 @@ import {
 } from 'lucide-react';
 
 export const LiveNotificationToast: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { liveToast, clearLiveToast, markAsRead } = useNotificationStore();
 
@@ -52,10 +54,10 @@ export const LiveNotificationToast: React.FC = () => {
   };
 
   return (
-    <div className="fixed top-20 right-4 sm:right-6 z-50 max-w-sm w-full animate-in slide-in-from-top-4 fade-in duration-300">
+    <div className="fixed top-18 sm:top-20 inset-x-3 sm:inset-x-auto sm:right-6 sm:w-96 sm:max-w-sm z-[70] pointer-events-none animate-in slide-in-from-top-4 fade-in duration-300">
       <div
         onClick={handleClick}
-        className="glass-panel p-4 rounded-2xl border border-indigo-500/40 bg-[#0B0F1A]/95 shadow-2xl backdrop-blur-xl cursor-pointer hover:border-indigo-500/70 transition-all flex items-start gap-3 relative overflow-hidden group"
+        className="glass-panel pointer-events-auto p-4 rounded-2xl border border-indigo-500/40 bg-[#0B0F1A]/95 shadow-2xl backdrop-blur-xl cursor-pointer hover:border-indigo-500/70 transition-all flex items-start gap-3 relative overflow-hidden group"
       >
         {/* Accent Bar */}
         <div className="absolute top-0 left-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-purple-500" />
@@ -77,7 +79,7 @@ export const LiveNotificationToast: React.FC = () => {
           <div className="flex items-center justify-between gap-2 mt-2">
             {liveToast.points ? (
               <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 text-[10px] font-extrabold flex items-center gap-1 border border-amber-500/30">
-                <Coins className="w-3 h-3" /> +{liveToast.points} PTS Earned!
+                <Coins className="w-3 h-3" /> +{liveToast.points} {t('common.pts')} {t('common.ptsEarned')}
               </span>
             ) : (
               <span />
@@ -85,7 +87,7 @@ export const LiveNotificationToast: React.FC = () => {
 
             {liveToast.link && (
               <span className="text-[10px] text-indigo-400 font-bold flex items-center gap-1 group-hover:underline">
-                View <ExternalLink className="w-2.5 h-2.5" />
+                {t('common.viewDetails')} <ExternalLink className="w-2.5 h-2.5" />
               </span>
             )}
           </div>
@@ -98,6 +100,7 @@ export const LiveNotificationToast: React.FC = () => {
             clearLiveToast();
           }}
           className="absolute top-2.5 right-2.5 p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+          aria-label="Close notification"
         >
           <X className="w-3.5 h-3.5" />
         </button>

@@ -129,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           isOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full md:translate-x-0'
         )}
       >
-        <div className="space-y-6">
+        <div className="space-y-6 flex-1 overflow-y-auto pr-1">
           {/* Section Label */}
           <div className="px-3 pt-2">
             <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
