@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useAccountStore } from '../../stores/useAccountStore';
 import { useDailyStore } from '../../stores/useDailyStore';
+import { NotificationDropdown } from '../notifications/NotificationDropdown';
 import { Button } from '../ui/Button';
 import {
   Coins,
@@ -64,7 +65,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
         </div>
 
         {/* Center/Right Items */}
-        <div className="flex items-center gap-2.5 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-3.5">
           {/* SMM: Active Account Selector */}
           {!isAdmin && accounts.length > 0 && (
             <div className="hidden lg:flex items-center bg-slate-900/90 border border-slate-800 rounded-xl p-1 px-2.5 gap-2 text-xs">
@@ -121,6 +122,9 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
               <span>{user?.streakDays}d Streak</span>
             </div>
           )}
+
+          {/* Live Notification Dropdown Bell */}
+          <NotificationDropdown />
 
           {/* Quick Demo Role Switcher button */}
           <div className="hidden xl:flex items-center gap-1 bg-slate-900/90 border border-slate-800 rounded-xl p-1">

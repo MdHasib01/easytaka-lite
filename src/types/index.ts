@@ -276,3 +276,32 @@ export interface LeaderboardUser {
   completedTasks: number;
   managedAccounts: number;
 }
+
+export type NotificationType =
+  | 'task_approved'
+  | 'task_rejected'
+  | 'account_approved'
+  | 'account_rejected'
+  | 'milestone_unlocked'
+  | 'daily_reward'
+  | 'new_task'
+  | 'new_submission'
+  | 'new_account'
+  | 'new_smm_verification'
+  | 'system_alert';
+
+export interface NotificationItem {
+  _id: string;
+  userId?: string;
+  targetRole?: 'admin' | 'smm' | 'all';
+  type: NotificationType;
+  title: string;
+  message: string;
+  link?: string;
+  points?: number;
+  isRead: boolean;
+  metadata?: Record<string, any>;
+  createdAt: string;
+  updatedAt?: string;
+}
+
