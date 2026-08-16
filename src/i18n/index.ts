@@ -14,8 +14,8 @@ const resources = {
   },
 };
 
-// Retrieve stored language or fallback to bn / en
-const savedLang = localStorage.getItem('esytaka_lang') || 'bn'; // Default to Bangla / English
+// Retrieve stored language or fallback to en
+const savedLang = localStorage.getItem('esytaka_lang') || 'en'; // Default to English
 
 i18n
   .use(LanguageDetector)
@@ -46,7 +46,7 @@ i18n.on('languageChanged', (lng) => {
 });
 
 // Set initial html lang attribute
-document.documentElement.lang = i18n.language || 'bn';
+document.documentElement.lang = i18n.language || 'en';
 if (i18n.language === 'bn') {
   document.body.classList.add('font-bangla');
 }
