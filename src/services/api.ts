@@ -2,24 +2,19 @@ import axios from 'axios';
 
 // Dynamically resolve API URL based on environment (local vs production: https://liteapi.easytaka.com/api)
 export const getApiBaseUrl = (): string => {
-  const envApiUrl = import.meta.env.VITE_API_URL;
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL;
+  }
 
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
-    // When running on production domain lite.easytaka.com or *.easytaka.com
-    if (
-      hostname.includes('easytaka.com') ||
-      (!hostname.includes('localhost') && !hostname.includes('127.0.0.1') && import.meta.env.PROD)
-    ) {
-      if (envApiUrl && !envApiUrl.includes('localhost') && !envApiUrl.includes('127.0.0.1')) {
-        return envApiUrl;
-      }
+    if (hostname.includes('easytaka.com')) {
       return 'https://liteapi.easytaka.com/api';
     }
   }
 
   // Local development fallback
-  return envApiUrl || 'http://localhost:5000/api';
+  return 'http://localhost:5000/api';
 };
 
 const api = axios.create({
