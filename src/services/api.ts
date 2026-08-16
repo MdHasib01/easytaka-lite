@@ -1,17 +1,40 @@
 import axios from 'axios';
 
-// Dynamically resolve API URL based on environment (local vs production: liteapi.easytaka.com)
-const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+// Dynamically resolve API URL based on environment (local vs production: https://liteapi.easytaka.com/api)
+export const getApiBaseUrl = (): string => {
+  const envApiUrl = import.meta.env.VITE_API_URL;
+
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    // When running on production domain lite.easytaka.com or *.easytaka.com
+    if (
+      hostname.includes('easytaka.com') ||
+      (!hostname.includes('localhost') && !hostname.includes('127.0.0.1') && import.meta.env.PROD)
+    ) {
+      if (envApiUrl && !envApiUrl.includes('localhost') && !envApiUrl.includes('127.0.0.1')) {
+        return envApiUrl;
+      }
+      return 'https://liteapi.easytaka.com/api';
+    }
+  }
+
+  // Local development fallback
+  return envApiUrl || 'http://localhost:5000/api';
+};
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: getApiBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Attach Authorization Bearer token to requests
+// Dynamic interceptor to ensure requests always target correct runtime baseURL
 api.interceptors.request.use((config) => {
+  if (!config.baseURL || config.baseURL.includes('localhost') && typeof window !== 'undefined' && window.location.hostname.includes('easytaka.com')) {
+    config.baseURL = getApiBaseUrl();
+  }
+
   const token = localStorage.getItem('esytaka_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
