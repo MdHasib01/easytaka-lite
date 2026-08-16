@@ -57,10 +57,10 @@ export const LiveNotificationToast: React.FC = () => {
     <div className="fixed top-18 sm:top-20 inset-x-3 sm:inset-x-auto sm:right-6 sm:w-96 sm:max-w-sm z-[70] pointer-events-none animate-in slide-in-from-top-4 fade-in duration-300">
       <div
         onClick={handleClick}
-        className="glass-panel pointer-events-auto p-4 rounded-2xl border border-indigo-500/40 bg-[#0B0F1A]/95 shadow-2xl backdrop-blur-xl cursor-pointer hover:border-indigo-500/70 transition-all flex items-start gap-3 relative overflow-hidden group"
+        className="pointer-events-auto p-4 rounded-2xl border border-indigo-500/40 bg-[#0B0F1A] shadow-2xl cursor-pointer hover:border-indigo-500/70 transition-all flex items-start gap-3 relative overflow-hidden group"
       >
         {/* Accent Bar */}
-        <div className="absolute top-0 left-0 bottom-0 w-1 bg-gradient-to-b from-indigo-500 to-purple-500" />
+        <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-gradient-to-b from-indigo-500 via-purple-500 to-pink-500" />
 
         <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex-shrink-0">
           {getIcon()}

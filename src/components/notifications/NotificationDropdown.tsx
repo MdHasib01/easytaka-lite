@@ -113,26 +113,26 @@ export const NotificationDropdown: React.FC = () => {
         )}
       </button>
 
-      {/* Mobile Backdrop to prevent background touches & close smoothly without blurring the top bar */}
+      {/* Mobile Backdrop to prevent background touches & close smoothly */}
       {isOpen && (
         <div
-          className="fixed inset-x-0 top-16 bottom-0 bg-black/30 z-40 sm:hidden"
+          className="fixed inset-0 bg-black/60 z-40 sm:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
-      {/* Dropdown Menu - Strong frosted glassmorphism */}
+      {/* Dropdown Menu - Solid background with accent gradient */}
       {isOpen && (
-        <div
-          className="fixed sm:absolute top-16 sm:top-full inset-x-2 sm:inset-x-auto sm:right-0 mt-1 sm:mt-2 w-auto sm:w-96 max-h-[calc(100dvh-5rem)] flex flex-col rounded-2xl bg-[#090D16]/70 backdrop-blur-3xl backdrop-blur-[32px] border border-white/15 shadow-[0_20px_60px_rgba(0,0,0,0.85)] ring-1 ring-white/10 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150"
-          style={{ backdropFilter: 'blur(32px)', WebkitBackdropFilter: 'blur(32px)' }}
-        >
+        <div className="fixed sm:absolute top-16 sm:top-full inset-x-2 sm:inset-x-auto sm:right-0 mt-1 sm:mt-2 w-auto sm:w-96 max-h-[calc(100dvh-5rem)] flex flex-col rounded-2xl bg-[#0B0F19] border border-slate-700/80 shadow-[0_20px_50px_rgba(0,0,0,0.9)] ring-1 ring-white/10 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          {/* Top Accent Gradient Bar */}
+          <div className="h-1 w-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 flex-shrink-0" />
+
           {/* Header */}
-          <div className="p-3 sm:p-3.5 border-b border-white/10 bg-slate-900/30 backdrop-blur-xl flex items-center justify-between flex-shrink-0">
+          <div className="p-3 sm:p-3.5 border-b border-slate-800 bg-[#0F172A] flex items-center justify-between flex-shrink-0">
             <div className="flex items-center gap-2">
               <span className="font-bold text-white text-sm">{t('common.notifications')}</span>
               {unreadCount > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-indigo-500/25 text-indigo-300 text-[10px] font-bold border border-indigo-400/40 shadow-sm">
+                <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] font-bold border border-indigo-500/40 shadow-sm">
                   {unreadCount} {t('common.new')}
                 </span>
               )}
@@ -149,23 +149,23 @@ export const NotificationDropdown: React.FC = () => {
           </div>
 
           {/* Filter Pills */}
-          <div className="px-3 sm:px-3.5 py-2 border-b border-white/5 flex items-center gap-2 bg-slate-950/25 backdrop-blur-lg text-xs flex-shrink-0">
+          <div className="px-3 sm:px-3.5 py-2 border-b border-slate-800/80 flex items-center gap-2 bg-[#0B0F19] text-xs flex-shrink-0">
             <button
               onClick={() => setActiveFilter('all')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
+              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
                 activeFilter === 'all'
-                  ? 'bg-slate-800/80 text-white font-semibold shadow-sm border border-white/15'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-md shadow-indigo-500/20 border border-indigo-400/30'
+                  : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
               }`}
             >
               {t('common.allNotifications')} ({notifications.length})
             </button>
             <button
               onClick={() => setActiveFilter('unread')}
-              className={`px-2.5 py-1 rounded-lg font-medium transition-colors ${
+              className={`px-2.5 py-1 rounded-lg font-medium transition-all ${
                 activeFilter === 'unread'
-                  ? 'bg-indigo-600/40 text-indigo-200 font-semibold border border-indigo-500/50 shadow-sm'
-                  : 'text-slate-400 hover:text-slate-200'
+                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-semibold shadow-md shadow-indigo-500/20 border border-indigo-400/30'
+                  : 'bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700'
               }`}
             >
               {t('common.unread')} ({unreadCount})
@@ -173,7 +173,7 @@ export const NotificationDropdown: React.FC = () => {
           </div>
 
           {/* Notifications List */}
-          <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-800/40">
+          <div className="flex-1 min-h-0 overflow-y-auto divide-y divide-slate-800/60 bg-[#0B0F19]">
             {filteredNotifications.length === 0 ? (
               <div className="py-8 px-4 text-center text-slate-400 space-y-1">
                 <Bell className="w-8 h-8 mx-auto text-slate-600 mb-1" />
@@ -189,8 +189,8 @@ export const NotificationDropdown: React.FC = () => {
                 <div
                   key={notif._id}
                   onClick={() => handleNotificationClick(notif)}
-                  className={`p-3.5 transition-colors cursor-pointer flex items-start gap-3 hover:bg-slate-800/40 ${
-                    !notif.isRead ? 'bg-indigo-950/20' : ''
+                  className={`p-3.5 transition-colors cursor-pointer flex items-start gap-3 hover:bg-slate-800/50 ${
+                    !notif.isRead ? 'bg-indigo-950/30' : 'bg-transparent'
                   }`}
                 >
                   <div className="p-2 rounded-xl bg-slate-900 border border-slate-800 flex-shrink-0 mt-0.5">
@@ -217,7 +217,7 @@ export const NotificationDropdown: React.FC = () => {
 
                     <div className="flex items-center justify-between gap-2 mt-1.5 pt-0.5">
                       {notif.points ? (
-                        <span className="px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 text-[10px] font-extrabold flex items-center gap-1 border border-amber-500/30">
+                        <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-extrabold flex items-center gap-1 border border-amber-500/30">
                           <Coins className="w-3 h-3" /> +{notif.points} {t('common.pts')}
                         </span>
                       ) : (
