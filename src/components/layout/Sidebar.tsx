@@ -14,6 +14,8 @@ import {
   Clock,
   Sparkles,
   HelpCircle,
+  Shuffle,
+  Zap,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -38,6 +40,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           icon: ShieldCheck,
           badge: adminStats?.pendingVerifications ? `${adminStats.pendingVerifications}` : undefined,
           badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+        },
+        {
+          name: 'Daily Task Manager',
+          path: '/daily-tasks',
+          icon: CalendarCheck,
+          highlight: true,
         },
         { name: 'Task Manager', path: '/tasks', icon: CheckSquare },
         { name: 'All FB Accounts', path: '/accounts', icon: Users },
@@ -130,7 +138,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
           </div>
           <p className="text-[11px] text-slate-400">
-            {isAdmin ? 'Admin Approval Queue Online' : 'Complete daily routines to boost streak'}
+            {isAdmin ? 'Admin Daily Task Engine Online' : 'Complete daily routines to boost streak'}
           </p>
         </div>
       </aside>

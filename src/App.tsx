@@ -10,6 +10,7 @@ import { TasksPage } from './pages/TasksPage';
 import { VerificationsPage } from './pages/VerificationsPage';
 import { AccountsPage } from './pages/AccountsPage';
 import { DailyRoutinesPage } from './pages/DailyRoutinesPage';
+import { AdminDailyTasksPage } from './pages/AdminDailyTasksPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { ProfilePage } from './pages/ProfilePage';
 
@@ -49,6 +50,7 @@ export const App: React.FC = () => {
         >
           <Route index element={<Dashboard />} />
           <Route path="tasks" element={<TasksPage />} />
+          <Route path="daily-tasks" element={<AdminDailyTasksPage />} />
           <Route path="verifications" element={<VerificationsPage />} />
           <Route path="accounts" element={<AccountsPage />} />
           <Route path="daily" element={<DailyRoutinesPage />} />

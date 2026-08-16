@@ -108,6 +108,66 @@ export interface Task {
   createdAt?: string;
 }
 
+// Admin Daily Task Manager Types
+export type DailyTaskType =
+  | 'personal_profile_post'
+  | 'react_group_post'
+  | 'comment_group_post'
+  | 'group_join'
+  | 'story_post'
+  | 'feed_scroll_warmup'
+  | 'custom_engagement';
+
+export type DailyTaskMode = 'global_rotation' | 'targeted_quota';
+export type DailyTaskRotationSchedule = 'alternate_days' | 'every_day' | 'odd_days' | 'even_days' | 'weekday_only';
+
+export interface DailyTaskAssignment {
+  _id?: string;
+  accountId: string | FacebookAccount;
+  smmId: string | User;
+  date?: string;
+  isCompleted: boolean;
+  completedAt?: string;
+  notes?: string;
+}
+
+export interface DailyTaskTemplate {
+  _id: string;
+  title: string;
+  taskType: DailyTaskType;
+  description?: string;
+  targetUrl?: string;
+  instructions?: string;
+  sampleCaption?: string;
+  mode: DailyTaskMode;
+  rotationSchedule?: DailyTaskRotationSchedule;
+  rotationBatch?: number;
+  targetExecutionsCount: number;
+  completedExecutionsCount: number;
+  assignedAssignments?: DailyTaskAssignment[];
+  status: 'active' | 'paused' | 'completed' | 'archived';
+  validFrom?: string;
+  validUntil?: string;
+  createdBy?: string | User;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface DynamicTaskItem {
+  _id?: string;
+  templateId?: string;
+  assignmentId?: string;
+  title: string;
+  taskType: DailyTaskType;
+  mode: DailyTaskMode;
+  description?: string;
+  targetUrl?: string;
+  instructions?: string;
+  sampleCaption?: string;
+  isDone: boolean;
+  completedAt?: string;
+}
+
 export interface RoutineItemState {
   feedScrollDone: boolean;
   commentsCount: number;
@@ -115,6 +175,7 @@ export interface RoutineItemState {
   storyPostDone: boolean;
   groupShareCount: number;
   customChecklist?: Array<{ taskName: string; isDone: boolean }>;
+  dynamicChecklist?: DynamicTaskItem[];
 }
 
 export interface DailyRoutine {
