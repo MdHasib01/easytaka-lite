@@ -8,7 +8,6 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true,
 });
 
 // Attach Authorization Bearer token to requests
