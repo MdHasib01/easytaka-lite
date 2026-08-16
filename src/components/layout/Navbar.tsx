@@ -110,12 +110,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             </div>
           )}
 
-          {/* Reward Points Pill */}
-          <div className="flex items-center gap-1 sm:gap-1.5 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 text-amber-300 text-xs font-semibold shadow-sm flex-shrink-0">
-            <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 animate-bounce flex-shrink-0" style={{ animationDuration: '3s' }} />
+          {/* Reward Points Pill (Links to Withdraw Points / Cashout) */}
+          <Link
+            to="/withdraw"
+            className="flex items-center gap-1 sm:gap-1.5 bg-gradient-to-r from-amber-500/10 via-amber-500/5 to-transparent border border-amber-500/20 hover:border-amber-500/40 hover:bg-amber-500/15 transition-all rounded-xl px-2 sm:px-3 py-1 sm:py-1.5 text-amber-300 text-xs font-semibold shadow-sm flex-shrink-0 group cursor-pointer"
+            title="Click to Withdraw Points to bKash"
+          >
+            <Coins className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 group-hover:scale-110 transition-transform animate-bounce flex-shrink-0" style={{ animationDuration: '3s' }} />
             <span className="font-bold tabular-nums">{user?.rewardPoints ?? 0}</span>
             <span className="text-[10px] text-amber-400/80 font-normal hidden min-[400px]:inline">{t('common.pts')}</span>
-          </div>
+            <span className="hidden xl:inline text-[9px] font-bold text-pink-400 bg-pink-500/20 px-1 py-0.2 rounded ml-0.5">৳ Cashout</span>
+          </Link>
 
           {/* SMM Streak Pill */}
           {!isAdmin && (user?.streakDays || 0) > 0 && (

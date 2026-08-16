@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Dynamically resolve API URL based on environment (local vs production: https://liteapi.easytaka.com/api)
+// Dynamically resolve API URL based on environment (local vs production: https://lite.easytaka.com/api)
 export const getApiBaseUrl = (): string => {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
@@ -9,7 +9,7 @@ export const getApiBaseUrl = (): string => {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
     if (hostname.includes('easytaka.com')) {
-      return 'https://liteapi.easytaka.com/api';
+      return 'https://lite.easytaka.com/api';
     }
   }
 

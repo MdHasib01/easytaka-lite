@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useStatsStore } from '../stores/useStatsStore';
 import { Button } from '../components/ui/Button';
+import { Link } from 'react-router-dom';
 import {
   User,
   Mail,
@@ -13,6 +14,8 @@ import {
   History,
   CheckCircle2,
   Sparkles,
+  Wallet,
+  ArrowRight,
 } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
@@ -91,6 +94,16 @@ export const ProfilePage: React.FC = () => {
                 <div className="text-[10px] text-orange-400/80 font-medium">Daily Streak</div>
               </div>
             </div>
+
+            {/* Withdraw Points to bKash Action Button */}
+            <Link
+              to="/withdraw"
+              className="flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-[#D12053] to-pink-600 hover:from-[#b91b48] hover:to-pink-500 text-white text-xs font-bold transition-all shadow-glow-brand"
+            >
+              <Wallet className="w-4 h-4" />
+              <span>Withdraw Points to bKash (৳ {user?.rewardPoints ?? 0})</span>
+              <ArrowRight className="w-3.5 h-3.5 ml-0.5" />
+            </Link>
           </div>
 
           {/* Edit Profile Form */}

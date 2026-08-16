@@ -30,6 +30,7 @@ import {
   UserPlus,
   Settings,
   Gift,
+  Wallet,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -244,7 +245,7 @@ export const Dashboard: React.FC = () => {
           </>
         ) : (
           <>
-            <div className="glass-card rounded-2xl p-5 border border-indigo-500/30 bg-indigo-950/10 shadow-glow-brand">
+            <div className="glass-card rounded-2xl p-5 border border-indigo-500/30 bg-indigo-950/10 shadow-glow-brand relative group">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-indigo-300 uppercase tracking-wider">
                   Reward Points
@@ -253,9 +254,17 @@ export const Dashboard: React.FC = () => {
                   <Coins className="w-5 h-5" />
                 </div>
               </div>
-              <div className="text-2xl font-black text-amber-300 mt-3">{user?.rewardPoints ?? 0} pts</div>
+              <div className="flex items-baseline justify-between mt-3">
+                <div className="text-2xl font-black text-amber-300">{user?.rewardPoints ?? 0} pts</div>
+                <Link
+                  to="/withdraw"
+                  className="inline-flex items-center gap-1 text-[11px] font-bold text-pink-400 bg-pink-500/15 border border-pink-500/30 hover:bg-pink-500/25 px-2 py-0.5 rounded-lg transition-colors"
+                >
+                  <Wallet className="w-3 h-3" /> Cashout
+                </Link>
+              </div>
               <p className="text-[11px] text-indigo-300/80 mt-1">
-                Daily completion: +{user?.dailyTaskCompletionReward ?? 50} pts
+                ≈ ৳ {user?.rewardPoints ?? 0} BDT (bKash 1:1)
               </p>
             </div>
 

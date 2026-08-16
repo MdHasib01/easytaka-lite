@@ -42,6 +42,8 @@ export const PointSettingsModal: React.FC<PointSettingsModalProps> = ({
   const [fbMilestoneReward, setFbMilestoneReward] = useState<number>(100);
   const [fbMilestoneStep, setFbMilestoneStep] = useState<number>(5);
   const [defaultDailyReward, setDefaultDailyReward] = useState<number>(50);
+  const [minWithdrawalPoints, setMinWithdrawalPoints] = useState<number>(50);
+  const [withdrawalCycleDays, setWithdrawalCycleDays] = useState<number>(7);
   const [globalSaveMessage, setGlobalSaveMessage] = useState<string | null>(null);
 
   // Per-SMM reward inputs state
@@ -60,6 +62,8 @@ export const PointSettingsModal: React.FC<PointSettingsModalProps> = ({
       setFbMilestoneReward(settings.facebookMilestoneReward ?? 100);
       setFbMilestoneStep(settings.facebookMilestoneStep ?? 5);
       setDefaultDailyReward(settings.defaultDailyCompletionReward ?? 50);
+      setMinWithdrawalPoints(settings.minWithdrawalPoints ?? 50);
+      setWithdrawalCycleDays(settings.withdrawalCycleDays ?? 7);
     }
   }, [settings]);
 
@@ -92,6 +96,8 @@ export const PointSettingsModal: React.FC<PointSettingsModalProps> = ({
       facebookMilestoneReward: Number(fbMilestoneReward),
       facebookMilestoneStep: Number(fbMilestoneStep),
       defaultDailyCompletionReward: Number(defaultDailyReward),
+      minWithdrawalPoints: Number(minWithdrawalPoints),
+      withdrawalCycleDays: Number(withdrawalCycleDays),
     });
 
     if (res.success) {
@@ -242,6 +248,50 @@ export const PointSettingsModal: React.FC<PointSettingsModalProps> = ({
                   <span className="text-xs font-bold text-slate-400">PTS</span>
                 </div>
                 <span className="text-[10px] text-slate-500 block">Default: 50 PTS on 100% daily checklist completion</span>
+              </div>
+
+              {/* bKash Point Redemption & 7-Day Cycle Configuration */}
+              <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-3 sm:col-span-2">
+                <div className="flex items-center gap-2 text-pink-400">
+                  <Coins className="w-4 h-4 text-pink-400" />
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                    bKash Withdrawal & 7-Day Cycle Settings (1 Point = 1 BDT)
+                  </h4>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  Configure minimum points required per withdrawal and the recurring join & work cycle interval (default 7 days).
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
+                  <div>
+                    <label className="text-[10px] text-slate-400 block mb-1">Min Withdrawal (PTS)</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        value={minWithdrawalPoints}
+                        onChange={(e) => setMinWithdrawalPoints(Number(e.target.value))}
+                        className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-amber-300"
+                      />
+                      <span className="text-xs font-bold text-slate-400">PTS</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Default: 50 PTS (৳ 50 BDT)</span>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] text-slate-400 block mb-1">Cycle Interval (Days)</label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="1"
+                        value={withdrawalCycleDays}
+                        onChange={(e) => setWithdrawalCycleDays(Number(e.target.value))}
+                        className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-indigo-300"
+                      />
+                      <span className="text-xs font-bold text-slate-400">Days</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 mt-0.5 block">Default: 7 Days from join date</span>
+                  </div>
+                </div>
               </div>
             </div>
 

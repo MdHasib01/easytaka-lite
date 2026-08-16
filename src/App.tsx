@@ -13,6 +13,7 @@ import { DailyRoutinesPage } from './pages/DailyRoutinesPage';
 import { AdminDailyTasksPage } from './pages/AdminDailyTasksPage';
 import { LeaderboardPage } from './pages/LeaderboardPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { WithdrawPage } from './pages/WithdrawPage';
 
 // Protected Route Guard
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -55,6 +56,7 @@ export const App: React.FC = () => {
           <Route path="accounts" element={<AccountsPage />} />
           <Route path="daily" element={<DailyRoutinesPage />} />
           <Route path="leaderboard" element={<LeaderboardPage />} />
+          <Route path="withdraw" element={<WithdrawPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

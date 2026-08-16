@@ -10,8 +10,8 @@ export const getSocketUrl = (): string => {
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return 'http://localhost:5000';
   }
-  // In production, connect to liteapi.easytaka.com
-  return 'https://liteapi.easytaka.com';
+  // In production, connect to lite.easytaka.com
+  return 'https://lite.easytaka.com';
 };
 
 export const initializeWebSocket = (token: string): Socket => {

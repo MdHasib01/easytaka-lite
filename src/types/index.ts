@@ -214,7 +214,9 @@ export interface PointTransaction {
     | 'admin_bonus'
     | 'manual_adjustment'
     | 'account_reward'
-    | 'milestone_bonus';
+    | 'milestone_bonus'
+    | 'withdrawal'
+    | 'withdrawal_refund';
   description: string;
   referenceId?: string;
   balanceAfter: number;
@@ -227,6 +229,10 @@ export interface SystemSettings {
   facebookMilestoneReward: number;
   facebookMilestoneStep: number;
   defaultDailyCompletionReward: number;
+  minWithdrawalPoints?: number;
+  withdrawalCycleDays?: number;
+  pointToBdtRate?: number;
+  withdrawalEnabled?: boolean;
   updatedAt?: string;
 }
 
@@ -251,8 +257,10 @@ export interface AdminStats {
   pendingTaskVerifications?: number;
   pendingAccountVerifications?: number;
   pendingSmmVerifications?: number;
+  pendingWithdrawals?: number;
   totalAccounts: number;
   totalPointsAwarded: number;
+  totalPaidWithdrawalsBDT?: number;
 }
 
 export interface SMMStats {
@@ -262,6 +270,7 @@ export interface SMMStats {
   pendingSubmissions: number;
   approvedSubmissions: number;
   rejectedSubmissions: number;
+  pendingWithdrawals?: number;
   streakDays: number;
 }
 
@@ -288,6 +297,10 @@ export type NotificationType =
   | 'new_submission'
   | 'new_account'
   | 'new_smm_verification'
+  | 'withdrawal_requested'
+  | 'withdrawal_approved'
+  | 'withdrawal_paid'
+  | 'withdrawal_rejected'
   | 'system_alert';
 
 export interface NotificationItem {
@@ -303,5 +316,74 @@ export interface NotificationItem {
   metadata?: Record<string, any>;
   createdAt: string;
   updatedAt?: string;
+}
+
+export type WithdrawalStatus = 'pending' | 'approved' | 'paid' | 'rejected' | 'cancelled';
+export type PaymentMethod = 'bkash' | 'nagad' | 'rocket';
+export type AccountType = 'personal' | 'agent' | 'merchant';
+
+export interface WithdrawalCycleInfo {
+  joinDate?: string;
+  daysSinceJoin?: number;
+  cycleNumber?: number;
+  isEligible?: boolean;
+  approvedTasksCount?: number;
+  approvedAccountsCount?: number;
+}
+
+export interface Withdrawal {
+  _id: string;
+  userId: string | User;
+  points: number;
+  amountBDT: number;
+  paymentMethod: PaymentMethod;
+  accountNumber: string;
+  accountType: AccountType;
+  status: WithdrawalStatus;
+  transactionId?: string;
+  adminNote?: string;
+  processedBy?: string | User;
+  processedAt?: string;
+  cycleInfo?: WithdrawalCycleInfo;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface WithdrawalEligibility {
+  isEligible: boolean;
+  ineligibleReason: string;
+  currentPoints: number;
+  equivalentBDT: number;
+  minWithdrawalPoints: number;
+  minWithdrawalBDT: number;
+  pointToBdtRate: number;
+  joinDate: string;
+  daysSinceJoin: number;
+  cycleDays: number;
+  currentCycleNumber: number;
+  daysInCurrentCycle: number;
+  daysUntilNextCycle: number;
+  nextEligibleDate: string;
+  lastWithdrawalDate?: string | null;
+  daysSinceLastWithdrawal?: number | null;
+  pendingWithdrawalsCount: number;
+  workStats: {
+    approvedTasksCount: number;
+    approvedAccountsCount: number;
+    streakDays: number;
+    hasWorkActivity: boolean;
+  };
+}
+
+export interface WithdrawalStats {
+  totalPendingCount?: number;
+  totalPaidCount?: number;
+  totalRejectedCount?: number;
+  totalPaidBDT?: number;
+  totalPaidPoints?: number;
+  totalPendingBDT?: number;
+  totalPendingPoints?: number;
+  myPendingCount?: number;
+  myPaidCount?: number;
 }
 

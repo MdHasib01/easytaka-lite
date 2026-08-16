@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   Sparkles,
   UserPlus,
+  Wallet,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -60,6 +61,13 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         },
         { name: t('nav.allAccounts'), path: '/accounts', icon: Users },
         { name: t('nav.smmLeaderboard'), path: '/leaderboard', icon: Trophy },
+        {
+          name: t('nav.withdrawals') || 'Withdrawals',
+          path: '/withdraw',
+          icon: Wallet,
+          badge: adminStats?.pendingWithdrawals ? `${adminStats.pendingWithdrawals}` : undefined,
+          badgeColor: 'bg-pink-500/20 text-pink-300 border-pink-500/30',
+        },
         { name: t('nav.myProfile'), path: '/profile', icon: UserCheck },
       ]
     : [
@@ -95,6 +103,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           icon: CheckCircle2,
         },
         { name: t('nav.leaderboard'), path: '/leaderboard', icon: Trophy },
+        {
+          name: t('nav.withdrawPoints') || 'Withdraw Points',
+          path: '/withdraw',
+          icon: Wallet,
+          highlight: true,
+        },
         { name: t('nav.profilePoints'), path: '/profile', icon: UserCheck },
       ];
 
