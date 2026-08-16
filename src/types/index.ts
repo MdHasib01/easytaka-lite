@@ -42,8 +42,9 @@ export interface FacebookAccount {
   accountName: string;
   profileUrl: string;
   profileUid?: string;
-  emailOrPhone?: string;
+  password?: string;
   passwordHint?: string;
+  emailOrPhone?: string;
   twoFactorSecret?: string;
   avatarUrl?: string;
   status: AccountStatus;

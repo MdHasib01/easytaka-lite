@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FacebookAccount, AccountStatus } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import {
-  Users,
   ExternalLink,
   MessageCircle,
   Share2,
-  Shield,
-  Layers,
+  Lock,
+  Hash,
+  Eye,
+  EyeOff,
   Edit2,
   Trash2,
   CheckCircle,
@@ -31,6 +32,9 @@ export const AccountCard: React.FC<AccountCardProps> = ({
   isCurrent = false,
   onSelect,
 }) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const password = account.password || account.passwordHint || '';
+
   return (
     <div
       className={`glass-card rounded-2xl p-5 border transition-all flex flex-col justify-between ${
@@ -67,7 +71,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({
                 className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-0.5 truncate max-w-[200px]"
               >
                 <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                <span className="truncate">{account.profileUrl.replace('https://facebook.com/', '@')}</span>
+                <span className="truncate">{account.profileUrl}</span>
               </a>
             </div>
           </div>
@@ -75,15 +79,41 @@ export const AccountCard: React.FC<AccountCardProps> = ({
           <Badge variant={account.status as any}>{account.status.toUpperCase()}</Badge>
         </div>
 
-        {/* Account Metadata Badges */}
-        <div className="grid grid-cols-2 gap-2 text-xs text-slate-300">
-          <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center gap-2">
-            <Users className="w-3.5 h-3.5 text-blue-400" />
-            <span>{account.friendsCount || 0} Friends</span>
+        {/* Credentials Grid: UID & Password */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+          {/* User ID / UID */}
+          <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-slate-400">
+              <Hash className="w-3.5 h-3.5 text-cyan-400" />
+              <span>UID:</span>
+            </div>
+            <span className="font-mono text-slate-200 truncate max-w-[120px]">
+              {account.profileUid || 'Not set'}
+            </span>
           </div>
-          <div className="p-2 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center gap-2">
-            <Layers className="w-3.5 h-3.5 text-purple-400" />
-            <span>{account.groupsCount || 0} Groups</span>
+
+          {/* Password with reveal */}
+          <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-slate-400">
+              <Lock className="w-3.5 h-3.5 text-amber-400" />
+              <span>Pass:</span>
+            </div>
+            {password ? (
+              <div className="flex items-center gap-1">
+                <span className="font-mono text-slate-200">
+                  {showPassword ? password : '••••••••'}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-slate-400 hover:text-white p-0.5"
+                >
+                  {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                </button>
+              </div>
+            ) : (
+              <span className="text-slate-500 italic">None</span>
+            )}
           </div>
         </div>
 
@@ -106,12 +136,6 @@ export const AccountCard: React.FC<AccountCardProps> = ({
             )}
           </div>
         </div>
-
-        {account.notes && (
-          <p className="text-xs text-slate-400 italic bg-slate-900/30 p-2 rounded-lg border border-slate-800/40">
-            "{account.notes}"
-          </p>
-        )}
       </div>
 
       {/* Footer Controls */}
@@ -121,7 +145,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({
             Select for Work
           </Button>
         ) : (
-          <span className="text-xs text-slate-500">{account.accountCategory || 'FB Profile'}</span>
+          <span className="text-xs text-slate-500">Facebook Account</span>
         )}
 
         <div className="flex items-center gap-1">
