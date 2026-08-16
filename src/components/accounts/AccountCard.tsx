@@ -12,7 +12,10 @@ import {
   EyeOff,
   Edit2,
   Trash2,
-  CheckCircle,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Coins,
 } from 'lucide-react';
 
 interface AccountCardProps {
@@ -34,17 +37,25 @@ export const AccountCard: React.FC<AccountCardProps> = ({
 }) => {
   const [showPassword, setShowPassword] = useState(false);
   const password = account.password || account.passwordHint || '';
+  const approvalStatus = account.approvalStatus || 'approved';
+  const isPending = approvalStatus === 'pending';
+  const isApproved = approvalStatus === 'approved';
+  const isRejected = approvalStatus === 'rejected';
 
   return (
     <div
       className={`glass-card rounded-2xl p-5 border transition-all flex flex-col justify-between ${
         isCurrent
           ? 'border-indigo-500/60 bg-indigo-950/20 shadow-glow-brand'
+          : isPending
+          ? 'border-amber-500/30 bg-amber-950/5'
+          : isRejected
+          ? 'border-rose-500/30 bg-rose-950/5'
           : 'border-slate-800 hover:border-slate-700'
       }`}
     >
       <div className="space-y-4">
-        {/* Header: Avatar, Name, Status */}
+        {/* Header: Avatar, Name, Approval & Status Badges */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
             <img
@@ -76,8 +87,38 @@ export const AccountCard: React.FC<AccountCardProps> = ({
             </div>
           </div>
 
-          <Badge variant={account.status as any}>{account.status.toUpperCase()}</Badge>
+          <div className="flex flex-col items-end gap-1">
+            {/* Approval Status Badge */}
+            {isPending && (
+              <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold flex items-center gap-1">
+                <Clock className="w-3 h-3 text-amber-400 animate-spin" /> PENDING
+              </span>
+            )}
+            {isApproved && (
+              <span className="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold flex items-center gap-1">
+                <Coins className="w-3 h-3 text-emerald-400" /> +{account.pointsAwarded || 40} PTS
+              </span>
+            )}
+            {isRejected && (
+              <span className="px-2 py-0.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold flex items-center gap-1">
+                <AlertCircle className="w-3 h-3 text-rose-400" /> REJECTED
+              </span>
+            )}
+
+            <Badge variant={account.status as any}>{account.status.toUpperCase()}</Badge>
+          </div>
         </div>
+
+        {/* Rejection / Feedback Note if rejected */}
+        {isRejected && account.adminNote && (
+          <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold block text-[11px]">Rejection Note:</span>
+              <p className="text-[11px]">{account.adminNote}</p>
+            </div>
+          </div>
+        )}
 
         {/* Credentials Grid: UID & Password */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">

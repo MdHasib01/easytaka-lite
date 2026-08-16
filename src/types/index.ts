@@ -9,6 +9,8 @@ export interface User {
   role: UserRole;
   status: UserAccountStatus;
   rewardPoints: number;
+  dailyTaskCompletionReward?: number;
+  lastDailyRewardDate?: string;
   avatar?: string;
   phone?: string;
   nidFront?: string;
@@ -27,6 +29,7 @@ export interface User {
 }
 
 export type AccountStatus = 'active' | 'warmup' | 'restricted' | 'checkpoint' | 'banned';
+export type AccountApprovalStatus = 'pending' | 'approved' | 'rejected';
 
 export interface RoutineTargets {
   feedComments: number;
@@ -48,6 +51,11 @@ export interface FacebookAccount {
   twoFactorSecret?: string;
   avatarUrl?: string;
   status: AccountStatus;
+  approvalStatus?: AccountApprovalStatus;
+  approvedBy?: string | User;
+  approvedAt?: string;
+  adminNote?: string;
+  pointsAwarded?: number;
   accountCategory?: string;
   targetRegion?: string;
   friendsCount: number;
@@ -129,6 +137,7 @@ export interface DailyRoutineCardData {
     profileUrl: string;
     avatarUrl?: string;
     status: AccountStatus;
+    approvalStatus?: AccountApprovalStatus;
     routineTargets: RoutineTargets;
   };
 }
@@ -137,11 +146,40 @@ export interface PointTransaction {
   _id: string;
   userId: string;
   amount: number;
-  type: 'task_reward' | 'daily_bonus' | 'streak_reward' | 'admin_bonus' | 'manual_adjustment';
+  type:
+    | 'task_reward'
+    | 'daily_bonus'
+    | 'streak_reward'
+    | 'admin_bonus'
+    | 'manual_adjustment'
+    | 'account_reward'
+    | 'milestone_bonus';
   description: string;
   referenceId?: string;
   balanceAfter: number;
   createdAt: string;
+}
+
+export interface SystemSettings {
+  _id?: string;
+  facebookAccountReward: number;
+  facebookMilestoneReward: number;
+  facebookMilestoneStep: number;
+  defaultDailyCompletionReward: number;
+  updatedAt?: string;
+}
+
+export interface AccountMilestoneProgress {
+  approvedAccounts: number;
+  pendingAccounts: number;
+  milestoneStep: number;
+  currentProgressInStep: number;
+  percentage: number;
+  accountsNeededForNext: number;
+  nextRewardPoints: number;
+  accountCreationReward: number;
+  totalMilestonesUnlocked: number;
+  totalBonusPointsEarned: number;
 }
 
 export interface AdminStats {
@@ -149,6 +187,9 @@ export interface AdminStats {
   totalTasks: number;
   activeTasks: number;
   pendingVerifications: number;
+  pendingTaskVerifications?: number;
+  pendingAccountVerifications?: number;
+  pendingSmmVerifications?: number;
   totalAccounts: number;
   totalPointsAwarded: number;
 }

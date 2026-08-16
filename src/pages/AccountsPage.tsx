@@ -3,6 +3,7 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { useAccountStore } from '../stores/useAccountStore';
 import { AccountCard } from '../components/accounts/AccountCard';
 import { AddAccountModal } from '../components/accounts/AddAccountModal';
+import { AccountMilestoneProgressBar } from '../components/gamification/AccountMilestoneProgressBar';
 import { Button } from '../components/ui/Button';
 import { FacebookAccount, AccountStatus } from '../types';
 import {
@@ -13,6 +14,8 @@ import {
   Layers,
   ShieldCheck,
   Sparkles,
+  Coins,
+  Gift,
 } from 'lucide-react';
 
 export const AccountsPage: React.FC = () => {
@@ -21,9 +24,11 @@ export const AccountsPage: React.FC = () => {
     accounts,
     allAccounts,
     selectedAccount,
+    milestoneProgress,
     setSelectedAccount,
     fetchMyAccounts,
     fetchAllAccounts,
+    fetchMilestoneProgress,
     createAccount,
     updateAccount,
     deleteAccount,
@@ -42,11 +47,19 @@ export const AccountsPage: React.FC = () => {
       fetchAllAccounts();
     } else {
       fetchMyAccounts();
+      fetchMilestoneProgress();
     }
   }, [isAdmin]);
 
   const filteredAccounts = targetAccounts.filter((acc) => {
-    if (statusFilter !== 'all' && acc.status !== statusFilter) return false;
+    if (statusFilter !== 'all') {
+      if (statusFilter === 'pending' && acc.approvalStatus !== 'pending') return false;
+      if (statusFilter === 'approved' && acc.approvalStatus !== 'approved') return false;
+      if (statusFilter === 'rejected' && acc.approvalStatus !== 'rejected') return false;
+      if (!['pending', 'approved', 'rejected'].includes(statusFilter) && acc.status !== statusFilter) {
+        return false;
+      }
+    }
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       return (
@@ -75,7 +88,7 @@ export const AccountsPage: React.FC = () => {
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
             {isAdmin
               ? 'Central inventory of all Facebook profiles managed across the entire team.'
-              : 'Add and manage multiple Facebook profiles, track account status, and configure custom daily targets.'}
+              : 'Add and manage multiple Facebook profiles, earn +40 PTS upon approval & +100 PTS milestone bonuses!'}
           </p>
         </div>
 
@@ -91,16 +104,20 @@ export const AccountsPage: React.FC = () => {
         </Button>
       </div>
 
+      {/* Gamified Milestone Progress Bar (SMM User) */}
+      {!isAdmin && <AccountMilestoneProgressBar milestoneProgress={milestoneProgress} />}
+
       {/* Filter and Search Bar */}
       <div className="glass-panel rounded-2xl p-3 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3">
         {/* Status Filters */}
         <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
           {[
             { id: 'all', label: 'All Accounts' },
-            { id: 'active', label: 'Active' },
+            { id: 'approved', label: 'Approved' },
+            { id: 'pending', label: 'Pending Approval' },
             { id: 'warmup', label: 'Warm-up Phase' },
             { id: 'restricted', label: 'Restricted' },
-            { id: 'banned', label: 'Banned' },
+            { id: 'rejected', label: 'Rejected' },
           ].map((tab) => (
             <button
               key={tab.id}

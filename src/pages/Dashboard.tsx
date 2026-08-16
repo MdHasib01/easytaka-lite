@@ -6,6 +6,8 @@ import { useAccountStore } from '../stores/useAccountStore';
 import { useStatsStore } from '../stores/useStatsStore';
 import { DailyProgressBanner } from '../components/daily/DailyProgressBanner';
 import { DailyChecklistCard } from '../components/daily/DailyChecklistCard';
+import { AccountMilestoneProgressBar } from '../components/gamification/AccountMilestoneProgressBar';
+import { PointSettingsModal } from '../components/admin/PointSettingsModal';
 import { TaskCard } from '../components/tasks/TaskCard';
 import { VerificationCard } from '../components/tasks/VerificationCard';
 import { SubmitProofModal } from '../components/tasks/SubmitProofModal';
@@ -26,21 +28,34 @@ import {
   Sparkles,
   TrendingUp,
   UserPlus,
+  Settings,
+  Gift,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuthStore();
-  const { routines, overallProgress, totalAccounts, completedAccountsCount, fetchTodayRoutines, updateRoutineProgress } =
-    useDailyStore();
+  const {
+    routines,
+    overallProgress,
+    totalAccounts,
+    completedAccountsCount,
+    dailyTaskCompletionReward,
+    dailyRewardClaimedToday,
+    justEarnedDailyReward,
+    clearDailyRewardToast,
+    fetchTodayRoutines,
+    updateRoutineProgress,
+  } = useDailyStore();
   const { tasks, submissions, fetchTasks, fetchSubmissions, submitProof, verifySubmission, createTask } =
     useTaskStore();
-  const { accounts, fetchMyAccounts, fetchAllAccounts } = useAccountStore();
+  const { accounts, milestoneProgress, fetchMyAccounts, fetchAllAccounts, fetchMilestoneProgress } = useAccountStore();
   const { adminStats, smmStats, fetchDashboardStats } = useStatsStore();
 
   const [selectedTaskForProof, setSelectedTaskForProof] = useState<Task | null>(null);
   const [createTaskModalOpen, setCreateTaskModalOpen] = useState(false);
   const [inviteSmmModalOpen, setInviteSmmModalOpen] = useState(false);
+  const [pointSettingsModalOpen, setPointSettingsModalOpen] = useState(false);
 
   const isAdmin = user?.role === 'admin';
 
@@ -53,6 +68,7 @@ export const Dashboard: React.FC = () => {
     } else {
       fetchTodayRoutines();
       fetchMyAccounts();
+      fetchMilestoneProgress();
       fetchTasks('active');
     }
   }, [isAdmin]);
@@ -64,6 +80,34 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-8 pb-12">
+      {/* Daily Reward Earned Alert Celebration */}
+      {justEarnedDailyReward?.awarded && (
+        <div className="relative overflow-hidden p-5 rounded-3xl bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 border border-amber-500/40 shadow-glow-brand flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center font-black">
+              <Gift className="w-6 h-6 animate-bounce" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-white text-base leading-tight">
+                🎉 Daily Milestone Completed!
+              </h4>
+              <p className="text-xs text-amber-200">
+                You finished 100% of today's Facebook tasks and earned{' '}
+                <strong className="text-white font-black">+{justEarnedDailyReward.amount} PTS</strong>!
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={clearDailyRewardToast}
+            className="text-xs flex-shrink-0"
+          >
+            Dismiss
+          </Button>
+        </div>
+      )}
+
       {/* Top Welcome Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
@@ -75,14 +119,21 @@ export const Dashboard: React.FC = () => {
           </div>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
             {isAdmin
-              ? 'Admin Overview: Monitor SMM account health, review proofs, and assign media tasks.'
-              : 'SMM Workspace: Execute routine checklists, submit task proofs, and earn reward points.'}
+              ? 'Admin Overview: Monitor SMM account health, configure point rewards, and approve accounts.'
+              : 'SMM Workspace: Execute routine checklists, earn daily task completion points, and unlock 5-account bonuses.'}
           </p>
         </div>
 
         <div className="flex items-center gap-3">
           {isAdmin ? (
             <>
+              <Button
+                variant="secondary"
+                onClick={() => setPointSettingsModalOpen(true)}
+                leftIcon={<Settings className="w-4 h-4 text-indigo-400" />}
+              >
+                Point Settings
+              </Button>
               <Button
                 variant="secondary"
                 onClick={() => setInviteSmmModalOpen(true)}
@@ -95,7 +146,7 @@ export const Dashboard: React.FC = () => {
                 onClick={() => setCreateTaskModalOpen(true)}
                 leftIcon={<PlusCircle className="w-4 h-4" />}
               >
-                Create New Task
+                Create Task
               </Button>
             </>
           ) : (
@@ -111,14 +162,20 @@ export const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* SMM: Daily Progress Banner */}
+      {/* SMM: Daily Progress Banner & Gamified Milestone Quest */}
       {!isAdmin && (
-        <DailyProgressBanner
-          overallProgress={overallProgress}
-          totalAccounts={totalAccounts}
-          completedAccountsCount={completedAccountsCount}
-          streakDays={user?.streakDays || 0}
-        />
+        <div className="space-y-6">
+          <DailyProgressBanner
+            overallProgress={overallProgress}
+            totalAccounts={totalAccounts}
+            completedAccountsCount={completedAccountsCount}
+            streakDays={user?.streakDays || 0}
+            dailyTaskCompletionReward={dailyTaskCompletionReward}
+            dailyRewardClaimedToday={dailyRewardClaimedToday}
+          />
+
+          <AccountMilestoneProgressBar milestoneProgress={milestoneProgress} />
+        </div>
       )}
 
       {/* Metrics Cards Grid */}
@@ -135,9 +192,9 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
               <div className="text-2xl font-black text-white mt-3">
-                {adminStats?.pendingVerifications ?? submissions.filter((s) => s.status === 'pending').length}
+                {adminStats?.pendingVerifications ?? 0}
               </div>
-              <p className="text-[11px] text-amber-300/80 mt-1">Awaiting your approval</p>
+              <p className="text-[11px] text-amber-300/80 mt-1">SMMs, accounts & task proofs</p>
             </div>
 
             <div className="glass-card rounded-2xl p-5 border border-slate-800">
@@ -197,20 +254,24 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
               <div className="text-2xl font-black text-amber-300 mt-3">{user?.rewardPoints ?? 0} pts</div>
-              <p className="text-[11px] text-indigo-300/80 mt-1">Available reward balance</p>
+              <p className="text-[11px] text-indigo-300/80 mt-1">
+                Daily completion: +{user?.dailyTaskCompletionReward ?? 50} pts
+              </p>
             </div>
 
             <div className="glass-card rounded-2xl p-5 border border-slate-800">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                  Managed FB Profiles
+                  Approved FB Profiles
                 </span>
                 <div className="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
                   <Users className="w-5 h-5" />
                 </div>
               </div>
-              <div className="text-2xl font-black text-white mt-3">{accounts.length}</div>
-              <p className="text-[11px] text-slate-400 mt-1">Active social profiles</p>
+              <div className="text-2xl font-black text-white mt-3">
+                {milestoneProgress?.approvedAccounts ?? accounts.length}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">+40 pts per approved profile</p>
             </div>
 
             <div className="glass-card rounded-2xl p-5 border border-slate-800">
@@ -238,7 +299,7 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
               <div className="text-2xl font-black text-white mt-3">{user?.streakDays ?? 0} Days</div>
-              <p className="text-[11px] text-slate-400 mt-1">Complete daily for bonus</p>
+              <p className="text-[11px] text-slate-400 mt-1">Complete daily tasks for streak</p>
             </div>
           </>
         )}
@@ -263,7 +324,7 @@ export const Dashboard: React.FC = () => {
               to="/verifications"
               className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold flex items-center gap-1"
             >
-              View All Submissions <ArrowRight className="w-3.5 h-3.5" />
+              Open Verification Portal <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
 
@@ -317,7 +378,7 @@ export const Dashboard: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-bold text-white">Today's Fixed Daily Routines</h3>
                   <p className="text-xs text-slate-400">
-                    Must-do checklist for each of your managed Facebook accounts
+                    Complete 100% of the checklist to claim your <strong className="text-amber-300">+{dailyTaskCompletionReward} PTS</strong> reward
                   </p>
                 </div>
               </div>
@@ -335,7 +396,7 @@ export const Dashboard: React.FC = () => {
                 <Users className="w-10 h-10 text-indigo-400 mx-auto" />
                 <h4 className="text-base font-bold text-white">No Facebook Accounts Added Yet</h4>
                 <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                  Add your Facebook profiles to automatically generate your fixed daily routine checklists.
+                  Add your Facebook profiles to automatically generate your fixed daily routine checklists and earn +40 PTS upon approval.
                 </p>
                 <Link to="/accounts">
                   <Button variant="glow" size="sm">
@@ -398,6 +459,12 @@ export const Dashboard: React.FC = () => {
       <InviteSmmModal
         isOpen={inviteSmmModalOpen}
         onClose={() => setInviteSmmModalOpen(false)}
+      />
+
+      {/* Admin Point Settings Center Modal */}
+      <PointSettingsModal
+        isOpen={pointSettingsModalOpen}
+        onClose={() => setPointSettingsModalOpen(false)}
       />
     </div>
   );

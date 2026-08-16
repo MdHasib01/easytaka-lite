@@ -24,6 +24,8 @@ export const DailyRoutinesPage: React.FC = () => {
     overallProgress,
     totalAccounts,
     completedAccountsCount,
+    dailyTaskCompletionReward,
+    dailyRewardClaimedToday,
     fetchTodayRoutines,
     updateRoutineProgress,
   } = useDailyStore();
@@ -88,6 +90,8 @@ export const DailyRoutinesPage: React.FC = () => {
         totalAccounts={totalAccounts}
         completedAccountsCount={completedAccountsCount}
         streakDays={user?.streakDays || 0}
+        dailyTaskCompletionReward={dailyTaskCompletionReward}
+        dailyRewardClaimedToday={dailyRewardClaimedToday}
       />
 
       {/* Routines Grid per Account */}

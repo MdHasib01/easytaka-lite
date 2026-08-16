@@ -1,6 +1,6 @@
 import React from 'react';
 import { ProgressBar } from '../ui/ProgressBar';
-import { Flame, CheckCircle2, Trophy, ArrowRight, Sparkles } from 'lucide-react';
+import { Flame, CheckCircle2, Trophy, ArrowRight, Sparkles, Coins, Award } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 interface DailyProgressBannerProps {
@@ -8,6 +8,8 @@ interface DailyProgressBannerProps {
   totalAccounts: number;
   completedAccountsCount: number;
   streakDays?: number;
+  dailyTaskCompletionReward?: number;
+  dailyRewardClaimedToday?: boolean;
 }
 
 export const DailyProgressBanner: React.FC<DailyProgressBannerProps> = ({
@@ -15,6 +17,8 @@ export const DailyProgressBanner: React.FC<DailyProgressBannerProps> = ({
   totalAccounts,
   completedAccountsCount,
   streakDays = 0,
+  dailyTaskCompletionReward = 50,
+  dailyRewardClaimedToday = false,
 }) => {
   const isAllComplete = overallProgress >= 100 && totalAccounts > 0;
 
@@ -30,13 +34,26 @@ export const DailyProgressBanner: React.FC<DailyProgressBannerProps> = ({
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-              Today's Routine Focus
+              Daily Engagement Focus
             </span>
+
+            {/* Daily Task Completion Reward Pill */}
+            {dailyRewardClaimedToday ? (
+              <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                +{dailyTaskCompletionReward} PTS Daily Reward Claimed!
+              </span>
+            ) : (
+              <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                <Coins className="w-3.5 h-3.5 text-amber-400" />
+                Complete 100% to Earn +{dailyTaskCompletionReward} PTS
+              </span>
+            )}
 
             {streakDays > 0 && (
               <span className="px-3 py-1 rounded-full bg-orange-500/20 text-orange-300 border border-orange-500/30 text-xs font-bold flex items-center gap-1.5 shadow-sm">
                 <Flame className="w-3.5 h-3.5 text-orange-400 fill-orange-400 animate-pulse" />
-                {streakDays} Days Daily Streak
+                {streakDays} Days Streak
               </span>
             )}
           </div>
@@ -51,8 +68,8 @@ export const DailyProgressBanner: React.FC<DailyProgressBannerProps> = ({
 
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
             {isAllComplete
-              ? 'You have finished all must-do comments, replies, and routine warmups across your Facebook accounts for today. Streak credited!'
-              : `Complete the routine checklist on all ${totalAccounts} Facebook accounts to maintain high trust and earn streak bonuses.`}
+              ? `You have finished all required comments, replies, and routine warmups for today! Your +${dailyTaskCompletionReward} PTS daily reward and streak have been credited.`
+              : `Complete the routine checklist across all ${totalAccounts} Facebook profiles today to claim your +${dailyTaskCompletionReward} PTS daily completion reward.`}
           </p>
         </div>
 
