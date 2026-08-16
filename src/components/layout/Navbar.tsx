@@ -13,8 +13,6 @@ import {
   ShieldCheck,
   User as UserIcon,
   LogOut,
-  ChevronDown,
-  Sparkles,
   Layers,
   CheckCircle2,
   Menu,
@@ -27,7 +25,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { user, logout, demoLogin } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const { accounts, selectedAccount, setSelectedAccount } = useAccountStore();
   const { overallProgress } = useDailyStore();
 
@@ -131,18 +129,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
 
           {/* Live Notification Dropdown Bell */}
           <NotificationDropdown />
-
-          {/* Quick Demo Role Switcher button */}
-          <div className="hidden xl:flex items-center gap-1 bg-slate-900/90 border border-slate-800 rounded-xl p-1">
-            <button
-              onClick={() => demoLogin(isAdmin ? 'smm' : 'admin')}
-              className="text-[11px] font-medium px-2.5 py-1 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition-colors flex items-center gap-1"
-              title="Quickly switch demo role to test Admin and SMM views"
-            >
-              <Sparkles className="w-3 h-3 text-indigo-400" />
-              {t('common.switchRole')} {isAdmin ? 'SMM' : 'Admin'}
-            </button>
-          </div>
 
           {/* User Profile & Role Pill */}
           <div className="flex items-center gap-2.5 pl-2 border-l border-slate-800">

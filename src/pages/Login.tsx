@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../stores/useAuthStore';
+import { LanguageSwitcher } from '../components/ui/LanguageSwitcher';
 import { Button } from '../components/ui/Button';
-import { ShieldCheck, UserCheck, Lock, Mail, ArrowRight, Sparkles } from 'lucide-react';
+import { Lock, Mail, ArrowRight } from 'lucide-react';
 
 export const Login: React.FC = () => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const { login, demoLogin, isLoading, error } = useAuthStore();
+  const { login, isLoading, error } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -16,13 +19,13 @@ export const Login: React.FC = () => {
     if (success) navigate('/');
   };
 
-  const handleDemo = async (role: 'admin' | 'smm') => {
-    const success = await demoLogin(role);
-    if (success) navigate('/');
-  };
-
   return (
     <div className="min-h-screen bg-[#070B14] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+      {/* Top language toggle */}
+      <div className="absolute top-6 right-6 z-20">
+        <LanguageSwitcher />
+      </div>
+
       {/* Background ambient lighting */}
       <div className="absolute top-1/4 -left-20 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl pointer-events-none" />
@@ -33,7 +36,7 @@ export const Login: React.FC = () => {
         <div className="text-center space-y-2">
           <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-0.5 shadow-glow-brand mb-2">
             <div className="w-full h-full bg-[#090D16] rounded-[14px] flex items-center justify-center">
-              <span className="font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300 text-2xl">
+              <span className="font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300 text-2xl font-sans">
                 ET
               </span>
             </div>
@@ -44,49 +47,19 @@ export const Login: React.FC = () => {
           </p>
         </div>
 
-        {/* 1-Click Quick Demo Login Shortcuts */}
-        <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800/80 space-y-2.5">
-          <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-            <span className="flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-indigo-400" /> Quick 1-Click Demo Login:
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => handleDemo('admin')}
-              leftIcon={<ShieldCheck className="w-4 h-4 text-indigo-400" />}
-              className="text-xs border-indigo-500/30 hover:border-indigo-500/60"
-            >
-              Demo Admin
-            </Button>
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => handleDemo('smm')}
-              leftIcon={<UserCheck className="w-4 h-4 text-emerald-400" />}
-              className="text-xs border-emerald-500/30 hover:border-emerald-500/60"
-            >
-              Demo SMM
-            </Button>
-          </div>
-        </div>
-
         {/* Login Form */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1.5">Email Address</label>
+            <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+              Email Address / ইমেইল ঠিকানা
+            </label>
             <div className="relative">
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="name@esytaka.com"
-                className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm"
+                className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm font-medium"
                 required
               />
               <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -94,7 +67,9 @@ export const Login: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-1.5">Password</label>
+            <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+              Password / পাসওয়ার্ড
+            </label>
             <div className="relative">
               <input
                 type="password"
@@ -109,7 +84,7 @@ export const Login: React.FC = () => {
           </div>
 
           {error && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300">
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300 font-semibold">
               {error}
             </div>
           )}
@@ -119,17 +94,19 @@ export const Login: React.FC = () => {
             variant="glow"
             size="lg"
             isLoading={isLoading}
-            className="w-full shadow-glow-brand"
+            className="w-full shadow-glow-brand font-bold"
             rightIcon={<ArrowRight className="w-4 h-4" />}
           >
-            Sign In to Workspace
+            Sign In / সাইন ইন করুন
           </Button>
         </form>
 
-        <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-800/80">
-          <span>🔒 Account registration is by <strong>Admin invitation only</strong>.</span>
-          <p className="text-[11px] text-slate-500 mt-1">
-            Check your email for your private onboarding link or contact an administrator.
+        <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-800/80 space-y-1">
+          <p className="text-[11px] text-slate-400 font-medium">
+            🔒 Account registration is by <strong>Admin invitation only</strong>.
+          </p>
+          <p className="text-[11px] text-slate-500">
+            Check your email for your private onboarding link or contact your team administrator.
           </p>
         </div>
       </div>
