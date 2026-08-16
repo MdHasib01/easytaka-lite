@@ -1,4 +1,5 @@
 export type UserRole = 'admin' | 'smm';
+export type UserAccountStatus = 'invited' | 'pending_verification' | 'active' | 'rejected' | 'suspended';
 
 export interface User {
   id: string;
@@ -6,9 +7,20 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  status: UserAccountStatus;
   rewardPoints: number;
   avatar?: string;
   phone?: string;
+  nidFront?: string;
+  nidBack?: string;
+  nidNumber?: string;
+  address?: string;
+  termsAgreed?: boolean;
+  termsAgreedAt?: string;
+  verificationSubmittedAt?: string;
+  verifiedBy?: string | { _id: string; name: string; email: string };
+  verifiedAt?: string;
+  rejectionReason?: string;
   streakDays: number;
   lastActiveDate?: string;
   createdAt?: string;

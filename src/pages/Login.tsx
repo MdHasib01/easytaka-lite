@@ -108,7 +108,11 @@ export const Login: React.FC = () => {
             </div>
           </div>
 
-          {error && <p className="text-xs text-rose-400 font-medium">{error}</p>}
+          {error && (
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-xs text-rose-300">
+              {error}
+            </div>
+          )}
 
           <Button
             type="submit"
@@ -122,11 +126,11 @@ export const Login: React.FC = () => {
           </Button>
         </form>
 
-        <div className="text-center text-xs text-slate-400">
-          Don't have an account?{' '}
-          <Link to="/register" className="text-indigo-400 hover:text-indigo-300 font-semibold">
-            Create SMM Account
-          </Link>
+        <div className="text-center text-xs text-slate-500 pt-2 border-t border-slate-800/80">
+          <span>🔒 Account registration is by <strong>Admin invitation only</strong>.</span>
+          <p className="text-[11px] text-slate-500 mt-1">
+            Check your email for your private onboarding link or contact an administrator.
+          </p>
         </div>
       </div>
     </div>

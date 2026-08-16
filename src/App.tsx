@@ -4,6 +4,7 @@ import { useAuthStore } from './stores/useAuthStore';
 import { Layout } from './components/layout/Layout';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { SetupAccount } from './pages/SetupAccount';
 import { Dashboard } from './pages/Dashboard';
 import { TasksPage } from './pages/TasksPage';
 import { VerificationsPage } from './pages/VerificationsPage';
@@ -35,6 +36,7 @@ export const App: React.FC = () => {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/setup-account" element={<SetupAccount />} />
 
         {/* Protected Dashboard & App Routes */}
         <Route

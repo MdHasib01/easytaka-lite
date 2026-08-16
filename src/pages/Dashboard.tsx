@@ -10,6 +10,7 @@ import { TaskCard } from '../components/tasks/TaskCard';
 import { VerificationCard } from '../components/tasks/VerificationCard';
 import { SubmitProofModal } from '../components/tasks/SubmitProofModal';
 import { CreateTaskModal } from '../components/tasks/CreateTaskModal';
+import { InviteSmmModal } from '../components/admin/InviteSmmModal';
 import { Button } from '../components/ui/Button';
 import { Task } from '../types';
 import {
@@ -24,6 +25,7 @@ import {
   Layers,
   Sparkles,
   TrendingUp,
+  UserPlus,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
@@ -38,6 +40,7 @@ export const Dashboard: React.FC = () => {
 
   const [selectedTaskForProof, setSelectedTaskForProof] = useState<Task | null>(null);
   const [createTaskModalOpen, setCreateTaskModalOpen] = useState(false);
+  const [inviteSmmModalOpen, setInviteSmmModalOpen] = useState(false);
 
   const isAdmin = user?.role === 'admin';
 
@@ -79,13 +82,22 @@ export const Dashboard: React.FC = () => {
 
         <div className="flex items-center gap-3">
           {isAdmin ? (
-            <Button
-              variant="glow"
-              onClick={() => setCreateTaskModalOpen(true)}
-              leftIcon={<PlusCircle className="w-4 h-4" />}
-            >
-              Create New Task
-            </Button>
+            <>
+              <Button
+                variant="secondary"
+                onClick={() => setInviteSmmModalOpen(true)}
+                leftIcon={<UserPlus className="w-4 h-4 text-indigo-400" />}
+              >
+                Invite SMM
+              </Button>
+              <Button
+                variant="glow"
+                onClick={() => setCreateTaskModalOpen(true)}
+                leftIcon={<PlusCircle className="w-4 h-4" />}
+              >
+                Create New Task
+              </Button>
+            </>
           ) : (
             <Link to="/accounts">
               <Button
@@ -380,6 +392,12 @@ export const Dashboard: React.FC = () => {
         isOpen={createTaskModalOpen}
         onClose={() => setCreateTaskModalOpen(false)}
         onSubmit={createTask}
+      />
+
+      {/* Admin Invite SMM Modal */}
+      <InviteSmmModal
+        isOpen={inviteSmmModalOpen}
+        onClose={() => setInviteSmmModalOpen(false)}
       />
     </div>
   );
