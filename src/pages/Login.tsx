@@ -34,12 +34,12 @@ export const Login: React.FC = () => {
       <div className="w-full max-w-md glass-panel p-8 rounded-3xl border border-slate-800 shadow-2xl relative z-10 space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-0.5 shadow-glow-brand mb-2">
-            <div className="w-full h-full bg-[#090D16] rounded-[14px] flex items-center justify-center">
-              <span className="font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300 text-2xl font-sans">
-                ET
-              </span>
-            </div>
+          <div className="flex items-center justify-center mb-2">
+            <img
+              src="/assets/logo.png"
+              alt="EsyTaka Lite"
+              className="h-14 w-auto object-contain drop-shadow-lg"
+            />
           </div>
           <h1 className="text-2xl font-extrabold text-white tracking-tight">EsyTaka Lite</h1>
           <p className="text-xs text-slate-400">

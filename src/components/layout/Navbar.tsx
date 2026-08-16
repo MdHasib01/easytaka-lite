@@ -44,14 +44,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onToggleSidebar }) => {
             <Menu className="w-5 h-5" />
           </button>
 
-          <Link to="/" className="flex items-center gap-2 sm:gap-2.5 group flex-shrink-0">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-0.5 shadow-glow-fb flex items-center justify-center flex-shrink-0">
-              <div className="w-full h-full bg-[#090D16] rounded-[10px] flex items-center justify-center">
-                <span className="font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-400 text-sm sm:text-lg font-sans">
-                  ET
-                </span>
-              </div>
-            </div>
+          <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group flex-shrink-0">
+            <img
+              src="/assets/logo.png"
+              alt="EsyTaka Lite"
+              className="h-8 sm:h-9 w-auto object-contain flex-shrink-0 drop-shadow-md group-hover:scale-105 transition-transform"
+            />
             <div className="min-w-0">
               <div className="flex items-center gap-1.5 flex-nowrap">
                 <span className="font-bold text-sm sm:text-base tracking-tight text-white group-hover:text-indigo-300 transition-colors font-sans whitespace-nowrap">

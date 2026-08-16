@@ -20,6 +20,7 @@ import {
   Eye,
   EyeOff,
   Clock,
+  Image as ImageIcon,
 } from 'lucide-react';
 
 export const SetupAccount: React.FC = () => {
@@ -43,10 +44,9 @@ export const SetupAccount: React.FC = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
 
-  // Step 2 Form fields
+  // Step 2 Form fields (NID front/back images only)
   const [nidFront, setNidFront] = useState<string>('');
   const [nidBack, setNidBack] = useState<string>('');
-  const [nidNumber, setNidNumber] = useState<string>('');
   const [address, setAddress] = useState<string>('');
   const [termsAgreed, setTermsAgreed] = useState<boolean>(false);
   const [termsModalOpen, setTermsModalOpen] = useState<boolean>(false);
@@ -133,7 +133,6 @@ export const SetupAccount: React.FC = () => {
         avatar: avatarUrl,
         nidFront,
         nidBack,
-        nidNumber: nidNumber.trim(),
         address: address.trim(),
         termsAgreed: true,
       };
@@ -158,57 +157,58 @@ export const SetupAccount: React.FC = () => {
       <div className="min-h-screen bg-[#070B14] flex flex-col items-center justify-center p-4">
         <div className="glass-panel p-8 rounded-3xl border border-slate-800 text-center space-y-4 max-w-md w-full">
           <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center mx-auto animate-pulse">
-            <ShieldCheck className="w-6 h-6" />
+            <Clock className="w-6 h-6" />
           </div>
-          <h2 className="text-xl font-bold text-white">Validating Invitation...</h2>
-          <p className="text-xs text-slate-400">Verifying secure onboarding access credentials.</p>
+          <h2 className="text-xl font-bold text-white">Validating Invitation Link</h2>
+          <p className="text-xs text-slate-400">
+            Please wait while we verify your personalized onboarding token...
+          </p>
         </div>
       </div>
     );
   }
 
-  // Token Error state
+  // Error state if token is invalid or expired
   if (tokenError) {
     return (
-      <div className="min-h-screen bg-[#070B14] flex flex-col items-center justify-center p-4 relative">
-        <div className="w-full max-w-md glass-panel p-8 rounded-3xl border border-rose-500/30 text-center space-y-5 shadow-2xl">
-          <div className="w-14 h-14 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto border border-rose-500/30">
+      <div className="min-h-screen bg-[#070B14] flex flex-col items-center justify-center p-4">
+        <div className="glass-panel p-8 rounded-3xl border border-slate-800 text-center space-y-6 max-w-md w-full shadow-2xl">
+          <div className="w-14 h-14 rounded-2xl bg-rose-500/20 border border-rose-500/30 text-rose-400 flex items-center justify-center mx-auto">
             <AlertTriangle className="w-7 h-7" />
           </div>
-          <div className="space-y-1">
-            <h2 className="text-xl font-extrabold text-white">Invalid Invitation</h2>
-            <p className="text-xs text-rose-300">{tokenError}</p>
+          <div className="space-y-2">
+            <h2 className="text-xl font-extrabold text-white">Invalid or Expired Link</h2>
+            <p className="text-xs text-slate-400 leading-relaxed">{tokenError}</p>
           </div>
-          <p className="text-xs text-slate-400">
-            Please ask your administrator to send you a fresh invitation link to join EsyTaka Lite.
-          </p>
-          <div className="pt-2">
-            <Link to="/login">
-              <Button variant="secondary" className="w-full">
-                Back to Sign In
-              </Button>
-            </Link>
+          <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 text-left">
+            <span className="font-semibold text-slate-300 block mb-1">What should you do?</span>
+            Please contact your administrator to request a new invitation email.
           </div>
+          <Link to="/login">
+            <Button variant="secondary" className="w-full" leftIcon={<ArrowLeft className="w-4 h-4" />}>
+              Back to Sign In
+            </Button>
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#070B14] flex flex-col items-center justify-center p-4 sm:p-6 relative overflow-x-hidden">
-      {/* Background glow effects */}
+    <div className="min-h-screen bg-[#070B14] flex flex-col items-center justify-center p-4 py-12 relative overflow-hidden">
+      {/* Ambient background glows */}
       <div className="absolute top-1/4 -left-20 w-96 h-96 bg-indigo-600/15 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-2xl glass-panel p-6 sm:p-10 rounded-3xl border border-slate-800 shadow-2xl relative z-10 space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-purple-600 p-0.5 shadow-glow-brand mb-1">
-            <div className="w-full h-full bg-[#090D16] rounded-[14px] flex items-center justify-center">
-              <span className="font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300 text-2xl">
-                ET
-              </span>
-            </div>
+          <div className="flex items-center justify-center mb-2">
+            <img
+              src="/assets/logo.png"
+              alt="EsyTaka Lite"
+              className="h-12 sm:h-14 w-auto object-contain drop-shadow-md"
+            />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
             SMM Agent Account Setup
@@ -258,57 +258,56 @@ export const SetupAccount: React.FC = () => {
           </div>
         </div>
 
-        {/* Form Errors */}
+        {/* Form Error Banner */}
         {formError && (
-          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <div className="p-3.5 rounded-2xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs font-semibold flex items-center gap-2.5 animate-in fade-in">
+            <AlertTriangle className="w-4 h-4 text-rose-400 flex-shrink-0" />
             <span>{formError}</span>
           </div>
         )}
 
-        {/* STEP 1: Personal Info & Photo */}
+        {/* STEP 1: Basic Profile, Phone & Password */}
         {currentStep === 1 && (
           <form onSubmit={handleProceedToStep2} className="space-y-4">
-            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between text-xs">
-              <span className="text-slate-400">Invited Email:</span>
-              <span className="text-indigo-300 font-bold">{invitedEmail}</span>
+            <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 space-y-1">
+              <span className="text-slate-300 font-semibold block">Invited Email Address:</span>
+              <span className="font-mono text-indigo-300 font-bold">{invitedEmail}</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Full Legal Name <span className="text-rose-400">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Tanvir Hossain"
-                    className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm"
-                    required
-                  />
-                  <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Phone Number
-                </label>
-                <div className="relative">
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+880 1700 000000"
-                    className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm"
-                  />
-                  <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                Full Name / পুরো নাম <span className="text-rose-400">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Sarah Khan"
+                  className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm"
+                  required
+                />
+                <User className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               </div>
             </div>
 
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                Mobile Number / মোবাইল নম্বর (Optional / bKash)
+              </label>
+              <div className="relative">
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="017XXXXXXXX"
+                  className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm font-mono"
+                />
+                <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+              </div>
+            </div>
+
+            {/* Password and Confirm Password */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-slate-300 block mb-1.5">
@@ -319,7 +318,7 @@ export const SetupAccount: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Minimum 6 characters"
+                    placeholder="Min 6 characters"
                     className="w-full px-3.5 py-2.5 pl-9 pr-9 rounded-xl glass-input text-sm"
                     required
                   />
@@ -327,7 +326,7 @@ export const SetupAccount: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="text-slate-400 hover:text-white absolute right-3 top-3"
+                    className="absolute right-3 top-3 text-slate-400 hover:text-white"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -343,7 +342,7 @@ export const SetupAccount: React.FC = () => {
                     type={showPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Re-type password"
+                    placeholder="Re-enter password"
                     className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm"
                     required
                   />
@@ -375,15 +374,51 @@ export const SetupAccount: React.FC = () => {
           </form>
         )}
 
-        {/* STEP 2: National ID Dual-Sided & Legal Terms */}
+        {/* STEP 2: National ID Dual-Sided Images & Legal Terms */}
         {currentStep === 2 && (
           <form onSubmit={handleSubmitOnboarding} className="space-y-5">
             <div className="p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs text-indigo-300 flex items-start gap-2.5">
               <CreditCard className="w-4 h-4 flex-shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold block text-white">Identity Verification Requirement</span>
-                Please upload clear, legible photos of both sides of your National ID (NID) card.
-                This ensures workspace compliance and secures your payout account.
+                Please upload clear photos of both Front and Back sides of your National ID (NID) card.
+                NID number input is not required — only clear front & back photos.
+              </div>
+            </div>
+
+            {/* NID Example Previews Guide */}
+            <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between text-xs font-bold text-slate-300">
+                <span className="flex items-center gap-1.5 text-indigo-400">
+                  <Sparkles className="w-4 h-4 text-indigo-400" /> Example National ID Format:
+                </span>
+                <span className="text-[11px] text-slate-400 font-normal">Reference sample</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <div className="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 p-1 flex items-center justify-center">
+                    <img
+                      src="/assets/nid-front.png"
+                      alt="Sample NID Front"
+                      className="w-full h-32 object-contain rounded-lg"
+                    />
+                  </div>
+                  <span className="text-[11px] font-bold text-center block text-slate-300">
+                    Sample: NID Front Side (সামনের দিক)
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  <div className="rounded-xl overflow-hidden border border-slate-700 bg-slate-950 p-1 flex items-center justify-center">
+                    <img
+                      src="/assets/nid-back.png"
+                      alt="Sample NID Back"
+                      className="w-full h-32 object-contain rounded-lg"
+                    />
+                  </div>
+                  <span className="text-[11px] font-bold text-center block text-slate-300">
+                    Sample: NID Back Side (পিছনের দিক)
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -391,7 +426,7 @@ export const SetupAccount: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-1">
                 <CloudinaryUploader
-                  label="National ID Card — Front Side"
+                  label="Upload Your National ID — Front Side"
                   required
                   defaultUrl={nidFront}
                   onUploadSuccess={(url) => setNidFront(url)}
@@ -400,7 +435,7 @@ export const SetupAccount: React.FC = () => {
 
               <div className="space-y-1">
                 <CloudinaryUploader
-                  label="National ID Card — Back Side"
+                  label="Upload Your National ID — Back Side"
                   required
                   defaultUrl={nidBack}
                   onUploadSuccess={(url) => setNidBack(url)}
@@ -408,38 +443,20 @@ export const SetupAccount: React.FC = () => {
               </div>
             </div>
 
-            {/* NID Number & Address Details */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  National ID / Smart Card Number (Optional)
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={nidNumber}
-                    onChange={(e) => setNidNumber(e.target.value)}
-                    placeholder="e.g. 5928193821092"
-                    className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm"
-                  />
-                  <CreditCard className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Present Residential Address (Optional)
-                </label>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={address}
-                    onChange={(e) => setAddress(e.target.value)}
-                    placeholder="City, District, Country"
-                    className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm"
-                  />
-                  <Building className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                </div>
+            {/* Residential Address Details */}
+            <div>
+              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                Present Residential Address (Optional)
+              </label>
+              <div className="relative">
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="City, District, Bangladesh"
+                  className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm"
+                />
+                <Building className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
               </div>
             </div>
 
@@ -498,39 +515,35 @@ export const SetupAccount: React.FC = () => {
         {/* STEP 3: Verification Submitted Screen */}
         {currentStep === 3 && (
           <div className="text-center py-6 space-y-6">
-            <div className="relative inline-block">
-              <div className="w-20 h-20 rounded-3xl bg-amber-500/20 border border-amber-500/40 text-amber-400 flex items-center justify-center mx-auto shadow-glow-brand">
-                <Clock className="w-10 h-10 animate-pulse" />
-              </div>
+            <div className="w-20 h-20 rounded-3xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center mx-auto shadow-glow-brand animate-in zoom-in">
+              <ShieldCheck className="w-10 h-10" />
             </div>
 
-            <div className="space-y-2 max-w-lg mx-auto">
-              <h2 className="text-2xl font-extrabold text-white">
-                Account Submitted for Verification!
+            <div className="space-y-2">
+              <h2 className="text-2xl font-extrabold text-white tracking-tight">
+                Application Submitted Successfully!
               </h2>
-              <p className="text-sm text-slate-300 leading-relaxed">
-                Thank you for completing your registration, <strong>{name}</strong>. Your profile
-                details and National ID documents have been submitted securely to our Administrator
-                team.
+              <p className="text-xs sm:text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+                Your profile and National ID documents have been submitted to the administration
+                team for verification.
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400 max-w-md mx-auto space-y-2 text-left">
-              <div className="flex items-center gap-2 text-indigo-300 font-semibold">
-                <ShieldCheck className="w-4 h-4" />
-                <span>What happens next?</span>
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300 text-left space-y-2 max-w-md mx-auto">
+              <div className="flex items-center gap-2 font-bold text-amber-400">
+                <Clock className="w-4 h-4" />
+                <span>Account Status: Pending Review</span>
               </div>
-              <ul className="list-disc list-inside space-y-1 text-slate-400">
-                <li>An administrator will inspect and verify your National ID.</li>
-                <li>You will receive an email confirmation once your account is activated.</li>
-                <li>After approval, log in with your email and chosen password to access tasks.</li>
-              </ul>
+              <p className="text-slate-300 leading-relaxed">
+                Our administrators usually review and approve SMM accounts within a few hours. Once
+                approved, you can sign in with your email and password to start tasks and earn points.
+              </p>
             </div>
 
-            <div className="pt-4 max-w-xs mx-auto">
+            <div className="pt-2 max-w-xs mx-auto">
               <Link to="/login">
                 <Button variant="glow" size="lg" className="w-full shadow-glow-brand">
-                  Go to Sign In Page
+                  Go to Sign In
                 </Button>
               </Link>
             </div>
@@ -542,56 +555,34 @@ export const SetupAccount: React.FC = () => {
       <Modal
         isOpen={termsModalOpen}
         onClose={() => setTermsModalOpen(false)}
-        title="Terms & Conditions & SMM Policies"
-        subtitle="EsyTaka Lite Workplace Identity and Activity Compliance Guidelines"
+        title="Terms & Conditions and SMM Workplace Policies"
+        subtitle="Please review our operational standards and verification rules."
         maxWidth="lg"
       >
-        <div className="space-y-4 text-xs text-slate-300 max-h-96 overflow-y-auto pr-2">
-          <div>
-            <h4 className="font-bold text-white mb-1">1. Identity Verification</h4>
-            <p className="text-slate-400 leading-relaxed">
-              All Social Media Marketers (SMMs) on EsyTaka Lite must provide authentic government-issued
-              identification (National ID / Smart Card) to ensure authentic task operations and prevent
-              fraudulent submissions.
+        <div className="space-y-4 text-xs text-slate-300 leading-relaxed max-h-[60vh] overflow-y-auto pr-2">
+          <div className="space-y-1">
+            <h4 className="font-bold text-white text-sm">1. Identity Verification</h4>
+            <p className="text-slate-400">
+              All SMM candidates must submit genuine, unaltered National ID (NID) photos. Accounts
+              found with fraudulent or forged documents will be permanently blacklisted.
             </p>
           </div>
 
-          <div>
-            <h4 className="font-bold text-white mb-1">2. Data Privacy & Document Security</h4>
-            <p className="text-slate-400 leading-relaxed">
-              Your National ID documents are stored encrypted in secure cloud storage accessible only by
-              verified system administrators for the purpose of identity validation.
+          <div className="space-y-1">
+            <h4 className="font-bold text-white text-sm">2. Task Integrity & Verification</h4>
+            <p className="text-slate-400">
+              Facebook profile submissions, post engagements, and routine task executions must
+              strictly comply with the provided guidelines.
             </p>
           </div>
 
-          <div>
-            <h4 className="font-bold text-white mb-1">3. Task Integrity & Fair Operations</h4>
-            <p className="text-slate-400 leading-relaxed">
-              SMM agents agree to perform Facebook media tasks according to specified rules and guidelines.
-              Submission of fake proofs or forged documents will result in permanent account suspension.
+          <div className="space-y-1">
+            <h4 className="font-bold text-white text-sm">3. Reward Points & Payouts</h4>
+            <p className="text-slate-400">
+              Reward points are earned through completed and verified tasks. Payout redemptions to
+              bKash are subject to a 7-day recurring cycle from your join date and work activity.
             </p>
           </div>
-
-          <div>
-            <h4 className="font-bold text-white mb-1">4. Reward Points & Payouts</h4>
-            <p className="text-slate-400 leading-relaxed">
-              Points earned through approved daily routines and verified task submissions are credited to
-              your account balance once verified by an administrator.
-            </p>
-          </div>
-        </div>
-
-        <div className="pt-4 flex justify-end">
-          <Button
-            variant="glow"
-            size="sm"
-            onClick={() => {
-              setTermsAgreed(true);
-              setTermsModalOpen(false);
-            }}
-          >
-            I Understand & Agree
-          </Button>
         </div>
       </Modal>
     </div>

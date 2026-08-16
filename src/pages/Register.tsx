@@ -10,8 +10,12 @@ export const Register: React.FC = () => {
       <div className="absolute bottom-1/4 -left-20 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none" />
 
       <div className="w-full max-w-md glass-panel p-8 rounded-3xl border border-slate-800 shadow-2xl relative z-10 space-y-6 text-center">
-        <div className="w-16 h-16 rounded-3xl bg-indigo-600/20 border border-indigo-500/30 text-indigo-400 flex items-center justify-center mx-auto shadow-glow-brand">
-          <Lock className="w-8 h-8" />
+        <div className="flex items-center justify-center mb-1">
+          <img
+            src="/assets/logo.png"
+            alt="EsyTaka Lite"
+            className="h-14 w-auto object-contain drop-shadow-md"
+          />
         </div>
 
         <div className="space-y-2">
