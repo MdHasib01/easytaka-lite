@@ -48,6 +48,7 @@ export interface FacebookAccount {
   password?: string;
   passwordHint?: string;
   emailOrPhone?: string;
+  emailPassword?: string;
   twoFactorSecret?: string;
   avatarUrl?: string;
   status: AccountStatus;
@@ -233,6 +234,23 @@ export interface SystemSettings {
   withdrawalCycleDays?: number;
   pointToBdtRate?: number;
   withdrawalEnabled?: boolean;
+  recoveryEmailConfig?: {
+    address: string;
+    imapHost: string;
+    imapPort: number;
+    enabled: boolean;
+    pollIntervalSeconds: number;
+    triggerSender?: string; // e.g. "Facebook <notification@facebook.com>" — only mail from this sender is checked
+    appPasswordSet?: boolean; // read-only: true if a password is already stored
+    appPassword?: string; // write-only: set to store/replace the stored password
+  };
+  aiConfig?: {
+    provider: 'openai' | 'gemini';
+    model: string;
+    enabled: boolean;
+    apiKeySet?: boolean; // read-only: true if a key is already stored
+    apiKey?: string; // write-only: set to store/replace the stored key
+  };
   updatedAt?: string;
 }
 

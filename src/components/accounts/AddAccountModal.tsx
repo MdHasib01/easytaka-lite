@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { FacebookAccount } from '../../types';
-import { Link as LinkIcon, User, Lock, Hash, Eye, EyeOff, Plus, CheckCircle2 } from 'lucide-react';
+import { Link as LinkIcon, User, Lock, Hash, Mail, Eye, EyeOff, Plus, CheckCircle2 } from 'lucide-react';
 
 interface AddAccountModalProps {
   isOpen: boolean;
@@ -22,6 +22,9 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
   const [profileUid, setProfileUid] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState('');
+  const [emailPassword, setEmailPassword] = useState('');
+  const [showEmailPassword, setShowEmailPassword] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,14 +35,19 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       setAccountName(initialAccount.accountName || '');
       setProfileUid(initialAccount.profileUid || '');
       setPassword(initialAccount.password || initialAccount.passwordHint || '');
+      setEmail(initialAccount.emailOrPhone || '');
+      setEmailPassword(initialAccount.emailPassword || '');
     } else {
       setProfileUrl('');
       setAccountName('');
       setProfileUid('');
       setPassword('');
+      setEmail('');
+      setEmailPassword('');
     }
     setError(null);
     setShowPassword(false);
+    setShowEmailPassword(false);
   }, [initialAccount, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -58,6 +66,8 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       profileUid: profileUid.trim(),
       password: password.trim(),
       passwordHint: password.trim(),
+      emailOrPhone: email.trim(),
+      emailPassword: emailPassword.trim(),
     };
 
     const res = await onSubmit(payload);
@@ -153,6 +163,47 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
               className="text-slate-400 hover:text-white absolute right-3 top-3 p-0.5"
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+
+        {/* 5. Email */}
+        <div>
+          <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+            Email <span className="text-slate-500 font-normal">(Used to sign up / recover the account)</span>
+          </label>
+          <div className="relative">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="account.email@example.com"
+              className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm text-white placeholder-slate-500"
+            />
+            <Mail className="w-4 h-4 text-emerald-400 absolute left-3 top-3" />
+          </div>
+        </div>
+
+        {/* 6. Email Password */}
+        <div>
+          <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+            Email Password <span className="text-slate-500 font-normal">(For secure account vault)</span>
+          </label>
+          <div className="relative">
+            <input
+              type={showEmailPassword ? 'text' : 'password'}
+              value={emailPassword}
+              onChange={(e) => setEmailPassword(e.target.value)}
+              placeholder="Enter email account password"
+              className="w-full px-3.5 py-2.5 pl-9 pr-10 rounded-xl glass-input text-sm text-white placeholder-slate-500"
+            />
+            <Lock className="w-4 h-4 text-amber-400 absolute left-3 top-3" />
+            <button
+              type="button"
+              onClick={() => setShowEmailPassword(!showEmailPassword)}
+              className="text-slate-400 hover:text-white absolute right-3 top-3 p-0.5"
+            >
+              {showEmailPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
           </div>
         </div>

@@ -17,6 +17,7 @@ import {
   Sparkles,
   UserPlus,
   Wallet,
+  Settings as SettingsIcon,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -69,6 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           badgeColor: 'bg-pink-500/20 text-pink-300 border-pink-500/30',
         },
         { name: t('nav.myProfile'), path: '/profile', icon: UserCheck },
+        { name: t('nav.adminSettings'), path: '/settings', icon: SettingsIcon },
       ]
     : [
         { name: t('nav.smmDashboard'), path: '/', icon: LayoutDashboard },
