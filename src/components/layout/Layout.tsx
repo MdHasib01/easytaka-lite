@@ -3,13 +3,14 @@ import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
 import { LiveNotificationToast } from '../notifications/LiveNotificationToast';
+import { ForcePasswordChangeGate } from '../auth/ForcePasswordChangeGate';
 import { useAuthStore } from '../../stores/useAuthStore';
 import { useNotificationStore } from '../../stores/useNotificationStore';
 import { disconnectWebSocket } from '../../services/socket';
 
 export const Layout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { token, isAuthenticated } = useAuthStore();
+  const { token, isAuthenticated, user } = useAuthStore();
   const { fetchNotifications, initSocketListeners } = useNotificationStore();
 
   useEffect(() => {
@@ -23,6 +24,10 @@ export const Layout: React.FC = () => {
       disconnectWebSocket();
     };
   }, [token, isAuthenticated]);
+
+  if (user?.requirePasswordChange) {
+    return <ForcePasswordChangeGate />;
+  }
 
   return (
     <div className="min-h-screen bg-[#070B14] flex flex-col relative">

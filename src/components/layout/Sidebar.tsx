@@ -18,6 +18,7 @@ import {
   UserPlus,
   Wallet,
   Settings as SettingsIcon,
+  UserCog,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -61,6 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           badgeColor: 'bg-amber-500/20 text-amber-300 border-amber-500/30',
         },
         { name: t('nav.allAccounts'), path: '/accounts', icon: Users },
+        { name: t('nav.smmManagement') || 'SMM Management', path: '/smm-management', icon: UserCog },
         { name: t('nav.smmLeaderboard'), path: '/leaderboard', icon: Trophy },
         {
           name: t('nav.withdrawals') || 'Withdrawals',

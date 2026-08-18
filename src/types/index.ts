@@ -8,6 +8,8 @@ export interface User {
   email: string;
   role: UserRole;
   status: UserAccountStatus;
+  isActive?: boolean;
+  requirePasswordChange?: boolean;
   rewardPoints: number;
   dailyTaskCompletionReward?: number;
   lastDailyRewardDate?: string;
