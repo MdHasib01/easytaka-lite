@@ -16,6 +16,7 @@ import {
   UserCheck,
   Sparkles,
   Award,
+  ShieldCheck,
 } from 'lucide-react';
 import type {
   FacebookAccount,
