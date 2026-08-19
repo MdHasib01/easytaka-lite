@@ -33,6 +33,11 @@ export interface User {
 export type AccountStatus = 'active' | 'warmup' | 'restricted' | 'checkpoint' | 'banned';
 export type AccountApprovalStatus = 'pending' | 'approved' | 'rejected';
 
+// SMM Multi-Persona Roles & Modes from SMM Guideline
+export type FacebookAccountMode = 'reviewer' | 'question' | 'support' | 'navigation' | 'general';
+export type FacebookAssignedProduct = 'milkimom' | 'milkready' | 'smoothflow' | 'stableflow' | 'all_products' | 'none';
+export type FacebookWorkloadTier = 'active' | 'light' | 'rest';
+
 export interface RoutineTargets {
   feedComments: number;
   communityReplies: number;
@@ -65,6 +70,15 @@ export interface FacebookAccount {
   pointsAwarded?: number;
   accountCategory?: string;
   targetRegion?: string;
+  accountMode?: FacebookAccountMode;
+  assignedProduct?: FacebookAssignedProduct;
+  workloadTier?: FacebookWorkloadTier;
+  childAge?: string;
+  purchaseDate?: string;
+  purchaseHistory?: string;
+  writingStyle?: string;
+  personaBio?: string;
+  customGuideline?: string;
   friendsCount: number;
   groupsCount: number;
   notes?: string;
@@ -206,6 +220,15 @@ export interface DailyRoutineCardData {
     avatarUrl?: string;
     status: AccountStatus;
     approvalStatus?: AccountApprovalStatus;
+    accountMode?: FacebookAccountMode;
+    assignedProduct?: FacebookAssignedProduct;
+    workloadTier?: FacebookWorkloadTier;
+    childAge?: string;
+    purchaseDate?: string;
+    purchaseHistory?: string;
+    writingStyle?: string;
+    personaBio?: string;
+    customGuideline?: string;
     routineTargets: RoutineTargets;
   };
 }

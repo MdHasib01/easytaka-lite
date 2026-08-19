@@ -13,8 +13,10 @@ import {
   PlusCircle,
   Flame,
   CheckCircle2,
+  BookOpen,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SmmGuidelineModal } from '../components/accounts/SmmGuidelineModal';
 
 export const DailyRoutinesPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -31,6 +33,7 @@ export const DailyRoutinesPage: React.FC = () => {
   } = useDailyStore();
   const { accounts, fetchMyAccounts } = useAccountStore();
 
+  const [guidelineModalOpen, setGuidelineModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
@@ -64,23 +67,33 @@ export const DailyRoutinesPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Date Selector */}
-        <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-1.5 px-3">
-          <Calendar className="w-4 h-4 text-indigo-400" />
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="bg-transparent text-xs text-slate-200 font-medium focus:outline-none cursor-pointer"
-          />
-          {!isToday && (
-            <button
-              onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
-              className="text-[11px] text-indigo-400 hover:text-indigo-300 font-semibold ml-2 underline"
-            >
-              Back to Today
-            </button>
-          )}
+        <div className="flex items-center gap-3 flex-wrap">
+          <Button
+            variant="secondary"
+            onClick={() => setGuidelineModalOpen(true)}
+            leftIcon={<BookOpen className="w-4 h-4 text-indigo-400" />}
+          >
+            SMM Guidelines
+          </Button>
+
+          {/* Date Selector */}
+          <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-800 rounded-2xl p-1.5 px-3">
+            <Calendar className="w-4 h-4 text-indigo-400" />
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="bg-transparent text-xs text-slate-200 font-medium focus:outline-none cursor-pointer"
+            />
+            {!isToday && (
+              <button
+                onClick={() => setSelectedDate(new Date().toISOString().split('T')[0])}
+                className="text-[11px] text-indigo-400 hover:text-indigo-300 font-semibold ml-2 underline"
+              >
+                Back to Today
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -119,6 +132,12 @@ export const DailyRoutinesPage: React.FC = () => {
           ))}
         </div>
       )}
+
+      {/* SMM Guidelines & Playbook Modal */}
+      <SmmGuidelineModal
+        isOpen={guidelineModalOpen}
+        onClose={() => setGuidelineModalOpen(false)}
+      />
     </div>
   );
 };

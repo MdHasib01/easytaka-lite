@@ -3,8 +3,27 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { useAuthStore } from '../../stores/useAuthStore';
 import api from '../../services/api';
-import { Link as LinkIcon, User as UserIcon, Lock, Hash, Mail, Eye, EyeOff, Plus, CheckCircle2, UserCheck } from 'lucide-react';
-import type { FacebookAccount, User } from '../../types';
+import {
+  Link as LinkIcon,
+  User as UserIcon,
+  Lock,
+  Hash,
+  Mail,
+  Eye,
+  EyeOff,
+  Plus,
+  CheckCircle2,
+  UserCheck,
+  Sparkles,
+  Award,
+} from 'lucide-react';
+import type {
+  FacebookAccount,
+  User,
+  FacebookAccountMode,
+  FacebookAssignedProduct,
+  FacebookWorkloadTier,
+} from '../../types';
 
 interface AddAccountModalProps {
   isOpen: boolean;
@@ -33,6 +52,16 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
   const [assignedTo, setAssignedTo] = useState('');
   const [smms, setSmms] = useState<User[]>([]);
 
+  const [accountMode, setAccountMode] = useState<FacebookAccountMode>('reviewer');
+  const [assignedProduct, setAssignedProduct] = useState<FacebookAssignedProduct>('milkimom');
+  const [workloadTier, setWorkloadTier] = useState<FacebookWorkloadTier>('active');
+  const [childAge, setChildAge] = useState('');
+  const [purchaseDate, setPurchaseDate] = useState('');
+  const [purchaseHistory, setPurchaseHistory] = useState('');
+  const [writingStyle, setWritingStyle] = useState('Bangla (বাঙালি মা টোন)');
+  const [personaBio, setPersonaBio] = useState('');
+  const [customGuideline, setCustomGuideline] = useState('');
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -60,6 +89,15 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       setPassword(initialAccount.password || initialAccount.passwordHint || '');
       setEmail(initialAccount.emailOrPhone || '');
       setEmailPassword(initialAccount.emailPassword || '');
+      setAccountMode(initialAccount.accountMode || 'reviewer');
+      setAssignedProduct(initialAccount.assignedProduct || 'milkimom');
+      setWorkloadTier(initialAccount.workloadTier || 'active');
+      setChildAge(initialAccount.childAge || '');
+      setPurchaseDate(initialAccount.purchaseDate || '');
+      setPurchaseHistory(initialAccount.purchaseHistory || '');
+      setWritingStyle(initialAccount.writingStyle || 'Bangla (বাঙালি মা টোন)');
+      setPersonaBio(initialAccount.personaBio || '');
+      setCustomGuideline(initialAccount.customGuideline || '');
 
       const currentAssignedId =
         (typeof initialAccount.assignedTo === 'object' && initialAccount.assignedTo?._id) ||
@@ -76,6 +114,15 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       setEmail('');
       setEmailPassword('');
       setAssignedTo('');
+      setAccountMode('reviewer');
+      setAssignedProduct('milkimom');
+      setWorkloadTier('active');
+      setChildAge('');
+      setPurchaseDate('');
+      setPurchaseHistory('');
+      setWritingStyle('Bangla (বাঙালি মা টোন)');
+      setPersonaBio('');
+      setCustomGuideline('');
     }
     setError(null);
     setShowPassword(false);
@@ -103,6 +150,18 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       assignedTo: assignedTo || undefined,
     };
 
+    if (isAdmin) {
+      payload.accountMode = accountMode;
+      payload.assignedProduct = assignedProduct;
+      payload.workloadTier = workloadTier;
+      payload.childAge = childAge.trim();
+      payload.purchaseDate = purchaseDate.trim();
+      payload.purchaseHistory = purchaseHistory.trim();
+      payload.writingStyle = writingStyle.trim();
+      payload.personaBio = personaBio.trim();
+      payload.customGuideline = customGuideline.trim();
+    }
+
     const res = await onSubmit(payload);
     setIsSubmitting(false);
 
@@ -122,30 +181,152 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* SMM Mode Notice for Non-Admins */}
+        {!isAdmin && (
+          <div className="p-3.5 rounded-2xl bg-indigo-950/20 border border-indigo-500/30 text-xs space-y-1">
+            <div className="flex items-center gap-1.5 text-indigo-300 font-bold">
+              <ShieldCheck className="w-4 h-4 text-indigo-400" />
+              <span>SMM Mode & Task Role Controlled by Admin</span>
+            </div>
+            <p className="text-slate-400 text-[11px] leading-relaxed">
+              Once verified by Admin, this account will be assigned a specific SMM mode (Reviewer, Question, Support, or Navigation) and product lane based on SMM Guidelines.
+            </p>
+          </div>
+        )}
+
         {/* Assign SMM Agent (Admin Only) */}
         {isAdmin && (
-          <div className="p-3 rounded-2xl bg-indigo-950/20 border border-indigo-500/30 space-y-1.5">
-            <label className="text-xs font-semibold text-indigo-300 flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <UserCheck className="w-4 h-4 text-indigo-400" />
-                Assign to SMM Agent:
-              </span>
-              <span className="text-[11px] text-slate-400 font-normal">
-                {assignedTo ? 'Specific SMM Assigned' : 'Defaults to You (Admin)'}
-              </span>
-            </label>
-            <select
-              value={assignedTo}
-              onChange={(e) => setAssignedTo(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs text-white bg-slate-900 border border-slate-700 focus:outline-none focus:border-indigo-500"
-            >
-              <option value="">👤 Keep assigned to myself (Admin)</option>
-              {smms.map((smm) => (
-                <option key={smm._id || smm.id} value={smm._id || smm.id}>
-                  {smm.name || smm.email} ({smm.email}) - {smm.rewardPoints ?? 0} PTS
-                </option>
-              ))}
-            </select>
+          <div className="p-3.5 rounded-2xl bg-indigo-950/20 border border-indigo-500/30 space-y-3">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-indigo-300 flex items-center justify-between">
+                <span className="flex items-center gap-1.5">
+                  <UserCheck className="w-4 h-4 text-indigo-400" />
+                  Assign to SMM Agent:
+                </span>
+                <span className="text-[11px] text-slate-400 font-normal">
+                  {assignedTo ? 'Specific SMM Assigned' : 'Defaults to You (Admin)'}
+                </span>
+              </label>
+              <select
+                value={assignedTo}
+                onChange={(e) => setAssignedTo(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs text-white bg-slate-900 border border-slate-700 focus:outline-none focus:border-indigo-500"
+              >
+                <option value="">👤 Keep assigned to myself (Admin)</option>
+                {smms.map((smm) => (
+                  <option key={smm._id || smm.id} value={smm._id || smm.id}>
+                    {smm.name || smm.email} ({smm.email}) - {smm.rewardPoints ?? 0} PTS
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Admin SMM Persona & Mode Configuration */}
+            <div className="pt-2 border-t border-indigo-500/20 space-y-3">
+              <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5" /> SMM Persona & Mode Settings (Admin Only)
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                {/* Mode Selector */}
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                    ID Mode / Role:
+                  </label>
+                  <select
+                    value={accountMode}
+                    onChange={(e) => setAccountMode(e.target.value as FacebookAccountMode)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+                  >
+                    <option value="reviewer">🎖️ Reviewer (R)</option>
+                    <option value="question">❓ Question (Q)</option>
+                    <option value="support">💡 Support (S)</option>
+                    <option value="navigation">🧭 Navigation (N)</option>
+                    <option value="general">🌐 General</option>
+                  </select>
+                </div>
+
+                {/* Product Lane */}
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                    Assigned Product:
+                  </label>
+                  <select
+                    value={assignedProduct}
+                    onChange={(e) => setAssignedProduct(e.target.value as FacebookAssignedProduct)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+                  >
+                    <option value="milkimom">🥛 Milkimom (M)</option>
+                    <option value="milkready">🍼 MilkReady (MR)</option>
+                    <option value="smoothflow">💧 SmoothFlow (SF)</option>
+                    <option value="stableflow">🌊 StableFlow (ST)</option>
+                    <option value="all_products">✨ All Products</option>
+                    <option value="none">None / General</option>
+                  </select>
+                </div>
+
+                {/* Workload Tier */}
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                    Workload Tier:
+                  </label>
+                  <select
+                    value={workloadTier}
+                    onChange={(e) => setWorkloadTier(e.target.value as FacebookWorkloadTier)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+                  >
+                    <option value="active">🟢 Active (Daily Tasks)</option>
+                    <option value="light">🟡 Light (Warmup)</option>
+                    <option value="rest">⚪ Rest (Cooling)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Persona Context: Child Age & Writing Style */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                    বাচ্চার বয়স (Child's Age):
+                  </label>
+                  <input
+                    type="text"
+                    value={childAge}
+                    onChange={(e) => setChildAge(e.target.value)}
+                    placeholder="e.g. ৬ মাস / 3 months"
+                    className="w-full px-3 py-2 rounded-xl glass-input text-xs text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                    লেখার ধরন (Writing Style):
+                  </label>
+                  <input
+                    type="text"
+                    value={writingStyle}
+                    onChange={(e) => setWritingStyle(e.target.value)}
+                    placeholder="e.g. Bangla (বাঙালি মা টোন) / Banglish"
+                    className="w-full px-3 py-2 rounded-xl glass-input text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Purchase History (For Reviewer IDs) */}
+              {accountMode === 'reviewer' && (
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                    ক্রয়ের তারিখ ও বিবরণ (Fixed Purchase History):
+                  </label>
+                  <input
+                    type="text"
+                    value={purchaseHistory}
+                    onChange={(e) => setPurchaseHistory(e.target.value)}
+                    placeholder="e.g. Purchased 2 bottles Milkimom on 12 Jan 2026"
+                    className="w-full px-3 py-2 rounded-xl glass-input text-xs text-white"
+                  />
+                </div>
+              )}
+            </div>
           </div>
         )}
         {/* 1. Facebook Profile URL / Link */}

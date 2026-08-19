@@ -24,7 +24,8 @@ interface AccountState {
     id: string,
     action: 'approve' | 'reject',
     adminNote?: string,
-    customPoints?: number
+    customPoints?: number,
+    extraData?: Partial<FacebookAccount>
   ) => Promise<{ success: boolean; message: string; milestoneAwarded?: boolean; milestoneBonusAmount?: number }>;
   deleteAccount: (id: string) => Promise<boolean>;
   setSelectedAccount: (account: FacebookAccount | null) => void;
@@ -128,12 +129,13 @@ export const useAccountStore = create<AccountState>((set, get) => ({
     }
   },
 
-  verifyAccount: async (id, action, adminNote, customPoints) => {
+  verifyAccount: async (id, action, adminNote, customPoints, extraData) => {
     try {
       const res = await api.put(`/accounts/${id}/verify`, {
         action,
         adminNote,
         customPoints,
+        ...(extraData || {}),
       });
 
       const updated = res.data.account;

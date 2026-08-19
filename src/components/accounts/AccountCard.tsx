@@ -18,7 +18,16 @@ import {
   Coins,
   UserCheck,
   UserPlus,
+  BookOpen,
+  Sparkles,
+  Award,
+  HelpCircle,
+  LifeBuoy,
+  Compass,
+  Milk,
+  Baby,
 } from 'lucide-react';
+import { SmmGuidelineModal } from './SmmGuidelineModal';
 
 interface AccountCardProps {
   account: FacebookAccount;
@@ -40,11 +49,89 @@ export const AccountCard: React.FC<AccountCardProps> = ({
   onSelect,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [guidelineModalOpen, setGuidelineModalOpen] = useState(false);
   const password = account.password || account.passwordHint || '';
+
   const approvalStatus = account.approvalStatus || 'approved';
   const isPending = approvalStatus === 'pending';
   const isApproved = approvalStatus === 'approved';
   const isRejected = approvalStatus === 'rejected';
+
+  const mode = account.accountMode || 'general';
+  const product = account.assignedProduct || 'none';
+  const workloadTier = account.workloadTier || 'active';
+
+  const getModeBadge = () => {
+    switch (mode) {
+      case 'reviewer':
+        return (
+          <span className="px-2.5 py-0.5 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[10px] font-extrabold flex items-center gap-1 shadow-sm">
+            <Award className="w-3 h-3 text-purple-400" /> MODE R: REVIEWER
+          </span>
+        );
+      case 'question':
+        return (
+          <span className="px-2.5 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 text-[10px] font-extrabold flex items-center gap-1 shadow-sm">
+            <HelpCircle className="w-3 h-3 text-sky-400" /> MODE Q: QUESTION
+          </span>
+        );
+      case 'support':
+        return (
+          <span className="px-2.5 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-extrabold flex items-center gap-1 shadow-sm">
+            <LifeBuoy className="w-3 h-3 text-amber-400" /> MODE S: SUPPORT
+          </span>
+        );
+      case 'navigation':
+        return (
+          <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-extrabold flex items-center gap-1 shadow-sm">
+            <Compass className="w-3 h-3 text-emerald-400" /> MODE N: NAVIGATION
+          </span>
+        );
+      default:
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-bold">
+            GENERAL ID
+          </span>
+        );
+    }
+  };
+
+  const getProductBadge = () => {
+    switch (product) {
+      case 'milkimom':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-blue-500/15 text-blue-300 border border-blue-500/30 text-[10px] font-bold">
+            🥛 Milkimom (M)
+          </span>
+        );
+      case 'milkready':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-rose-500/15 text-rose-300 border border-rose-500/30 text-[10px] font-bold">
+            🍼 MilkReady (MR)
+          </span>
+        );
+      case 'smoothflow':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px] font-bold">
+            💧 SmoothFlow (SF)
+          </span>
+        );
+      case 'stableflow':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold">
+            🌊 StableFlow (ST)
+          </span>
+        );
+      case 'all_products':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold">
+            ✨ All Products
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
 
   const creator =
     typeof account.createdBy === 'object' && account.createdBy !== null
@@ -60,8 +147,6 @@ export const AccountCard: React.FC<AccountCardProps> = ({
       ? (account.smmId as User)
       : null;
 
-  const isAssignedToOther = creator?._id && assignee?._id && creator._id !== assignee._id;
-
   return (
     <div
       className={`glass-card rounded-2xl p-5 border transition-all flex flex-col justify-between ${
@@ -75,6 +160,37 @@ export const AccountCard: React.FC<AccountCardProps> = ({
       }`}
     >
       <div className="space-y-4">
+        {/* SMM Mode & Role Header Bar */}
+        <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800/80">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {getModeBadge()}
+            {getProductBadge()}
+            {workloadTier && (
+              <span
+                className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded border ${
+                  workloadTier === 'active'
+                    ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                    : workloadTier === 'light'
+                    ? 'bg-amber-500/10 text-amber-300 border-amber-500/30'
+                    : 'bg-slate-800 text-slate-400 border-slate-700'
+                }`}
+              >
+                {workloadTier.toUpperCase()}
+              </span>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setGuidelineModalOpen(true)}
+            className="text-[10px] text-indigo-300 hover:text-white font-bold flex items-center gap-1 bg-indigo-600/20 hover:bg-indigo-600/40 px-2 py-0.5 rounded-lg border border-indigo-500/30 transition-all"
+            title="View guidelines and scripts for this ID"
+          >
+            <BookOpen className="w-3 h-3 text-indigo-400" />
+            <span>Playbook</span>
+          </button>
+        </div>
+
         {/* Header: Avatar, Name, Approval & Status Badges */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -246,6 +362,36 @@ export const AccountCard: React.FC<AccountCardProps> = ({
           </div>
         </div>
 
+        {/* SMM Persona Characteristics Context */}
+        {(account.childAge || account.writingStyle || account.purchaseHistory) && (
+          <div className="p-3 rounded-xl bg-slate-900/50 border border-slate-800 space-y-1.5 text-xs">
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
+              <span className="flex items-center gap-1 text-indigo-300">
+                <Sparkles className="w-3 h-3 text-amber-400" /> Persona Characteristics:
+              </span>
+              {account.childAge && (
+                <span className="text-slate-300 font-semibold">
+                  👶 Baby: {account.childAge}
+                </span>
+              )}
+            </div>
+
+            {account.writingStyle && (
+              <div className="text-[11px] text-slate-300">
+                <span className="text-slate-400">Tone: </span>
+                <span className="font-medium text-slate-200">{account.writingStyle}</span>
+              </div>
+            )}
+
+            {account.purchaseHistory && (
+              <div className="text-[11px] text-purple-300 bg-purple-950/30 px-2 py-1 rounded border border-purple-500/20 truncate">
+                <span className="font-semibold text-purple-200">History: </span>
+                <span>{account.purchaseHistory}</span>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Daily Routine Targets Summary */}
         <div className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/60 space-y-1.5">
           <div className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
@@ -310,6 +456,14 @@ export const AccountCard: React.FC<AccountCardProps> = ({
           )}
         </div>
       </div>
+
+      {/* SMM Guideline & Response Playbook Modal */}
+      <SmmGuidelineModal
+        isOpen={guidelineModalOpen}
+        onClose={() => setGuidelineModalOpen(false)}
+        initialMode={account.accountMode}
+        initialProduct={account.assignedProduct}
+      />
     </div>
   );
 };

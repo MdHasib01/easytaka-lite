@@ -19,7 +19,12 @@ import {
   ThumbsUp,
   Zap,
   Users,
+  Award,
+  HelpCircle,
+  LifeBuoy,
+  BookOpen,
 } from 'lucide-react';
+import { SmmGuidelineModal } from '../accounts/SmmGuidelineModal';
 
 interface DailyChecklistCardProps {
   cardData: DailyRoutineCardData;
@@ -52,6 +57,76 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
   };
 
   const [copiedCaptionIndex, setCopiedCaptionIndex] = useState<number | null>(null);
+  const [playbookModalOpen, setPlaybookModalOpen] = useState(false);
+
+  const mode = account.accountMode || 'general';
+  const product = account.assignedProduct || 'none';
+
+  const getModeBadge = () => {
+    switch (mode) {
+      case 'reviewer':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[10px] font-extrabold flex items-center gap-1">
+            <Award className="w-3 h-3 text-purple-400" /> MODE R: REVIEWER
+          </span>
+        );
+      case 'question':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 text-[10px] font-extrabold flex items-center gap-1">
+            <HelpCircle className="w-3 h-3 text-sky-400" /> MODE Q: QUESTION
+          </span>
+        );
+      case 'support':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-extrabold flex items-center gap-1">
+            <LifeBuoy className="w-3 h-3 text-amber-400" /> MODE S: SUPPORT
+          </span>
+        );
+      case 'navigation':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-extrabold flex items-center gap-1">
+            <Compass className="w-3 h-3 text-emerald-400" /> MODE N: NAVIGATION
+          </span>
+        );
+      default:
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 text-[10px]">
+            GENERAL ID
+          </span>
+        );
+    }
+  };
+
+  const getProductBadge = () => {
+    switch (product) {
+      case 'milkimom':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-blue-500/15 text-blue-300 border border-blue-500/30 text-[10px] font-bold">
+            🥛 Milkimom (M)
+          </span>
+        );
+      case 'milkready':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-rose-500/15 text-rose-300 border border-rose-500/30 text-[10px] font-bold">
+            🍼 MilkReady (MR)
+          </span>
+        );
+      case 'smoothflow':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px] font-bold">
+            💧 SmoothFlow (SF)
+          </span>
+        );
+      case 'stableflow':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold">
+            🌊 StableFlow (ST)
+          </span>
+        );
+      default:
+        return null;
+    }
+  };
 
   const handleCommentChange = (delta: number) => {
     const newVal = Math.max(0, (items.commentsCount || 0) + delta);
@@ -137,6 +212,29 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
       )}
 
       <div>
+        {/* Top SMM Mode & Playbook Banner */}
+        <div className="flex items-center justify-between gap-2 pb-2 mb-3 border-b border-slate-800/80 flex-wrap">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {getModeBadge()}
+            {getProductBadge()}
+            {account.childAge && (
+              <span className="text-[10px] text-slate-300 font-semibold px-2 py-0.5 rounded bg-slate-900 border border-slate-800">
+                👶 {account.childAge}
+              </span>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => setPlaybookModalOpen(true)}
+            className="text-[10px] text-indigo-300 hover:text-white font-bold flex items-center gap-1 bg-indigo-600/20 hover:bg-indigo-600/40 px-2 py-0.5 rounded-lg border border-indigo-500/30 transition-all"
+            title="Open SMM script playbook"
+          >
+            <BookOpen className="w-3 h-3 text-indigo-400" />
+            <span>Playbook</span>
+          </button>
+        </div>
+
         {/* Account Info Header */}
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
@@ -451,6 +549,14 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
           </span>
         )}
       </div>
+
+      {/* SMM Guideline & Playbook Modal */}
+      <SmmGuidelineModal
+        isOpen={playbookModalOpen}
+        onClose={() => setPlaybookModalOpen(false)}
+        initialMode={account.accountMode}
+        initialProduct={account.assignedProduct}
+      />
     </div>
   );
 };

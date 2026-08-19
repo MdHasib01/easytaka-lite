@@ -39,8 +39,21 @@ import {
   Share2,
   MessageCircle,
   Gift,
+  Award,
+  HelpCircle,
+  LifeBuoy,
+  Compass,
+  BookOpen,
 } from 'lucide-react';
-import { TaskSubmission, Task, User, FacebookAccount } from '../types';
+import {
+  TaskSubmission,
+  Task,
+  User,
+  FacebookAccount,
+  FacebookAccountMode,
+  FacebookAssignedProduct,
+  FacebookWorkloadTier,
+} from '../types';
 
 export const VerificationsPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -67,6 +80,17 @@ export const VerificationsPage: React.FC = () => {
   const [accountStatusFilter, setAccountStatusFilter] = useState<string>('pending');
   const [rejectingAccount, setRejectingAccount] = useState<FacebookAccount | null>(null);
   const [assigningAccount, setAssigningAccount] = useState<FacebookAccount | null>(null);
+  const [approvingAccount, setApprovingAccount] = useState<FacebookAccount | null>(null);
+  const [approveMode, setApproveMode] = useState<FacebookAccountMode>('reviewer');
+  const [approveProduct, setApproveProduct] = useState<FacebookAssignedProduct>('milkimom');
+  const [approveWorkload, setApproveWorkload] = useState<FacebookWorkloadTier>('active');
+  const [approveChildAge, setApproveChildAge] = useState<string>('');
+  const [approvePurchaseHistory, setApprovePurchaseHistory] = useState<string>('');
+  const [approveWritingStyle, setApproveWritingStyle] = useState<string>('Bangla (বাঙালি মা টোন)');
+  const [approveCustomPoints, setApproveCustomPoints] = useState<number>(40);
+  const [approveAdminNote, setApproveAdminNote] = useState<string>('Approved by Admin');
+  const [isApprovingLoading, setIsApprovingLoading] = useState<boolean>(false);
+
   const [rejectReason, setRejectReason] = useState<string>('');
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
 
@@ -106,8 +130,39 @@ export const VerificationsPage: React.FC = () => {
   const pendingTaskCount = submissions.filter((s) => s.status === 'pending').length;
   const pendingAccountCount = allAccounts.filter((a) => a.approvalStatus === 'pending').length;
 
-  const handleApproveAccount = async (account: FacebookAccount) => {
-    const res = await verifyAccount(account._id, 'approve');
+  const handleOpenApproveModal = (account: FacebookAccount) => {
+    setApprovingAccount(account);
+    setApproveMode(account.accountMode || 'reviewer');
+    setApproveProduct(account.assignedProduct || 'milkimom');
+    setApproveWorkload(account.workloadTier || 'active');
+    setApproveChildAge(account.childAge || '');
+    setApprovePurchaseHistory(account.purchaseHistory || '');
+    setApproveWritingStyle(account.writingStyle || 'Bangla (বাঙালি মা টোন)');
+    setApproveCustomPoints(40);
+    setApproveAdminNote('Approved by Admin');
+  };
+
+  const handleApproveAccountSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!approvingAccount) return;
+
+    setIsApprovingLoading(true);
+    const res = await verifyAccount(
+      approvingAccount._id,
+      'approve',
+      approveAdminNote || 'Approved by Admin',
+      approveCustomPoints,
+      {
+        accountMode: approveMode,
+        assignedProduct: approveProduct,
+        workloadTier: approveWorkload,
+        childAge: approveChildAge.trim(),
+        purchaseHistory: approvePurchaseHistory.trim(),
+        writingStyle: approveWritingStyle.trim(),
+      }
+    );
+    setIsApprovingLoading(false);
+
     if (res.success) {
       if (res.milestoneAwarded) {
         try {
@@ -120,6 +175,7 @@ export const VerificationsPage: React.FC = () => {
       }
       setActionSuccessMessage(res.message);
       setTimeout(() => setActionSuccessMessage(null), 5000);
+      setApprovingAccount(null);
       fetchAllAccounts(accountStatusFilter);
     }
   };
@@ -722,6 +778,31 @@ export const VerificationsPage: React.FC = () => {
                       </div>
                     )}
 
+                    {/* SMM Mode Badges if approved or pre-configured */}
+                    <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                      {account.accountMode && account.accountMode !== 'general' ? (
+                        <span className="px-2 py-0.5 rounded-lg bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold uppercase">
+                          Mode: {account.accountMode}
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-lg bg-slate-800 text-slate-400 border border-slate-700 text-[10px]">
+                          Mode: Unassigned (Set on Approval)
+                        </span>
+                      )}
+
+                      {account.assignedProduct && account.assignedProduct !== 'none' && (
+                        <span className="px-2 py-0.5 rounded-lg bg-blue-500/15 text-blue-300 border border-blue-500/30 text-[10px] font-bold">
+                          Product: {account.assignedProduct}
+                        </span>
+                      )}
+
+                      {account.childAge && (
+                        <span className="px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 text-[10px]">
+                          👶 Baby: {account.childAge}
+                        </span>
+                      )}
+                    </div>
+
                     {/* Action Controls for Admin */}
                     {isPending && (
                       <div className="pt-2 border-t border-slate-800 flex items-center justify-end gap-2">
@@ -740,11 +821,11 @@ export const VerificationsPage: React.FC = () => {
                         <Button
                           size="sm"
                           variant="glow"
-                          onClick={() => handleApproveAccount(account)}
+                          onClick={() => handleOpenApproveModal(account)}
                           className="text-xs shadow-glow-brand"
                           leftIcon={<Coins className="w-3.5 h-3.5 text-amber-300" />}
                         >
-                          Approve & Reward +40 PTS
+                          Approve & Configure SMM Mode
                         </Button>
                       </div>
                     )}
@@ -1001,6 +1082,185 @@ export const VerificationsPage: React.FC = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Admin Approve Facebook Account & Configure SMM Mode Modal */}
+      <Modal
+        isOpen={!!approvingAccount}
+        onClose={() => setApprovingAccount(null)}
+        title="Approve Facebook Account & Assign SMM Mode"
+        subtitle={`Configure the SMM staff role, product focus, and persona characteristics for "${approvingAccount?.accountName}".`}
+        maxWidth="lg"
+      >
+        {approvingAccount && (
+          <form onSubmit={handleApproveAccountSubmit} className="space-y-4">
+            {/* Account Credentials Brief */}
+            <div className="p-3 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between gap-3">
+              <div>
+                <span className="text-xs font-bold text-white block">{approvingAccount.accountName}</span>
+                <span className="text-[11px] text-blue-400 truncate block max-w-[280px]">
+                  {approvingAccount.profileUrl}
+                </span>
+              </div>
+              <span className="px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold">
+                +{approveCustomPoints} PTS Reward
+              </span>
+            </div>
+
+            {/* SMM Mode & Role Selection */}
+            <div className="space-y-3 p-3.5 rounded-2xl bg-indigo-950/20 border border-indigo-500/30">
+              <div className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+                <Award className="w-4 h-4 text-indigo-400" /> SMM Persona & Mode Configuration:
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                    ID Mode / Role:
+                  </label>
+                  <select
+                    value={approveMode}
+                    onChange={(e) => setApproveMode(e.target.value as FacebookAccountMode)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+                  >
+                    <option value="reviewer">🎖️ Reviewer (R)</option>
+                    <option value="question">❓ Question (Q)</option>
+                    <option value="support">💡 Support (S)</option>
+                    <option value="navigation">🧭 Navigation (N)</option>
+                    <option value="general">🌐 General</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                    Assigned Product:
+                  </label>
+                  <select
+                    value={approveProduct}
+                    onChange={(e) => setApproveProduct(e.target.value as FacebookAssignedProduct)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+                  >
+                    <option value="milkimom">🥛 Milkimom (M)</option>
+                    <option value="milkready">🍼 MilkReady (MR)</option>
+                    <option value="smoothflow">💧 SmoothFlow (SF)</option>
+                    <option value="stableflow">🌊 StableFlow (ST)</option>
+                    <option value="all_products">✨ All Products</option>
+                    <option value="none">None / General</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                    Workload Tier:
+                  </label>
+                  <select
+                    value={approveWorkload}
+                    onChange={(e) => setApproveWorkload(e.target.value as FacebookWorkloadTier)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+                  >
+                    <option value="active">🟢 Active (12 IDs)</option>
+                    <option value="light">🟡 Light (4 IDs)</option>
+                    <option value="rest">⚪ Rest (4 IDs)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Persona Context */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                    বাচ্চার বয়স (Child's Age):
+                  </label>
+                  <input
+                    type="text"
+                    value={approveChildAge}
+                    onChange={(e) => setApproveChildAge(e.target.value)}
+                    placeholder="e.g. ৬ মাস / 3 months"
+                    className="w-full px-3 py-2 rounded-xl glass-input text-xs text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                    লেখার ধরন (Writing Style):
+                  </label>
+                  <input
+                    type="text"
+                    value={approveWritingStyle}
+                    onChange={(e) => setApproveWritingStyle(e.target.value)}
+                    placeholder="e.g. Bangla (বাঙালি মা টোন) / Banglish"
+                    className="w-full px-3 py-2 rounded-xl glass-input text-xs text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Purchase History for Reviewer ID */}
+              {approveMode === 'reviewer' && (
+                <div>
+                  <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                    ক্রয়ের তারিখ ও ইতিহাস (Fixed Purchase History):
+                  </label>
+                  <input
+                    type="text"
+                    value={approvePurchaseHistory}
+                    onChange={(e) => setApprovePurchaseHistory(e.target.value)}
+                    placeholder="e.g. Purchased 2 bottles Milkimom on 12 Jan 2026"
+                    className="w-full px-3 py-2 rounded-xl glass-input text-xs text-white"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Points and Admin Note */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div>
+                <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                  Points to Reward:
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={approveCustomPoints}
+                  onChange={(e) => setApproveCustomPoints(Number(e.target.value))}
+                  className="w-full px-3 py-2 rounded-xl glass-input text-xs text-white font-bold"
+                />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                  Approval / Admin Note:
+                </label>
+                <input
+                  type="text"
+                  value={approveAdminNote}
+                  onChange={(e) => setApproveAdminNote(e.target.value)}
+                  placeholder="Approved by Admin"
+                  className="w-full px-3 py-2 rounded-xl glass-input text-xs text-white"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setApprovingAccount(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="glow"
+                size="sm"
+                isLoading={isApprovingLoading}
+                leftIcon={<Coins className="w-3.5 h-3.5 text-amber-300" />}
+              >
+                Approve & Credit +{approveCustomPoints} PTS
+              </Button>
+            </div>
+          </form>
+        )}
       </Modal>
 
       {/* Lightbox for Zooming Images */}
