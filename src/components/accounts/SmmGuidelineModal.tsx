@@ -23,6 +23,7 @@ import {
   ExternalLink,
   ChevronRight,
 } from 'lucide-react';
+import { useAuthStore } from '../../stores/useAuthStore';
 import type { FacebookAccount, FacebookAccountMode, FacebookAssignedProduct } from '../../types';
 
 interface SmmGuidelineModalProps {
@@ -40,23 +41,28 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
   initialMode,
   initialProduct,
 }) => {
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'admin';
+
   const [activeTab, setActiveTab] = useState<'modes' | 'products' | 'playbooks' | 'ai_rules'>(
     'modes'
   );
-  const effectiveMode = account?.accountMode || initialMode || 'reviewer';
+
+  const rawAssignedMode = account?.accountMode || initialMode;
+  const assignedMode =
+    rawAssignedMode && rawAssignedMode !== 'general' ? rawAssignedMode : null;
+
   const [selectedMode, setSelectedMode] = useState<FacebookAccountMode>(
-    effectiveMode !== 'general' ? effectiveMode : 'reviewer'
+    assignedMode || 'reviewer'
   );
   const [copiedScriptIndex, setCopiedScriptIndex] = useState<string | null>(null);
 
   // Sync selected mode when modal opens or account changes
   React.useEffect(() => {
-    if (account?.accountMode && account.accountMode !== 'general') {
-      setSelectedMode(account.accountMode);
-    } else if (initialMode && initialMode !== 'general') {
-      setSelectedMode(initialMode);
+    if (assignedMode) {
+      setSelectedMode(assignedMode);
     }
-  }, [account, initialMode, isOpen]);
+  }, [assignedMode, isOpen]);
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -336,7 +342,13 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
         {/* Navigation Tabs */}
         <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900 border border-slate-800 overflow-x-auto">
           {[
-            { id: 'modes', label: '4 ID Modes (R/Q/S/N)', icon: Award },
+            {
+              id: 'modes',
+              label: !isAdmin && assignedMode
+                ? `Assigned Mode (${modeInfo[assignedMode].code})`
+                : '4 ID Modes (R/Q/S/N)',
+              icon: Award,
+            },
             { id: 'products', label: '4 Product Lanes', icon: Milk },
             { id: 'playbooks', label: 'Response Playbooks & Scripts', icon: MessageSquare },
             { id: 'ai_rules', label: 'Voice AI & Writing Style', icon: Bot },
@@ -359,47 +371,72 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
           })}
         </div>
 
-        {/* TAB 1: 4 ID MODES */}
+        {/* TAB 1: ID MODES */}
         {activeTab === 'modes' && (
           <div className="space-y-4">
-            {/* Mode Switcher Buttons */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {(['reviewer', 'question', 'support', 'navigation'] as FacebookAccountMode[]).map(
-                (m) => {
-                  const mData = modeInfo[m];
-                  const Icon = mData.icon;
-                  const isSelected = selectedMode === m;
-                  return (
-                    <button
-                      key={m}
-                      onClick={() => setSelectedMode(m)}
-                      className={`p-3 rounded-2xl border text-left transition-all ${
-                        isSelected
-                          ? 'border-indigo-500 bg-indigo-950/40 shadow-glow-brand ring-1 ring-indigo-500'
-                          : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span
-                          className={`w-7 h-7 rounded-xl font-extrabold text-xs flex items-center justify-center border ${mData.badgeClass}`}
-                        >
-                          {mData.code}
-                        </span>
-                        <Icon
-                          className={`w-4 h-4 ${isSelected ? 'text-indigo-400' : 'text-slate-500'}`}
-                        />
-                      </div>
-                      <div className="mt-2">
-                        <h5 className="text-xs font-bold text-white truncate">{mData.title}</h5>
-                        <p className="text-[10px] text-slate-400 italic mt-0.5 truncate">
-                          {mData.mentalModel}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                }
-              )}
-            </div>
+            {/* Mode Switcher Buttons (Admin Only or when no specific mode assigned) */}
+            {isAdmin ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {(['reviewer', 'question', 'support', 'navigation'] as FacebookAccountMode[]).map(
+                  (m) => {
+                    const mData = modeInfo[m];
+                    const Icon = mData.icon;
+                    const isSelected = selectedMode === m;
+                    return (
+                      <button
+                        key={m}
+                        onClick={() => setSelectedMode(m)}
+                        className={`p-3 rounded-2xl border text-left transition-all ${
+                          isSelected
+                            ? 'border-indigo-500 bg-indigo-950/40 shadow-glow-brand ring-1 ring-indigo-500'
+                            : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span
+                            className={`w-7 h-7 rounded-xl font-extrabold text-xs flex items-center justify-center border ${mData.badgeClass}`}
+                          >
+                            {mData.code}
+                          </span>
+                          <Icon
+                            className={`w-4 h-4 ${isSelected ? 'text-indigo-400' : 'text-slate-500'}`}
+                          />
+                        </div>
+                        <div className="mt-2">
+                          <h5 className="text-xs font-bold text-white truncate">{mData.title}</h5>
+                          <p className="text-[10px] text-slate-400 italic mt-0.5 truncate">
+                            {mData.mentalModel}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  }
+                )}
+              </div>
+            ) : assignedMode ? (
+              <div className="p-3.5 rounded-2xl bg-indigo-950/30 border border-indigo-500/30 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <span
+                    className={`w-8 h-8 rounded-xl font-extrabold text-xs flex items-center justify-center border ${modeInfo[assignedMode].badgeClass}`}
+                  >
+                    {modeInfo[assignedMode].code}
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h5 className="text-xs font-bold text-white">
+                        Your Assigned Mode: {modeInfo[assignedMode].title}
+                      </h5>
+                      <span className="text-[9px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-bold uppercase">
+                        Admin Assigned
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-indigo-300 italic mt-0.5">
+                      Mental Model: {modeInfo[assignedMode].mentalModel}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             {/* Selected Mode Detail Card */}
             {selectedMode && modeInfo[selectedMode] && (

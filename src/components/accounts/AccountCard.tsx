@@ -147,18 +147,64 @@ export const AccountCard: React.FC<AccountCardProps> = ({
       ? (account.smmId as User)
       : null;
 
+  const getModeCardStyle = () => {
+    if (isPending) return 'border-amber-500/40 bg-amber-950/10 shadow-sm';
+    if (isRejected) return 'border-rose-500/40 bg-rose-950/10 shadow-sm';
+    if (isCurrent) return 'border-indigo-500 bg-indigo-950/30 shadow-glow-brand ring-1 ring-indigo-500/60';
+
+    switch (mode) {
+      case 'reviewer':
+        return 'border-purple-500/40 bg-gradient-to-b from-purple-950/20 via-slate-900/90 to-slate-950 hover:border-purple-500/70 shadow-sm';
+      case 'question':
+        return 'border-sky-500/40 bg-gradient-to-b from-sky-950/20 via-slate-900/90 to-slate-950 hover:border-sky-500/70 shadow-sm';
+      case 'support':
+        return 'border-amber-500/40 bg-gradient-to-b from-amber-950/20 via-slate-900/90 to-slate-950 hover:border-amber-500/70 shadow-sm';
+      case 'navigation':
+        return 'border-emerald-500/40 bg-gradient-to-b from-emerald-950/20 via-slate-900/90 to-slate-950 hover:border-emerald-500/70 shadow-sm';
+      default:
+        return 'border-slate-800 bg-slate-900/70 hover:border-slate-700 shadow-sm';
+    }
+  };
+
+  const getModeAvatarRing = () => {
+    switch (mode) {
+      case 'reviewer':
+        return 'ring-2 ring-purple-500/50';
+      case 'question':
+        return 'ring-2 ring-sky-500/50';
+      case 'support':
+        return 'ring-2 ring-amber-500/50';
+      case 'navigation':
+        return 'ring-2 ring-emerald-500/50';
+      default:
+        return 'ring-2 ring-blue-500/30';
+    }
+  };
+
+  const getModeTopStripe = () => {
+    switch (mode) {
+      case 'reviewer':
+        return 'h-1 bg-gradient-to-r from-purple-500 via-pink-500 to-indigo-500';
+      case 'question':
+        return 'h-1 bg-gradient-to-r from-sky-500 via-cyan-400 to-blue-500';
+      case 'support':
+        return 'h-1 bg-gradient-to-r from-amber-500 via-orange-400 to-yellow-500';
+      case 'navigation':
+        return 'h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500';
+      default:
+        return null;
+    }
+  };
+
   return (
     <div
-      className={`glass-card rounded-2xl p-5 border transition-all flex flex-col justify-between ${
-        isCurrent
-          ? 'border-indigo-500/60 bg-indigo-950/20 shadow-glow-brand'
-          : isPending
-          ? 'border-amber-500/30 bg-amber-950/5'
-          : isRejected
-          ? 'border-rose-500/30 bg-rose-950/5'
-          : 'border-slate-800 hover:border-slate-700'
-      }`}
+      className={`glass-card rounded-2xl p-5 border transition-all relative overflow-hidden flex flex-col justify-between ${getModeCardStyle()}`}
     >
+      {/* Top Mode Color Stripe */}
+      {getModeTopStripe() && (
+        <div className={`absolute top-0 left-0 right-0 ${getModeTopStripe()}`} />
+      )}
+
       <div className="space-y-4">
         {/* SMM Mode & Role Header Bar */}
         <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-800/80">
@@ -200,7 +246,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({
                 `https://ui-avatars.com/api/?name=${encodeURIComponent(account.accountName)}&background=1877f2&color=fff`
               }
               alt={account.accountName}
-              className="w-12 h-12 rounded-2xl object-cover ring-2 ring-blue-500/30"
+              className={`w-12 h-12 rounded-2xl object-cover ${getModeAvatarRing()}`}
             />
             <div>
               <div className="flex items-center gap-2">
