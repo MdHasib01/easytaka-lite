@@ -36,7 +36,7 @@ import {
 export const TasksPage: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuthStore();
-  const { accounts, selectedAccount, selectAccount, fetchAccounts } = useAccountStore();
+  const { accounts, selectedAccount, setSelectedAccount, fetchMyAccounts } = useAccountStore();
   const {
     tasks,
     mySubmissions,
@@ -69,7 +69,7 @@ export const TasksPage: React.FC = () => {
     fetchTasks();
     if (!isAdmin) {
       fetchMySubmissions();
-      fetchAccounts();
+      fetchMyAccounts();
     }
   }, [isAdmin]);
 
