@@ -76,17 +76,17 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Submit Proof for Verification"
-      subtitle={`Submit your work for task: "${task.title}" to receive +${task.rewardPoints} reward points.`}
+      subtitle={`Submit your work for task: "${task.title}" for admin verification.`}
       maxWidth="2xl"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Reward Alert */}
+        {/* Routine Verification Alert */}
         <div className="flex items-center justify-between p-3.5 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-xs">
           <div className="flex items-center gap-2 text-indigo-300 font-medium">
-            <Coins className="w-4 h-4 text-amber-400" />
-            <span>Upon Admin approval, you will be rewarded:</span>
+            <Send className="w-4 h-4 text-indigo-400" />
+            <span>Approved submissions count towards your Daily Routine Checklist & streaks.</span>
           </div>
-          <span className="font-bold text-amber-300 text-sm">+{task.rewardPoints} Pts</span>
+          <span className="font-bold text-emerald-400 text-xs">✓ Daily Routine Task</span>
         </div>
 
         {/* Task Guidelines summary */}

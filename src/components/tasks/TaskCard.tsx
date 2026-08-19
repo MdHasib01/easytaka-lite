@@ -53,30 +53,92 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     }
   };
 
+  const getModeBadge = (targetMode?: string) => {
+    switch (targetMode) {
+      case 'reviewer':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/40 text-[10px] font-extrabold flex items-center gap-1 shadow-sm">
+            🎖️ Mode R: Reviewer
+          </span>
+        );
+      case 'question':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 border border-sky-500/40 text-[10px] font-extrabold flex items-center gap-1 shadow-sm">
+            ❓ Mode Q: Question
+          </span>
+        );
+      case 'support':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/40 text-[10px] font-extrabold flex items-center gap-1 shadow-sm">
+            💡 Mode S: Support
+          </span>
+        );
+      case 'navigation':
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-[10px] font-extrabold flex items-center gap-1 shadow-sm">
+            🧭 Mode N: Navigation
+          </span>
+        );
+      default:
+        return (
+          <span className="px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 text-[10px] font-bold">
+            🌐 All Modes
+          </span>
+        );
+    }
+  };
+
+  const getProductBadge = (targetProduct?: string) => {
+    if (!targetProduct || targetProduct === 'all' || targetProduct === 'all_products') return null;
+    switch (targetProduct) {
+      case 'milkimom':
+        return <span className="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/30 text-[9px] font-bold">🥛 Milkimom</span>;
+      case 'milkready':
+        return <span className="px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30 text-[9px] font-bold">🍼 MilkReady</span>;
+      case 'smoothflow':
+        return <span className="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[9px] font-bold">💧 SmoothFlow</span>;
+      case 'stableflow':
+        return <span className="px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[9px] font-bold">🌊 StableFlow</span>;
+      default:
+        return null;
+    }
+  };
+
+  const getModeStripe = (targetMode?: string) => {
+    switch (targetMode) {
+      case 'reviewer':
+        return 'from-purple-500 via-pink-500 to-indigo-500';
+      case 'question':
+        return 'from-sky-500 via-cyan-400 to-blue-500';
+      case 'support':
+        return 'from-amber-500 via-orange-400 to-yellow-500';
+      case 'navigation':
+        return 'from-emerald-500 via-teal-400 to-cyan-500';
+      default:
+        return 'from-indigo-500 via-purple-500 to-pink-500';
+    }
+  };
+
   return (
-    <div className="glass-card rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden group">
+    <div className="glass-card rounded-2xl p-5 flex flex-col justify-between relative overflow-hidden group border-slate-800 hover:border-slate-700">
       {/* Top Accent Glow */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-60 group-hover:opacity-100 transition-opacity" />
+      <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${getModeStripe(task.targetMode)} opacity-70 group-hover:opacity-100 transition-opacity`} />
 
       {/* Card Content */}
       <div className="space-y-3.5">
         {/* Header Badges */}
         <div className="flex items-center justify-between gap-2 flex-wrap">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-wider px-2.5 py-0.5 rounded-lg bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {getModeBadge(task.targetMode)}
+            {getProductBadge(task.targetProduct)}
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-slate-800/80 text-slate-300 border border-slate-700/60">
               {getTypeLabel(task.taskType)}
             </span>
-            {task.isBroadcast ? (
-              <span className="text-[10px] text-slate-400 font-medium">Broadcast</span>
-            ) : (
-              <span className="text-[10px] text-purple-400 font-medium">Direct Assign</span>
-            )}
           </div>
 
-          <div className="flex items-center gap-1.5 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-xl text-amber-300 font-bold text-xs shadow-sm">
-            <Coins className="w-3.5 h-3.5 text-amber-400" />
-            <span>+{task.rewardPoints} Pts</span>
-          </div>
+          <span className="text-[10px] text-slate-400 font-medium px-2 py-0.5 rounded bg-slate-900 border border-slate-800">
+            Daily Routine Task
+          </span>
         </div>
 
         {/* Title & Description */}
@@ -147,7 +209,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
                 <span className="capitalize">{mySubmission.status}</span>
               </div>
               {mySubmission.status === 'approved' && (
-                <span className="text-[11px] font-bold">+{mySubmission.pointsAwarded || task.rewardPoints} Pts Earned</span>
+                <span className="text-[11px] font-bold text-emerald-400">✓ Routine Counted</span>
               )}
             </div>
             {mySubmission.status === 'rejected' && mySubmission.adminNote && (

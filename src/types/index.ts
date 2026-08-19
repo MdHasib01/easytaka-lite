@@ -87,7 +87,20 @@ export interface FacebookAccount {
   createdAt?: string;
 }
 
-export type TaskType = 'create_account' | 'comment_post' | 'community_reply' | 'group_join' | 'story_post' | 'custom';
+export type TaskType =
+  | 'reviewer'
+  | 'question'
+  | 'support'
+  | 'navigation'
+  | 'create_account'
+  | 'comment_post'
+  | 'community_reply'
+  | 'group_join'
+  | 'story_post'
+  | 'custom';
+
+export type TaskTargetMode = 'all' | 'reviewer' | 'question' | 'support' | 'navigation';
+export type TaskTargetProduct = 'all' | 'milkimom' | 'milkready' | 'smoothflow' | 'stableflow' | 'all_products';
 export type TaskStatus = 'active' | 'paused' | 'completed' | 'archived';
 export type SubmissionStatus = 'pending' | 'approved' | 'rejected';
 
@@ -114,6 +127,8 @@ export interface Task {
   title: string;
   description: string;
   taskType: TaskType;
+  targetMode?: TaskTargetMode;
+  targetProduct?: TaskTargetProduct;
   category: string;
   rewardPoints: number;
   targetUrl?: string;

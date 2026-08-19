@@ -3,13 +3,14 @@ import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useTaskStore } from '../stores/useTaskStore';
+import { useAccountStore } from '../stores/useAccountStore';
 import { TaskCard } from '../components/tasks/TaskCard';
 import { CreateTaskModal } from '../components/tasks/CreateTaskModal';
 import { SubmitProofModal } from '../components/tasks/SubmitProofModal';
 import { ImageLightbox } from '../components/ui/ImageLightbox';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
-import { Task, TaskSubmission } from '../types';
+import { Task, TaskSubmission, TaskTargetMode } from '../types';
 import {
   CheckSquare,
   PlusCircle,
@@ -26,11 +27,16 @@ import {
   Flame,
   ArrowRight,
   Layers,
+  Award,
+  HelpCircle,
+  LifeBuoy,
+  Compass,
 } from 'lucide-react';
 
 export const TasksPage: React.FC = () => {
   const { t } = useTranslation();
   const { user } = useAuthStore();
+  const { accounts, selectedAccount, selectAccount, fetchAccounts } = useAccountStore();
   const {
     tasks,
     mySubmissions,
@@ -49,6 +55,7 @@ export const TasksPage: React.FC = () => {
   const [activeMainTab, setActiveMainTab] = useState<'available' | 'under_review' | 'completed' | 'rejected'>(
     (initialTab as any) || 'available'
   );
+  const [modeFilter, setModeFilter] = useState<TaskTargetMode>('all');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -62,8 +69,16 @@ export const TasksPage: React.FC = () => {
     fetchTasks();
     if (!isAdmin) {
       fetchMySubmissions();
+      fetchAccounts();
     }
   }, [isAdmin]);
+
+  // If SMM has a selected account with a mode, optionally match it
+  useEffect(() => {
+    if (!isAdmin && selectedAccount?.accountMode && selectedAccount.accountMode !== 'general') {
+      setModeFilter(selectedAccount.accountMode as TaskTargetMode);
+    }
+  }, [selectedAccount, isAdmin]);
 
   // Sync tab from URL if changed
   useEffect(() => {
@@ -89,8 +104,13 @@ export const TasksPage: React.FC = () => {
     return !t.mySubmission || t.mySubmission.status === 'rejected';
   });
 
-  // Filter tasks based on category & search
+  // Filter tasks based on targetMode, category & search
   const filteredAvailableTasks = availableTasks.filter((task) => {
+    if (modeFilter !== 'all') {
+      if (task.targetMode && task.targetMode !== 'all' && task.targetMode !== modeFilter) {
+        return false;
+      }
+    }
     if (categoryFilter !== 'all' && task.taskType !== categoryFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
@@ -103,9 +123,8 @@ export const TasksPage: React.FC = () => {
     return true;
   });
 
-  const totalRewardPointsAvailable = availableTasks.reduce((sum, t) => sum + (t.rewardPoints || 0), 0);
   const totalRewardPointsEarned = approvedSubmissions.reduce(
-    (sum, s) => sum + (s.pointsAwarded || (s.taskId as Task)?.rewardPoints || 0),
+    (sum, s) => sum + (s.pointsAwarded || 0),
     0
   );
 
@@ -145,14 +164,14 @@ export const TasksPage: React.FC = () => {
               {t('tasks.createNewTask')}
             </Button>
           ) : (
-            <div className="flex items-center gap-2 bg-gradient-to-r from-amber-500/10 via-indigo-500/10 to-transparent border border-amber-500/20 rounded-2xl p-2 px-3.5 text-xs">
-              <Coins className="w-4 h-4 text-amber-400 animate-bounce" />
+            <div className="flex items-center gap-2 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-transparent border border-indigo-500/20 rounded-2xl p-2 px-3.5 text-xs">
+              <Sparkles className="w-4 h-4 text-amber-400" />
               <div>
                 <span className="text-[10px] text-slate-400 block font-semibold leading-tight">
-                  {t('tasks.totalPointsAvailable')}
+                  Account Verification
                 </span>
                 <span className="text-sm font-black text-amber-300">
-                  +{totalRewardPointsAvailable} {t('common.pts')}
+                  +40 PTS <span className="text-[10px] text-slate-400 font-normal">/ approved ID</span>
                 </span>
               </div>
             </div>
@@ -214,7 +233,7 @@ export const TasksPage: React.FC = () => {
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
             </div>
             <div className="text-2xl font-black text-white mt-2">{approvedSubmissions.length}</div>
-            <p className="text-[11px] text-emerald-300/80 mt-1">+{totalRewardPointsEarned} {t('tasks.pointsEarned')}</p>
+            <p className="text-[11px] text-emerald-300/80 mt-1">{approvedSubmissions.length} tasks verified</p>
           </div>
 
           <div
@@ -302,13 +321,54 @@ export const TasksPage: React.FC = () => {
       {/* TAB 1: AVAILABLE TASKS */}
       {activeMainTab === 'available' && (
         <div className="space-y-4">
+          {/* Profile Mode Filters Bar */}
+          <div className="flex items-center justify-between gap-3 flex-wrap p-2.5 rounded-2xl bg-slate-900/60 border border-slate-800">
+            <div className="flex items-center gap-1.5 overflow-x-auto">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2 mr-1 flex items-center gap-1">
+                <Filter className="w-3 h-3 text-indigo-400" /> Mode Filter:
+              </span>
+              {[
+                { id: 'all', label: 'All Modes (সকল মোড)' },
+                { id: 'reviewer', label: '🎖️ Reviewer (R)' },
+                { id: 'question', label: '❓ Question (Q)' },
+                { id: 'support', label: '💡 Support (S)' },
+                { id: 'navigation', label: '🧭 Navigation (N)' },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  onClick={() => setModeFilter(m.id as TaskTargetMode)}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                    modeFilter === m.id
+                      ? 'bg-indigo-600 text-white shadow-glow-brand ring-1 ring-indigo-500'
+                      : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  }`}
+                >
+                  <span>{m.label}</span>
+                </button>
+              ))}
+            </div>
+
+            {!isAdmin && selectedAccount && (
+              <div className="flex items-center gap-2 text-xs text-slate-300 bg-slate-950/60 px-3 py-1 rounded-xl border border-slate-800">
+                <span className="text-slate-400 text-[11px]">Working ID:</span>
+                <span className="font-bold text-white truncate max-w-[140px]">{selectedAccount.accountName}</span>
+                <span className="text-[10px] px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 font-bold uppercase">
+                  {selectedAccount.accountMode || 'General'}
+                </span>
+              </div>
+            )}
+          </div>
+
           {/* Sub-Filters & Search Bar */}
           <div className="glass-panel rounded-2xl p-3 border border-slate-800 flex flex-col md:flex-row items-center justify-between gap-3">
             {/* Category filters */}
             <div className="flex items-center gap-1.5 overflow-x-auto w-full md:w-auto pb-1 md:pb-0">
               {[
                 { id: 'all', label: t('common.all') },
-                { id: 'create_account', label: t('taskTypes.create_account') || 'Create FB Account' },
+                { id: 'reviewer', label: '🎖️ Reviewer Tasks' },
+                { id: 'question', label: '❓ Question Tasks' },
+                { id: 'support', label: '💡 Support Tasks' },
+                { id: 'navigation', label: '🧭 Navigation Tasks' },
                 { id: 'comment_post', label: t('taskTypes.comment_group_post') },
                 { id: 'community_reply', label: t('daily.communityReplies') },
                 { id: 'story_post', label: t('taskTypes.story_post') },
