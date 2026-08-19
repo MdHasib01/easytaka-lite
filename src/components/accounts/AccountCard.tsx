@@ -148,21 +148,21 @@ export const AccountCard: React.FC<AccountCardProps> = ({
       : null;
 
   const getModeCardStyle = () => {
-    if (isPending) return 'border-amber-500/40 bg-amber-950/10 shadow-sm';
-    if (isRejected) return 'border-rose-500/40 bg-rose-950/10 shadow-sm';
-    if (isCurrent) return 'border-indigo-500 bg-indigo-950/30 shadow-glow-brand ring-1 ring-indigo-500/60';
+    if (isPending) return 'border-amber-500/50 !bg-[#1c1208] shadow-sm';
+    if (isRejected) return 'border-rose-500/50 !bg-[#1c0808] shadow-sm';
+    if (isCurrent) return 'border-indigo-500 !bg-[#0f1026] shadow-glow-brand ring-1 ring-indigo-500/60';
 
     switch (mode) {
       case 'reviewer':
-        return 'border-purple-500/40 bg-gradient-to-b from-purple-950/20 via-slate-900/90 to-slate-950 hover:border-purple-500/70 shadow-sm';
+        return 'border-purple-500/60 !bg-gradient-to-br !from-[#280c4a] !via-[#1a0833] !to-[#0d031c] shadow-[0_4px_24px_rgba(168,85,247,0.22)] hover:border-purple-400 hover:shadow-[0_8px_32px_rgba(168,85,247,0.38)]';
       case 'question':
-        return 'border-sky-500/40 bg-gradient-to-b from-sky-950/20 via-slate-900/90 to-slate-950 hover:border-sky-500/70 shadow-sm';
+        return 'border-sky-500/60 !bg-gradient-to-br !from-[#082b4a] !via-[#041d33] !to-[#020d1c] shadow-[0_4px_24px_rgba(14,165,233,0.22)] hover:border-sky-400 hover:shadow-[0_8px_32px_rgba(14,165,233,0.38)]';
       case 'support':
-        return 'border-amber-500/40 bg-gradient-to-b from-amber-950/20 via-slate-900/90 to-slate-950 hover:border-amber-500/70 shadow-sm';
+        return 'border-amber-500/60 !bg-gradient-to-br !from-[#381804] !via-[#260e02] !to-[#140600] shadow-[0_4px_24px_rgba(245,158,11,0.22)] hover:border-amber-400 hover:shadow-[0_8px_32px_rgba(245,158,11,0.38)]';
       case 'navigation':
-        return 'border-emerald-500/40 bg-gradient-to-b from-emerald-950/20 via-slate-900/90 to-slate-950 hover:border-emerald-500/70 shadow-sm';
+        return 'border-emerald-500/60 !bg-gradient-to-br !from-[#042e20] !via-[#021f15] !to-[#010e09] shadow-[0_4px_24px_rgba(16,185,129,0.22)] hover:border-emerald-400 hover:shadow-[0_8px_32px_rgba(16,185,129,0.38)]';
       default:
-        return 'border-slate-800 bg-slate-900/70 hover:border-slate-700 shadow-sm';
+        return 'border-slate-800 !bg-slate-900/80 hover:border-slate-700 shadow-sm';
     }
   };
 

@@ -402,6 +402,7 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
                     const mData = modeInfo[m];
                     const Icon = mData.icon;
                     const isSelected = selectedMode === m;
+                    const isAccountMode = account?.accountMode === m;
                     return (
                       <button
                         key={m}
@@ -409,6 +410,8 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
                         className={`p-3 rounded-2xl border text-left transition-all ${
                           isSelected
                             ? 'border-indigo-500 bg-indigo-950/40 shadow-glow-brand ring-1 ring-indigo-500'
+                            : isAccountMode
+                            ? 'border-amber-500/60 bg-amber-950/20 hover:border-amber-400'
                             : 'border-slate-800 bg-slate-900/60 hover:border-slate-700'
                         }`}
                       >
@@ -418,9 +421,16 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
                           >
                             {mData.code}
                           </span>
-                          <Icon
-                            className={`w-4 h-4 ${isSelected ? 'text-indigo-400' : 'text-slate-500'}`}
-                          />
+                          <div className="flex items-center gap-1">
+                            {isAccountMode && (
+                              <span className="text-[8px] font-extrabold px-1.5 py-0.2 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                ID's Mode
+                              </span>
+                            )}
+                            <Icon
+                              className={`w-4 h-4 ${isSelected ? 'text-indigo-400' : 'text-slate-500'}`}
+                            />
+                          </div>
                         </div>
                         <div className="mt-2">
                           <h5 className="text-xs font-bold text-white truncate">{mData.title}</h5>
@@ -472,6 +482,11 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
                       <h4 className="font-extrabold text-white text-base">
                         {modeInfo[selectedMode].title}
                       </h4>
+                      {account?.accountMode === selectedMode && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                          ⭐ Selected ID's Assigned Mode
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-indigo-300 font-semibold mt-1">
                       Mental Model: {modeInfo[selectedMode].mentalModel}
@@ -563,24 +578,37 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
 
             <div className={`grid gap-3 ${visibleProducts.length === 1 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
               {visibleProducts.map((p) => {
-                const Icon = p.icon;
+                const isAccountProduct = account?.assignedProduct === p.id;
                 return (
                   <div
                     key={p.code}
-                    className="glass-card rounded-2xl p-4 border border-slate-800 space-y-3 flex flex-col justify-between"
+                    className={`glass-card rounded-2xl p-4 border space-y-3 flex flex-col justify-between transition-all ${
+                      isAccountProduct
+                        ? 'border-blue-500/70 bg-gradient-to-br from-blue-950/50 via-slate-900/90 to-slate-950 ring-1 ring-blue-500/50 shadow-md'
+                        : 'border-slate-800 bg-slate-900/60'
+                    }`}
                   >
                     <div className="space-y-2">
-                      <div className="flex items-center gap-2.5">
-                        <div
-                          className={`w-9 h-9 rounded-xl bg-gradient-to-br ${p.color} text-white flex items-center justify-center font-bold text-sm shadow-md`}
-                        >
-                          {p.code}
-                        </div>
-                        <div>
-                          <h4 className="font-bold text-white text-sm">{p.name}</h4>
-                          <span className="text-[11px] text-amber-300 font-semibold block">
-                            🎯 {p.focus}
-                          </span>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className={`w-9 h-9 rounded-xl bg-gradient-to-br ${p.color} text-white flex items-center justify-center font-bold text-sm shadow-md`}
+                          >
+                            {p.code}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-bold text-white text-sm">{p.name}</h4>
+                              {isAccountProduct && (
+                                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40 uppercase">
+                                  ID's Product
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[11px] text-amber-300 font-semibold block">
+                              🎯 {p.focus}
+                            </span>
+                          </div>
                         </div>
                       </div>
 
