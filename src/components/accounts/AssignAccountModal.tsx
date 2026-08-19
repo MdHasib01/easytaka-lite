@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { FacebookAccount, User } from '../../types';
+import { FacebookAccount, User, FacebookAccountMode, FacebookAssignedProduct, FacebookWorkloadTier } from '../../types';
 import api from '../../services/api';
 import {
   UserCheck,
@@ -13,6 +13,8 @@ import {
   CheckCircle2,
   AlertCircle,
   ExternalLink,
+  Award,
+  Milk,
 } from 'lucide-react';
 
 interface AssignAccountModalProps {
@@ -36,6 +38,15 @@ export const AssignAccountModal: React.FC<AssignAccountModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // SMM Mode & Persona configuration state
+  const [accountMode, setAccountMode] = useState<FacebookAccountMode>('reviewer');
+  const [assignedProduct, setAssignedProduct] = useState<FacebookAssignedProduct>('milkimom');
+  const [workloadTier, setWorkloadTier] = useState<FacebookWorkloadTier>('active');
+  const [childAge, setChildAge] = useState('');
+  const [purchaseHistory, setPurchaseHistory] = useState('');
+  const [writingStyle, setWritingStyle] = useState('Bangla (বাঙালি মা টোন)');
+  const [customGuideline, setCustomGuideline] = useState('');
+
   // Determine current creator and current assignee
   const creator =
     typeof account?.createdBy === 'object' && account?.createdBy !== null
@@ -52,19 +63,28 @@ export const AssignAccountModal: React.FC<AssignAccountModalProps> = ({
       : null;
 
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && account) {
       setError(null);
       setSuccessMessage(null);
       setSearchQuery('');
 
       // Preselect current assigned SMM
       const currentId =
-        (typeof account?.assignedTo === 'object' && account?.assignedTo?._id) ||
-        (typeof account?.assignedTo === 'string' && account.assignedTo) ||
-        (typeof account?.smmId === 'object' && account?.smmId?._id) ||
-        (typeof account?.smmId === 'string' && account.smmId) ||
+        (typeof account.assignedTo === 'object' && account.assignedTo?._id) ||
+        (typeof account.assignedTo === 'string' && account.assignedTo) ||
+        (typeof account.smmId === 'object' && account.smmId?._id) ||
+        (typeof account.smmId === 'string' && account.smmId) ||
         '';
       setSelectedSmmId(currentId);
+
+      // Preload current Mode & Persona settings
+      setAccountMode(account.accountMode || 'reviewer');
+      setAssignedProduct(account.assignedProduct || 'milkimom');
+      setWorkloadTier(account.workloadTier || 'active');
+      setChildAge(account.childAge || '');
+      setPurchaseHistory(account.purchaseHistory || '');
+      setWritingStyle(account.writingStyle || 'Bangla (বাঙালি মা টোন)');
+      setCustomGuideline(account.customGuideline || '');
 
       fetchSmms();
     }
@@ -111,6 +131,13 @@ export const AssignAccountModal: React.FC<AssignAccountModalProps> = ({
     try {
       const res = await api.put(`/accounts/${account._id}/assign`, {
         assignedTo: selectedSmmId,
+        accountMode,
+        assignedProduct,
+        workloadTier,
+        childAge: childAge.trim(),
+        purchaseHistory: purchaseHistory.trim(),
+        writingStyle: writingStyle.trim(),
+        customGuideline: customGuideline.trim(),
       });
 
       if (res.data.success) {
@@ -143,9 +170,9 @@ export const AssignAccountModal: React.FC<AssignAccountModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="Assign Facebook Account"
-      subtitle={`Delegate "${account.accountName}" to an SMM agent for daily engagement and routines.`}
-      size="md"
+      title="Assign & Configure SMM ID"
+      subtitle={`Delegate "${account.accountName}" to an SMM agent and configure its Mode & Persona.`}
+      maxWidth="lg"
     >
       <div className="space-y-4">
         {/* Account Details Box */}
@@ -194,6 +221,111 @@ export const AssignAccountModal: React.FC<AssignAccountModalProps> = ({
           </div>
         </div>
 
+        {/* SMM Mode & Persona Settings */}
+        <div className="p-3.5 rounded-2xl bg-indigo-950/20 border border-indigo-500/30 space-y-3">
+          <div className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            <span>ID Mode, Product Lane & Persona Configuration</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {/* Mode Selector */}
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                ID Mode / Role:
+              </label>
+              <select
+                value={accountMode}
+                onChange={(e) => setAccountMode(e.target.value as FacebookAccountMode)}
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+              >
+                <option value="reviewer">🎖️ Reviewer (R)</option>
+                <option value="question">❓ Question (Q)</option>
+                <option value="support">💡 Support (S)</option>
+                <option value="navigation">🧭 Navigation (N)</option>
+                <option value="general">🌐 General</option>
+              </select>
+            </div>
+
+            {/* Product Lane */}
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                Assigned Product:
+              </label>
+              <select
+                value={assignedProduct}
+                onChange={(e) => setAssignedProduct(e.target.value as FacebookAssignedProduct)}
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+              >
+                <option value="milkimom">🥛 Milkimom (M)</option>
+                <option value="milkready">🍼 MilkReady (MR)</option>
+                <option value="smoothflow">💧 SmoothFlow (SF)</option>
+                <option value="stableflow">🌊 StableFlow (ST)</option>
+                <option value="all_products">✨ All Products</option>
+                <option value="none">None / General</option>
+              </select>
+            </div>
+
+            {/* Workload Tier */}
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                Workload Tier:
+              </label>
+              <select
+                value={workloadTier}
+                onChange={(e) => setWorkloadTier(e.target.value as FacebookWorkloadTier)}
+                className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
+              >
+                <option value="active">🟢 Active (Daily Tasks)</option>
+                <option value="light">🟡 Light (Warmup)</option>
+                <option value="rest">⚪ Rest (Cooling)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                বাচ্চার বয়স (Child's Age):
+              </label>
+              <input
+                type="text"
+                value={childAge}
+                onChange={(e) => setChildAge(e.target.value)}
+                placeholder="e.g. ৬ মাস / 3 months"
+                className="w-full px-3 py-2 rounded-xl glass-input text-xs text-white"
+              />
+            </div>
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                লেখার ধরন (Writing Tone):
+              </label>
+              <input
+                type="text"
+                value={writingStyle}
+                onChange={(e) => setWritingStyle(e.target.value)}
+                placeholder="e.g. Bangla (বাঙালি মা টোন)"
+                className="w-full px-3 py-2 rounded-xl glass-input text-xs text-white"
+              />
+            </div>
+          </div>
+
+          {accountMode === 'reviewer' && (
+            <div>
+              <label className="text-[11px] font-semibold text-slate-300 block mb-1">
+                ক্রয়ের বিবরণ (Fixed Purchase History):
+              </label>
+              <input
+                type="text"
+                value={purchaseHistory}
+                onChange={(e) => setPurchaseHistory(e.target.value)}
+                placeholder="e.g. Purchased 2 bottles Milkimom on 12 Jan 2026"
+                className="w-full px-3 py-2 rounded-xl glass-input text-xs text-white"
+              />
+            </div>
+          )}
+        </div>
+
         {/* SMM Selection */}
         <div className="space-y-2">
           <label className="text-xs font-semibold text-slate-300 flex items-center justify-between">
@@ -214,7 +346,7 @@ export const AssignAccountModal: React.FC<AssignAccountModalProps> = ({
           </div>
 
           {/* SMM Agents List */}
-          <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
+          <div className="max-h-44 overflow-y-auto space-y-1.5 pr-1 custom-scrollbar">
             {isLoadingSmms ? (
               <div className="text-center py-6 text-xs text-slate-400">Loading SMM agents...</div>
             ) : filteredSmms.length === 0 ? (
@@ -312,7 +444,7 @@ export const AssignAccountModal: React.FC<AssignAccountModalProps> = ({
             onClick={handleAssign}
             leftIcon={<UserCheck className="w-4 h-4" />}
           >
-            Confirm Assignment
+            Confirm Assignment & Settings
           </Button>
         </div>
       </div>

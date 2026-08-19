@@ -209,6 +209,7 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
 
   const products = [
     {
+      id: 'milkimom',
       code: 'M',
       name: 'Milkimom (মাদার টিংচার / ড্রপস)',
       focus: 'Low Milk Supply (বুকের দুধ কম হওয়া)',
@@ -218,6 +219,7 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
       symptoms: ['বাবু বারবার কেঁদে ওঠে', 'দুধের প্রবাহ কম', 'পাম্পে পর্যাপ্ত মিল্ক আসে না'],
     },
     {
+      id: 'milkready',
       code: 'MR',
       name: 'MilkReady (প্রি-ডেলিভারি টি)',
       focus: 'Pre-delivery / Pregnancy Preparation',
@@ -227,6 +229,7 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
       symptoms: ['গর্ভবতী মায়েরা', 'ডেলিভারির পর দুধ না আসার ভয়', 'প্রথমবারের মা'],
     },
     {
+      id: 'smoothflow',
       code: 'SF',
       name: 'SmoothFlow (পেইন ও ব্লকেজ রিলিফ)',
       focus: 'Clogged Duct / Painful Flow (ব্লকেজ ও অস্বস্তি)',
@@ -236,6 +239,7 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
       symptoms: ['বুকের মধ্যে শক্ত দলা অনুভব', 'দুধ বের হতে তীব্র ব্যথা', 'ফ্লো আটকে যাওয়া'],
     },
     {
+      id: 'stableflow',
       code: 'ST',
       name: 'StableFlow (অতিরিক্ত ফ্লো কন্ট্রোল)',
       focus: 'Excessive / Fast Flow (অতিরিক্ত দুধের প্রবাহ)',
@@ -245,6 +249,16 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
       symptoms: ['দুধের ফ্লো বেশি হওয়ায় বাবু বিষম খায়', 'অতিরিক্ত স্পিলিং বা চোকিং', 'হাইপার-ল্যাকটেশন'],
     },
   ];
+
+  const rawAssignedProduct = account?.assignedProduct || initialProduct;
+  const assignedProduct =
+    rawAssignedProduct && rawAssignedProduct !== 'none' && rawAssignedProduct !== 'all_products'
+      ? rawAssignedProduct
+      : null;
+
+  const visibleProducts = !isAdmin && assignedProduct
+    ? products.filter((p) => p.id === assignedProduct)
+    : products;
 
   return (
     <Modal
@@ -349,7 +363,13 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
                 : '4 ID Modes (R/Q/S/N)',
               icon: Award,
             },
-            { id: 'products', label: '4 Product Lanes', icon: Milk },
+            {
+              id: 'products',
+              label: !isAdmin && assignedProduct
+                ? `Assigned Product (${products.find((p) => p.id === assignedProduct)?.code || 'Focus'})`
+                : '4 Product Lanes',
+              icon: Milk,
+            },
             { id: 'playbooks', label: 'Response Playbooks & Scripts', icon: MessageSquare },
             { id: 'ai_rules', label: 'Voice AI & Writing Style', icon: Bot },
           ].map((tab) => {
@@ -515,16 +535,34 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
           </div>
         )}
 
-        {/* TAB 2: 4 PRODUCT LANES */}
+        {/* TAB 2: PRODUCT LANES */}
         {activeTab === 'products' && (
           <div className="space-y-3">
-            <div className="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/30 text-xs text-indigo-200">
-              💡 <strong>৪টি ভিন্ন প্রয়োজন, ৪টি নির্দিষ্ট সমাধান:</strong> কোনো গ্রাহকের সাথে
-              কথা বলার সময় সমস্যা আইডেন্টিফাই করে নির্দিষ্ট প্রোডাক্ট লেনে আলোচনা করুন।
-            </div>
+            {!isAdmin && assignedProduct ? (
+              <div className="p-3.5 rounded-2xl bg-blue-950/30 border border-blue-500/30 text-xs text-blue-200 flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-base">🥛</span>
+                  <span>
+                    <strong>Your Assigned Product Lane:</strong> This Facebook profile is strictly designated for the{' '}
+                    <strong className="text-white">
+                      {products.find((p) => p.id === assignedProduct)?.name || assignedProduct.toUpperCase()}
+                    </strong>{' '}
+                    lane.
+                  </span>
+                </div>
+                <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold uppercase flex-shrink-0 border border-blue-500/30">
+                  Admin Assigned
+                </span>
+              </div>
+            ) : (
+              <div className="p-3 rounded-xl bg-indigo-950/30 border border-indigo-500/30 text-xs text-indigo-200">
+                💡 <strong>৪টি ভিন্ন প্রয়োজন, ৪টি নির্দিষ্ট সমাধান:</strong> কোনো গ্রাহকের সাথে
+                কথা বলার সময় সমস্যা আইডেন্টিফাই করে নির্দিষ্ট প্রোডাক্ট লেনে আলোচনা করুন।
+              </div>
+            )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {products.map((p) => {
+            <div className={`grid gap-3 ${visibleProducts.length === 1 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
+              {visibleProducts.map((p) => {
                 const Icon = p.icon;
                 return (
                   <div
