@@ -161,13 +161,13 @@ export const AccountCard: React.FC<AccountCardProps> = ({
     >
       <div className="space-y-4">
         {/* SMM Mode & Role Header Bar */}
-        <div className="flex items-center justify-between gap-2 flex-wrap pb-1 border-b border-slate-800/80">
-          <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex items-center justify-between gap-2 pb-2 border-b border-slate-800/80">
+          <div className="flex items-center gap-1.5 flex-wrap min-w-0">
             {getModeBadge()}
             {getProductBadge()}
             {workloadTier && (
               <span
-                className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded border ${
+                className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded border ${
                   workloadTier === 'active'
                     ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
                     : workloadTier === 'light'
@@ -183,10 +183,10 @@ export const AccountCard: React.FC<AccountCardProps> = ({
           <button
             type="button"
             onClick={() => setGuidelineModalOpen(true)}
-            className="text-[10px] text-indigo-300 hover:text-white font-bold flex items-center gap-1 bg-indigo-600/20 hover:bg-indigo-600/40 px-2 py-0.5 rounded-lg border border-indigo-500/30 transition-all"
-            title="View guidelines and scripts for this ID"
+            className="text-[11px] text-indigo-300 hover:text-white font-bold flex items-center gap-1 bg-indigo-600/20 hover:bg-indigo-600/40 px-2.5 py-1 rounded-xl border border-indigo-500/30 transition-all flex-shrink-0 shadow-sm"
+            title="Open Persona Details & Playbook dialog"
           >
-            <BookOpen className="w-3 h-3 text-indigo-400" />
+            <BookOpen className="w-3.5 h-3.5 text-indigo-400" />
             <span>Playbook</span>
           </button>
         </div>
@@ -362,34 +362,25 @@ export const AccountCard: React.FC<AccountCardProps> = ({
           </div>
         </div>
 
-        {/* SMM Persona Characteristics Context */}
+        {/* SMM Persona Summary Interactive Pill */}
         {(account.childAge || account.writingStyle || account.purchaseHistory) && (
-          <div className="p-3 rounded-xl bg-slate-900/50 border border-slate-800 space-y-1.5 text-xs">
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center justify-between">
-              <span className="flex items-center gap-1 text-indigo-300">
-                <Sparkles className="w-3 h-3 text-amber-400" /> Persona Characteristics:
+          <button
+            type="button"
+            onClick={() => setGuidelineModalOpen(true)}
+            className="w-full p-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 hover:border-indigo-500/40 text-left transition-all group flex items-center justify-between gap-2 text-xs"
+            title="Click to view full Persona Details & Playbook dialog"
+          >
+            <div className="flex items-center gap-2 min-w-0 truncate">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+              <span className="text-slate-300 font-semibold text-[11px] truncate">
+                {account.childAge ? `👶 Baby: ${account.childAge}` : 'Persona Configured'}
+                {account.writingStyle ? ` • ${account.writingStyle}` : ''}
               </span>
-              {account.childAge && (
-                <span className="text-slate-300 font-semibold">
-                  👶 Baby: {account.childAge}
-                </span>
-              )}
             </div>
-
-            {account.writingStyle && (
-              <div className="text-[11px] text-slate-300">
-                <span className="text-slate-400">Tone: </span>
-                <span className="font-medium text-slate-200">{account.writingStyle}</span>
-              </div>
-            )}
-
-            {account.purchaseHistory && (
-              <div className="text-[11px] text-purple-300 bg-purple-950/30 px-2 py-1 rounded border border-purple-500/20 truncate">
-                <span className="font-semibold text-purple-200">History: </span>
-                <span>{account.purchaseHistory}</span>
-              </div>
-            )}
-          </div>
+            <span className="text-[10px] text-indigo-400 group-hover:text-indigo-300 font-bold flex items-center gap-0.5 flex-shrink-0">
+              Details ➔
+            </span>
+          </button>
         )}
 
         {/* Daily Routine Targets Summary */}
@@ -461,6 +452,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({
       <SmmGuidelineModal
         isOpen={guidelineModalOpen}
         onClose={() => setGuidelineModalOpen(false)}
+        account={account}
         initialMode={account.accountMode}
         initialProduct={account.assignedProduct}
       />

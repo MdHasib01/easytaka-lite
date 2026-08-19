@@ -23,11 +23,12 @@ import {
   ExternalLink,
   ChevronRight,
 } from 'lucide-react';
-import type { FacebookAccountMode, FacebookAssignedProduct } from '../../types';
+import type { FacebookAccount, FacebookAccountMode, FacebookAssignedProduct } from '../../types';
 
 interface SmmGuidelineModalProps {
   isOpen: boolean;
   onClose: () => void;
+  account?: FacebookAccount | null;
   initialMode?: FacebookAccountMode;
   initialProduct?: FacebookAssignedProduct;
 }
@@ -35,14 +36,27 @@ interface SmmGuidelineModalProps {
 export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
   isOpen,
   onClose,
+  account,
   initialMode,
   initialProduct,
 }) => {
   const [activeTab, setActiveTab] = useState<'modes' | 'products' | 'playbooks' | 'ai_rules'>(
     'modes'
   );
-  const [selectedMode, setSelectedMode] = useState<FacebookAccountMode>(initialMode || 'reviewer');
+  const effectiveMode = account?.accountMode || initialMode || 'reviewer';
+  const [selectedMode, setSelectedMode] = useState<FacebookAccountMode>(
+    effectiveMode !== 'general' ? effectiveMode : 'reviewer'
+  );
   const [copiedScriptIndex, setCopiedScriptIndex] = useState<string | null>(null);
+
+  // Sync selected mode when modal opens or account changes
+  React.useEffect(() => {
+    if (account?.accountMode && account.accountMode !== 'general') {
+      setSelectedMode(account.accountMode);
+    } else if (initialMode && initialMode !== 'general') {
+      setSelectedMode(initialMode);
+    }
+  }, [account, initialMode, isOpen]);
 
   const handleCopy = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -230,11 +244,95 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title="SMM Mission Guidelines & Milkimom Response Playbook"
-      subtitle="Comprehensive rules, multi-persona response scripts, product lines, and AI writing guidelines."
+      title={account ? `SMM Playbook — ${account.accountName}` : "SMM Mission Guidelines & Response Playbook"}
+      subtitle={
+        account
+          ? `Operating persona, scripts, and rules for ${account.accountName}`
+          : "Comprehensive rules, multi-persona response scripts, product lines, and AI writing guidelines."
+      }
       maxWidth="2xl"
     >
-      <div className="space-y-5">
+      <div className="space-y-4">
+        {/* Account Persona Identity Header (When opened from a specific account) */}
+        {account && (
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-indigo-950/60 via-purple-950/40 to-slate-900 border border-indigo-500/30 space-y-2.5">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-3">
+                <img
+                  src={
+                    account.avatarUrl ||
+                    `https://ui-avatars.com/api/?name=${encodeURIComponent(account.accountName)}&background=1877f2&color=fff`
+                  }
+                  alt={account.accountName}
+                  className="w-10 h-10 rounded-xl object-cover ring-2 ring-indigo-500/30"
+                />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-white text-sm leading-snug">{account.accountName}</h4>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 uppercase">
+                      Mode: {account.accountMode || 'General'}
+                    </span>
+                  </div>
+                  <a
+                    href={account.profileUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-0.5 truncate max-w-[240px]"
+                  >
+                    <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                    <span className="truncate">{account.profileUrl}</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Persona Tags */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                {account.assignedProduct && account.assignedProduct !== 'none' && (
+                  <span className="px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-bold">
+                    Product: {account.assignedProduct.toUpperCase()}
+                  </span>
+                )}
+                {account.workloadTier && (
+                  <span className="px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-semibold uppercase">
+                    Tier: {account.workloadTier}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Persona Details Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-indigo-500/20 text-xs">
+              {account.childAge && (
+                <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/80">
+                  <span className="text-slate-400 font-semibold">👶 বাচ্চার বয়স: </span>
+                  <span className="text-white font-medium">{account.childAge}</span>
+                </div>
+              )}
+
+              {account.writingStyle && (
+                <div className="bg-slate-900/60 p-2 rounded-xl border border-slate-800/80">
+                  <span className="text-slate-400 font-semibold">✍️ লেখার ধরন: </span>
+                  <span className="text-slate-200">{account.writingStyle}</span>
+                </div>
+              )}
+
+              {account.purchaseHistory && (
+                <div className="sm:col-span-2 bg-purple-950/30 p-2 rounded-xl border border-purple-500/30 text-purple-200">
+                  <span className="font-semibold text-purple-300">🧾 ক্রয়ের তারিখ ও ইতিহাস: </span>
+                  <span>{account.purchaseHistory}</span>
+                </div>
+              )}
+
+              {account.customGuideline && (
+                <div className="sm:col-span-2 bg-amber-950/30 p-2 rounded-xl border border-amber-500/30 text-amber-200">
+                  <span className="font-semibold text-amber-300">📌 স্পেশাল নির্দেশনা: </span>
+                  <span>{account.customGuideline}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* Navigation Tabs */}
         <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-900 border border-slate-800 overflow-x-auto">
           {[

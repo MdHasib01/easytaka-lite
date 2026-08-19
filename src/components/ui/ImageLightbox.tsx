@@ -1,4 +1,5 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { X, ExternalLink, ZoomIn } from 'lucide-react';
 
 interface ImageLightboxProps {
@@ -16,8 +17,8 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
 }) => {
   if (!isOpen || !imageUrl) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+  const content = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
       <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col bg-[#0f172a] border border-slate-700/80 rounded-2xl overflow-hidden shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-3.5 bg-slate-900 border-b border-slate-800">
@@ -55,4 +56,6 @@ export const ImageLightbox: React.FC<ImageLightboxProps> = ({
       </div>
     </div>
   );
+
+  return createPortal(content, document.body);
 };
