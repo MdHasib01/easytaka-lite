@@ -44,6 +44,10 @@ export interface RoutineTargets {
 export interface FacebookAccount {
   _id: string;
   smmId: string | User;
+  createdBy?: string | User;
+  assignedTo?: string | User;
+  assignedAt?: string;
+  assignedBy?: string | User;
   accountName: string;
   profileUrl: string;
   profileUid?: string;

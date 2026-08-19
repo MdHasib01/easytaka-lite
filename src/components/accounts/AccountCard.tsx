@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FacebookAccount, AccountStatus } from '../../types';
+import { FacebookAccount, AccountStatus, User } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
 import {
@@ -16,12 +16,15 @@ import {
   CheckCircle2,
   AlertCircle,
   Coins,
+  UserCheck,
+  UserPlus,
 } from 'lucide-react';
 
 interface AccountCardProps {
   account: FacebookAccount;
   onEdit?: (account: FacebookAccount) => void;
   onDelete?: (id: string) => void;
+  onAssign?: (account: FacebookAccount) => void;
   onStatusChange?: (id: string, newStatus: AccountStatus) => void;
   isCurrent?: boolean;
   onSelect?: () => void;
@@ -31,6 +34,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({
   account,
   onEdit,
   onDelete,
+  onAssign,
   onStatusChange,
   isCurrent = false,
   onSelect,
@@ -41,6 +45,22 @@ export const AccountCard: React.FC<AccountCardProps> = ({
   const isPending = approvalStatus === 'pending';
   const isApproved = approvalStatus === 'approved';
   const isRejected = approvalStatus === 'rejected';
+
+  const creator =
+    typeof account.createdBy === 'object' && account.createdBy !== null
+      ? (account.createdBy as User)
+      : typeof account.smmId === 'object' && account.smmId !== null
+      ? (account.smmId as User)
+      : null;
+
+  const assignee =
+    typeof account.assignedTo === 'object' && account.assignedTo !== null
+      ? (account.assignedTo as User)
+      : typeof account.smmId === 'object' && account.smmId !== null
+      ? (account.smmId as User)
+      : null;
+
+  const isAssignedToOther = creator?._id && assignee?._id && creator._id !== assignee._id;
 
   return (
     <div
@@ -106,6 +126,74 @@ export const AccountCard: React.FC<AccountCardProps> = ({
             )}
 
             <Badge variant={account.status as any}>{account.status.toUpperCase()}</Badge>
+          </div>
+        </div>
+
+        {/* Creator & Assignee Info */}
+        <div className="space-y-1.5 p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 text-xs">
+          {/* Creator Row */}
+          <div className="flex items-center justify-between gap-2 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              {creator?.avatar ? (
+                <img
+                  src={creator.avatar}
+                  alt={creator.name || 'Creator'}
+                  className="w-5 h-5 rounded-full object-cover ring-1 ring-slate-600 flex-shrink-0"
+                />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-slate-800 text-slate-300 text-[10px] font-bold flex items-center justify-center flex-shrink-0 border border-slate-700">
+                  {(creator?.name || creator?.email || 'U').charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0 truncate">
+                <span className="text-[10px] text-slate-400">Created by: </span>
+                <strong className="text-slate-200 text-xs font-semibold truncate">
+                  {creator?.name || creator?.email || 'Admin / SMM'}
+                </strong>
+              </div>
+            </div>
+
+            {account.createdAt && (
+              <div className="flex items-center gap-1 text-[10px] text-slate-400 flex-shrink-0">
+                <Clock className="w-3 h-3 text-slate-500" />
+                <span>{new Date(account.createdAt).toLocaleDateString()}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Assigned To Row */}
+          <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-slate-800/60 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              {assignee?.avatar ? (
+                <img
+                  src={assignee.avatar}
+                  alt={assignee.name || 'Assignee'}
+                  className="w-5 h-5 rounded-full object-cover ring-1 ring-indigo-500/40 flex-shrink-0"
+                />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-300 text-[10px] font-bold flex items-center justify-center flex-shrink-0 border border-indigo-500/30">
+                  {(assignee?.name || assignee?.email || 'A').charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="min-w-0 truncate">
+                <span className="text-[10px] text-slate-400">Assigned to: </span>
+                <strong className="text-indigo-300 text-xs font-semibold truncate">
+                  {assignee?.name || assignee?.email || 'Unassigned'}
+                </strong>
+              </div>
+            </div>
+
+            {onAssign && (
+              <button
+                type="button"
+                onClick={() => onAssign(account)}
+                className="text-[10px] text-indigo-400 hover:text-indigo-300 font-bold hover:underline flex items-center gap-1 flex-shrink-0 bg-indigo-500/10 px-2 py-0.5 rounded-lg border border-indigo-500/20 transition-all hover:bg-indigo-500/20"
+                title="Assign to specific SMM"
+              >
+                <UserCheck className="w-3 h-3" />
+                <span>Assign</span>
+              </button>
+            )}
           </div>
         </div>
 

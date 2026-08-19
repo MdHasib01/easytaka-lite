@@ -16,6 +16,10 @@ interface AccountState {
   fetchAllAccounts: (approvalStatus?: string) => Promise<void>;
   createAccount: (data: Partial<FacebookAccount>) => Promise<FacebookAccount | null>;
   updateAccount: (id: string, data: Partial<FacebookAccount>) => Promise<boolean>;
+  assignAccount: (
+    id: string,
+    assignedTo: string
+  ) => Promise<{ success: boolean; message: string; account?: FacebookAccount }>;
   verifyAccount: (
     id: string,
     action: 'approve' | 'reject',
@@ -105,6 +109,22 @@ export const useAccountStore = create<AccountState>((set, get) => ({
       return true;
     } catch (err) {
       return false;
+    }
+  },
+
+  assignAccount: async (id, assignedTo) => {
+    try {
+      const res = await api.put(`/accounts/${id}/assign`, { assignedTo });
+      const updated = res.data.account;
+      set((state) => ({
+        accounts: state.accounts.map((a) => (a._id === id ? updated : a)),
+        allAccounts: state.allAccounts.map((a) => (a._id === id ? updated : a)),
+        selectedAccount: state.selectedAccount?._id === id ? updated : state.selectedAccount,
+      }));
+      return { success: true, message: res.data.message, account: updated };
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Failed to assign Facebook account';
+      return { success: false, message: msg };
     }
   },
 

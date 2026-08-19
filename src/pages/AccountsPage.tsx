@@ -3,6 +3,7 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { useAccountStore } from '../stores/useAccountStore';
 import { AccountCard } from '../components/accounts/AccountCard';
 import { AddAccountModal } from '../components/accounts/AddAccountModal';
+import { AssignAccountModal } from '../components/accounts/AssignAccountModal';
 import { AccountMilestoneProgressBar } from '../components/gamification/AccountMilestoneProgressBar';
 import { Button } from '../components/ui/Button';
 import { FacebookAccount, AccountStatus } from '../types';
@@ -36,6 +37,7 @@ export const AccountsPage: React.FC = () => {
 
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<FacebookAccount | null>(null);
+  const [assigningAccount, setAssigningAccount] = useState<FacebookAccount | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -177,6 +179,7 @@ export const AccountsPage: React.FC = () => {
                 setEditingAccount(a);
                 setAddModalOpen(true);
               }}
+              onAssign={(a) => setAssigningAccount(a)}
               onDelete={deleteAccount}
               onStatusChange={(id, status) => updateAccount(id, { status })}
             />
@@ -197,6 +200,20 @@ export const AccountsPage: React.FC = () => {
             return updateAccount(editingAccount._id, data);
           } else {
             return createAccount(data);
+          }
+        }}
+      />
+
+      {/* Assign Account Modal */}
+      <AssignAccountModal
+        isOpen={!!assigningAccount}
+        onClose={() => setAssigningAccount(null)}
+        account={assigningAccount}
+        onAssignSuccess={() => {
+          if (isAdmin) {
+            fetchAllAccounts();
+          } else {
+            fetchMyAccounts();
           }
         }}
       />

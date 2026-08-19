@@ -6,6 +6,7 @@ import { VerificationCard } from '../components/tasks/VerificationCard';
 import { InviteSmmModal } from '../components/admin/InviteSmmModal';
 import { SmmVerificationModal } from '../components/admin/SmmVerificationModal';
 import { PointSettingsModal } from '../components/admin/PointSettingsModal';
+import { AssignAccountModal } from '../components/accounts/AssignAccountModal';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Modal } from '../components/ui/Modal';
@@ -23,6 +24,7 @@ import {
   MessageSquare,
   Sparkles,
   UserPlus,
+  UserCheck,
   Users,
   CreditCard,
   Eye,
@@ -64,6 +66,7 @@ export const VerificationsPage: React.FC = () => {
   // Facebook Accounts filter state
   const [accountStatusFilter, setAccountStatusFilter] = useState<string>('pending');
   const [rejectingAccount, setRejectingAccount] = useState<FacebookAccount | null>(null);
+  const [assigningAccount, setAssigningAccount] = useState<FacebookAccount | null>(null);
   const [rejectReason, setRejectReason] = useState<string>('');
   const [actionSuccessMessage, setActionSuccessMessage] = useState<string | null>(null);
 
@@ -463,7 +466,20 @@ export const VerificationsPage: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {allAccounts.map((account) => {
-                const smmOwner = account.smmId as User;
+                const creator =
+                  typeof account.createdBy === 'object' && account.createdBy !== null
+                    ? (account.createdBy as User)
+                    : typeof account.smmId === 'object' && account.smmId !== null
+                    ? (account.smmId as User)
+                    : null;
+
+                const assignee =
+                  typeof account.assignedTo === 'object' && account.assignedTo !== null
+                    ? (account.assignedTo as User)
+                    : typeof account.smmId === 'object' && account.smmId !== null
+                    ? (account.smmId as User)
+                    : null;
+
                 const isPending = account.approvalStatus === 'pending';
                 const isApproved = account.approvalStatus === 'approved';
                 const isRejected = account.approvalStatus === 'rejected';
@@ -481,78 +497,201 @@ export const VerificationsPage: React.FC = () => {
                         : 'border-slate-800'
                     }`}
                   >
-                    {/* Header: Account Name & SMM Owner Info */}
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-3">
+                    {/* Top Creator & Submitter Bar: Avatar, Name & Submitted Date */}
+                    <div className="flex items-center justify-between gap-3 pb-3 border-b border-slate-800/80 flex-wrap">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {creator?.avatar ? (
+                          <img
+                            src={creator.avatar}
+                            alt={creator.name || 'Creator'}
+                            className="w-10 h-10 rounded-xl object-cover ring-2 ring-indigo-500/30 flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-indigo-800 text-white font-bold flex items-center justify-center text-sm shadow-sm ring-2 ring-indigo-500/30 flex-shrink-0">
+                            {(creator?.name || creator?.email || 'S').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-white text-sm">
+                              {creator?.name || 'SMM Agent'}
+                            </span>
+                            {creator?.email && (
+                              <span className="text-xs text-slate-400 truncate">({creator.email})</span>
+                            )}
+                            <span className="text-[9px] px-1.5 py-0.2 rounded bg-slate-800 text-slate-300 border border-slate-700 font-semibold uppercase">
+                              Created By
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
+                            <Clock className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
+                            <span>
+                              Submitted:{' '}
+                              <strong className="text-slate-300 font-medium">
+                                {account.createdAt
+                                  ? new Date(account.createdAt).toLocaleString(undefined, {
+                                      dateStyle: 'medium',
+                                      timeStyle: 'short',
+                                    })
+                                  : 'Recently'}
+                              </strong>
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {isPending && (
+                          <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-amber-400 animate-spin" /> PENDING APPROVAL
+                          </span>
+                        )}
+                        {isApproved && (
+                          <span className="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold flex items-center gap-1">
+                            <Coins className="w-3 h-3 text-emerald-400" /> +{account.pointsAwarded || 40} PTS
+                          </span>
+                        )}
+                        {isRejected && (
+                          <span className="px-2 py-0.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3 text-rose-400" /> REJECTED
+                          </span>
+                        )}
+                        <Badge variant={account.status as any}>{account.status.toUpperCase()}</Badge>
+                      </div>
+                    </div>
+
+                    {/* Assigned SMM Banner */}
+                    <div className="p-2.5 rounded-xl bg-slate-900/50 border border-slate-800/80 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {assignee?.avatar ? (
+                          <img
+                            src={assignee.avatar}
+                            alt={assignee.name || 'Assignee'}
+                            className="w-7 h-7 rounded-lg object-cover ring-1 ring-indigo-500/40 flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-7 h-7 rounded-lg bg-indigo-600/30 text-indigo-300 text-xs font-bold flex items-center justify-center flex-shrink-0 border border-indigo-500/30">
+                            {(assignee?.name || assignee?.email || 'A').charAt(0).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <span className="text-[10px] text-slate-400 block font-semibold">Currently Assigned To:</span>
+                          <span className="text-xs font-bold text-indigo-300 truncate block">
+                            {assignee?.name || assignee?.email || 'Unassigned'}
+                          </span>
+                        </div>
+                      </div>
+
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => setAssigningAccount(account)}
+                        className="text-xs flex-shrink-0"
+                        leftIcon={<UserCheck className="w-3.5 h-3.5 text-indigo-400" />}
+                      >
+                        {assignee?._id ? 'Reassign SMM' : 'Assign to SMM'}
+                      </Button>
+                    </div>
+
+                    {/* Facebook Account Profile Box */}
+                    <div className="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
                         <img
                           src={
                             account.avatarUrl ||
                             `https://ui-avatars.com/api/?name=${encodeURIComponent(account.accountName)}&background=1877f2&color=fff`
                           }
                           alt={account.accountName}
-                          className="w-12 h-12 rounded-2xl object-cover ring-2 ring-blue-500/30 flex-shrink-0"
+                          className="w-11 h-11 rounded-xl object-cover ring-2 ring-blue-500/30 flex-shrink-0"
                         />
-                        <div>
-                          <h4 className="font-bold text-white text-base leading-snug">{account.accountName}</h4>
-                          <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
-                            <span>SMM: <strong className="text-slate-200">{smmOwner?.name || 'SMM'}</strong></span>
-                            <span>•</span>
-                            <span>{smmOwner?.email}</span>
-                          </div>
+                        <div className="min-w-0">
+                          <h4 className="font-bold text-white text-base leading-snug truncate">
+                            {account.accountName}
+                          </h4>
+                          <a
+                            href={account.profileUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-0.5 truncate"
+                          >
+                            <ExternalLink className="w-3 h-3 flex-shrink-0" />
+                            <span className="truncate">{account.profileUrl}</span>
+                          </a>
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-end gap-1">
-                        {isPending && (
-                          <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold">
-                            PENDING APPROVAL
-                          </span>
-                        )}
-                        {isApproved && (
-                          <span className="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
-                            APPROVED (+{account.pointsAwarded || 40} PTS)
-                          </span>
-                        )}
-                        {isRejected && (
-                          <span className="px-2 py-0.5 rounded-lg bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">
-                            REJECTED
-                          </span>
-                        )}
-                      </div>
+                      {account.profileUid && (
+                        <div className="text-right flex-shrink-0 hidden sm:block">
+                          <span className="text-[10px] text-slate-400 block font-semibold">UID</span>
+                          <span className="font-mono text-cyan-300 text-xs">{account.profileUid}</span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Account Details & Credentials */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                       <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
-                        <span className="text-slate-400">Profile URL:</span>
-                        <a
-                          href={account.profileUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="text-blue-400 hover:underline flex items-center gap-1 truncate max-w-[130px]"
-                        >
-                          <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                          <span className="truncate">{account.profileUrl}</span>
-                        </a>
+                        <div className="flex items-center gap-1.5 text-slate-400">
+                          <Hash className="w-3.5 h-3.5 text-cyan-400" />
+                          <span>UID:</span>
+                        </div>
+                        <span className="font-mono text-slate-200 truncate max-w-[130px]">
+                          {account.profileUid || 'N/A'}
+                        </span>
                       </div>
 
                       <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
-                        <span className="text-slate-400">UID:</span>
-                        <span className="font-mono text-slate-200">{account.profileUid || 'N/A'}</span>
+                        <div className="flex items-center gap-1.5 text-slate-400">
+                          <Lock className="w-3.5 h-3.5 text-amber-400" />
+                          <span>Password/Hint:</span>
+                        </div>
+                        <span className="font-mono text-slate-200 truncate max-w-[130px]">
+                          {account.password || account.passwordHint || 'N/A'}
+                        </span>
                       </div>
 
-                      <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
-                        <span className="text-slate-400">Password/Hint:</span>
-                        <span className="font-mono text-slate-200">{account.password || account.passwordHint || 'N/A'}</span>
-                      </div>
+                      {account.emailOrPhone && (
+                        <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-slate-400">
+                            <Mail className="w-3.5 h-3.5 text-emerald-400" />
+                            <span>Email/Phone:</span>
+                          </div>
+                          <span className="text-slate-200 truncate max-w-[130px]">
+                            {account.emailOrPhone}
+                          </span>
+                        </div>
+                      )}
 
                       <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center justify-between">
-                        <span className="text-slate-400">Target Region:</span>
-                        <span className="text-slate-200">{account.targetRegion || 'Global'}</span>
+                        <div className="flex items-center gap-1.5 text-slate-400">
+                          <Globe className="w-3.5 h-3.5 text-indigo-400" />
+                          <span>Target Region:</span>
+                        </div>
+                        <span className="text-slate-200 truncate max-w-[130px]">
+                          {account.targetRegion || 'Global'}
+                        </span>
                       </div>
                     </div>
 
-                    {/* Admin Note if present */}
+                    {/* Daily Routine Targets Summary */}
+                    <div className="p-3 rounded-xl bg-slate-900/40 border border-slate-800/60 flex items-center gap-3 text-xs text-slate-300 flex-wrap">
+                      <span className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
+                        Routines:
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <MessageCircle className="w-3 h-3 text-indigo-400" />
+                        {account.routineTargets?.feedComments || 5} Comments
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <Share2 className="w-3 h-3 text-cyan-400" />
+                        {account.routineTargets?.communityReplies || 3} Replies
+                      </span>
+                      {account.routineTargets?.storyPost && (
+                        <span className="text-emerald-400 font-medium">✓ Story</span>
+                      )}
+                    </div>
+
+                    {/* Admin Note / Rejection Reason if present */}
                     {account.adminNote && (
                       <div
                         className={`p-2.5 rounded-xl text-xs flex items-start gap-2 border ${
@@ -563,9 +702,23 @@ export const VerificationsPage: React.FC = () => {
                       >
                         <MessageSquare className="w-4 h-4 flex-shrink-0 mt-0.5" />
                         <div>
-                          <span className="font-bold block text-[11px]">Note:</span>
-                          <p className="text-[11px]">{account.adminNote}</p>
+                          <span className="font-bold block text-[11px]">
+                            {isRejected ? 'Rejection Reason / Note:' : 'Admin Note:'}
+                          </span>
+                          <p className="text-[11px] mt-0.5">{account.adminNote}</p>
                         </div>
+                      </div>
+                    )}
+
+                    {isApproved && account.approvedAt && (
+                      <div className="text-[11px] text-slate-500 flex items-center justify-between pt-1 border-t border-slate-800/60">
+                        <span>
+                          Approved by:{' '}
+                          <strong className="text-slate-300">
+                            {(account.approvedBy as User)?.name || 'Admin'}
+                          </strong>
+                        </span>
+                        <span>{new Date(account.approvedAt).toLocaleString()}</span>
                       </div>
                     )}
 
@@ -799,6 +952,16 @@ export const VerificationsPage: React.FC = () => {
         onClose={() => setSelectedSmmForReview(null)}
         smm={selectedSmmForReview}
         onVerificationComplete={() => fetchSmmVerifications(smmStatusFilter)}
+      />
+
+      {/* Admin Assign Facebook Account Modal */}
+      <AssignAccountModal
+        isOpen={!!assigningAccount}
+        onClose={() => setAssigningAccount(null)}
+        account={assigningAccount}
+        onAssignSuccess={() => {
+          fetchAllAccounts(accountStatusFilter);
+        }}
       />
 
       {/* Admin Reject Account Note Modal */}
