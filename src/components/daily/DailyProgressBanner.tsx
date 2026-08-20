@@ -15,7 +15,7 @@ import {
   Send,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { DailyWorkSubmission } from '../../types';
+import { DailyWorkSubmission, RatingBreakpoint } from '../../types';
 
 interface DailyProgressBannerProps {
   overallProgress: number;
@@ -23,6 +23,7 @@ interface DailyProgressBannerProps {
   completedAccountsCount: number;
   streakDays?: number;
   dailyTaskCompletionReward?: number;
+  ratingBreakpoints?: RatingBreakpoint[];
   dailyRewardClaimedToday?: boolean;
   submission?: DailyWorkSubmission | null;
   onSubmitClick?: () => void;
@@ -34,6 +35,7 @@ export const DailyProgressBanner: React.FC<DailyProgressBannerProps> = ({
   completedAccountsCount,
   streakDays = 0,
   dailyTaskCompletionReward = 100,
+  ratingBreakpoints = [],
   dailyRewardClaimedToday = false,
   submission,
   onSubmitClick,
@@ -41,6 +43,10 @@ export const DailyProgressBanner: React.FC<DailyProgressBannerProps> = ({
   const isApproved = submission?.status === 'approved' || dailyRewardClaimedToday;
   const isPending = submission?.status === 'pending';
   const isRejected = submission?.status === 'rejected';
+
+  const maxPoints = ratingBreakpoints.length > 0
+    ? Math.max(...ratingBreakpoints.map((bp) => bp.points))
+    : dailyTaskCompletionReward;
 
   return (
     <div className="relative overflow-hidden rounded-3xl glass-panel p-6 border border-slate-700/60 bg-gradient-to-r from-slate-900/90 via-indigo-950/40 to-slate-900/90 shadow-2xl">
@@ -61,7 +67,7 @@ export const DailyProgressBanner: React.FC<DailyProgressBannerProps> = ({
             {isApproved ? (
               <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5 shadow-sm">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                ⭐ {submission?.reviewScore ? `${submission.reviewScore}/5` : '5/5'} Approved (+{submission?.pointsAwarded || dailyTaskCompletionReward} PTS Credited)
+                ⭐ {submission?.reviewScore ? `${submission.reviewScore}/5` : '5/5'} Approved (+{submission?.pointsAwarded || maxPoints} PTS Credited)
               </span>
             ) : isPending ? (
               <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 shadow-sm animate-pulse">
@@ -76,7 +82,7 @@ export const DailyProgressBanner: React.FC<DailyProgressBannerProps> = ({
             ) : (
               <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 shadow-sm">
                 <Coins className="w-3.5 h-3.5 text-amber-400" />
-                Earn up to +{dailyTaskCompletionReward} PTS (Admin Review)
+                Earn up to +{maxPoints} PTS (Rating-based)
               </span>
             )}
 

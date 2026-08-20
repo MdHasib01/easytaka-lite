@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import api from '../services/api';
-import { DailyRoutineCardData, RoutineItemState, DailyWorkSubmission, DailyTaskScoreRules } from '../types';
+import { DailyRoutineCardData, RoutineItemState, DailyWorkSubmission, DailyTaskScoreRules, RatingBreakpoint } from '../types';
 import confetti from 'canvas-confetti';
 import { useAuthStore } from './useAuthStore';
 
@@ -12,6 +12,7 @@ interface DailyState {
   completedAccountsCount: number;
   dailyTaskCompletionReward: number;
   scoreRules: DailyTaskScoreRules | null;
+  ratingBreakpoints: RatingBreakpoint[];
   dailyRewardClaimedToday: boolean;
   submission: DailyWorkSubmission | null;
   justEarnedDailyReward: { awarded: boolean; amount: number; score?: number } | null;
@@ -21,6 +22,7 @@ interface DailyState {
   // Admin states
   dailySubmissions: DailyWorkSubmission[];
   adminScoreRules: DailyTaskScoreRules | null;
+  adminRatingBreakpoints: RatingBreakpoint[];
   adminDefaultDailyReward: number;
   isSubmissionsLoading: boolean;
 
@@ -57,6 +59,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
   completedAccountsCount: 0,
   dailyTaskCompletionReward: 100,
   scoreRules: null,
+  ratingBreakpoints: [],
   dailyRewardClaimedToday: false,
   submission: null,
   justEarnedDailyReward: null,
@@ -65,6 +68,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
 
   dailySubmissions: [],
   adminScoreRules: null,
+  adminRatingBreakpoints: [],
   adminDefaultDailyReward: 100,
   isSubmissionsLoading: false,
 
@@ -81,6 +85,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
         completedAccountsCount: res.data.completedAccountsCount || 0,
         dailyTaskCompletionReward: res.data.dailyTaskCompletionReward ?? 100,
         scoreRules: res.data.scoreRules || null,
+        ratingBreakpoints: res.data.ratingBreakpoints || [],
         dailyRewardClaimedToday: !!res.data.dailyRewardClaimedToday,
         submission: res.data.submission || null,
         isLoading: false,
@@ -158,6 +163,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
         set({
           dailySubmissions: res.data.submissions || [],
           adminScoreRules: res.data.scoreRules || null,
+          adminRatingBreakpoints: res.data.ratingBreakpoints || [],
           adminDefaultDailyReward: res.data.defaultDailyCompletionReward || 100,
           isSubmissionsLoading: false,
         });

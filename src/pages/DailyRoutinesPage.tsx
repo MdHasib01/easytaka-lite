@@ -33,6 +33,7 @@ export const DailyRoutinesPage: React.FC = () => {
     completedAccountsCount,
     dailyTaskCompletionReward,
     scoreRules,
+    ratingBreakpoints,
     dailyRewardClaimedToday,
     submission,
     fetchTodayRoutines,
@@ -155,6 +156,7 @@ export const DailyRoutinesPage: React.FC = () => {
         completedAccountsCount={completedAccountsCount}
         streakDays={user?.streakDays || 0}
         dailyTaskCompletionReward={dailyTaskCompletionReward}
+        ratingBreakpoints={ratingBreakpoints}
         dailyRewardClaimedToday={dailyRewardClaimedToday}
         submission={submission}
         onSubmitClick={() => setSubmitModalOpen(true)}

@@ -21,10 +21,6 @@ import {
   Coins,
   Gift,
   Star,
-  CalendarCheck,
-  Settings as SettingsIcon,
-  Flame,
-  Award,
   Plus,
   Trash2,
   RotateCcw,
@@ -80,17 +76,15 @@ export const AdminSettingsPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('points');
 
   // Point & Reward Settings Form State
-  const [pointsSubTab, setPointsSubTab] = useState<'global' | 'scoring_matrix'>('global');
   const [fbAccountReward, setFbAccountReward] = useState<number>(40);
   const [fbMilestoneReward, setFbMilestoneReward] = useState<number>(100);
   const [fbMilestoneStep, setFbMilestoneStep] = useState<number>(5);
-  const [defaultDailyReward, setDefaultDailyReward] = useState<number>(100);
   const [minWithdrawalPoints, setMinWithdrawalPoints] = useState<number>(50);
   const [maxWithdrawalPoints, setMaxWithdrawalPoints] = useState<number>(1000);
   const [withdrawalCycleDays, setWithdrawalCycleDays] = useState<number>(7);
   const [pointsMessage, setPointsMessage] = useState<string | null>(null);
 
-  // Rating Breakpoints state
+  // Rating Breakpoints state (Primary daily task point system)
   const [breakpoints, setBreakpoints] = useState<RatingBreakpoint[]>(DEFAULT_BREAKPOINTS);
   const [simulatedRating, setSimulatedRating] = useState<number>(4.6);
 
@@ -127,12 +121,11 @@ export const AdminSettingsPage: React.FC = () => {
     setFbAccountReward(settings.facebookAccountReward ?? 40);
     setFbMilestoneReward(settings.facebookMilestoneReward ?? 100);
     setFbMilestoneStep(settings.facebookMilestoneStep ?? 5);
-    setDefaultDailyReward(settings.defaultDailyCompletionReward ?? 100);
     setMinWithdrawalPoints(settings.minWithdrawalPoints ?? 50);
     setMaxWithdrawalPoints(settings.maxWithdrawalPoints ?? 1000);
     setWithdrawalCycleDays(settings.withdrawalCycleDays ?? 7);
 
-    // Load Breakpoints
+    // Load Breakpoints (the rating point rules)
     if (settings.ratingBreakpoints && settings.ratingBreakpoints.length > 0) {
       setBreakpoints(
         [...settings.ratingBreakpoints].sort((a, b) => b.minRating - a.minRating)
@@ -211,12 +204,13 @@ export const AdminSettingsPage: React.FC = () => {
     setPointsMessage(null);
 
     const sortedBreakpoints = [...breakpoints].sort((a, b) => b.minRating - a.minRating);
+    const maxRatingPoint = sortedBreakpoints[0]?.points ?? 100;
 
     const res = await updateSettings({
       facebookAccountReward: Number(fbAccountReward),
       facebookMilestoneReward: Number(fbMilestoneReward),
       facebookMilestoneStep: Number(fbMilestoneStep),
-      defaultDailyCompletionReward: Number(defaultDailyReward),
+      defaultDailyCompletionReward: maxRatingPoint,
       ratingBreakpoints: sortedBreakpoints,
       minWithdrawalPoints: Number(minWithdrawalPoints),
       maxWithdrawalPoints: Number(maxWithdrawalPoints),
@@ -224,7 +218,7 @@ export const AdminSettingsPage: React.FC = () => {
     });
 
     if (res.success) {
-      setPointsMessage('Point reward rules and rating breakpoints saved successfully!');
+      setPointsMessage('Rating points and reward settings saved successfully!');
       setTimeout(() => setPointsMessage(null), 4000);
     }
   };
@@ -278,7 +272,7 @@ export const AdminSettingsPage: React.FC = () => {
       <div>
         <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Admin System Settings</h1>
         <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          Configure global point rewards, rating break points (e.g. 5★=90, 4.5★=85, 4★=80), OTP mailbox watcher, and AI configuration.
+          Configure daily task review rating points (e.g. 5★=90, 4.5★=85, 4★=80), account bonuses, OTP mailbox watcher, and AI configuration.
         </p>
       </div>
 
@@ -294,7 +288,7 @@ export const AdminSettingsPage: React.FC = () => {
           )}
         >
           <Coins className="w-4 h-4 text-amber-400" />
-          <span>Point & Breakpoint Settings</span>
+          <span>Point & Rating Settings</span>
         </button>
 
         <button
@@ -324,341 +318,276 @@ export const AdminSettingsPage: React.FC = () => {
         </button>
       </div>
 
-      {/* TAB 1: POINT & BREAKPOINT SETTINGS */}
+      {/* TAB 1: POINT & RATING BREAKPOINT SETTINGS */}
       {activeTab === 'points' && (
-        <div className="space-y-6">
-          {/* Sub-tabs for Point Settings */}
-          <div className="flex items-center gap-2 border-b border-slate-800/60 pb-2">
-            <button
-              onClick={() => setPointsSubTab('global')}
-              className={clsx(
-                'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5',
-                pointsSubTab === 'global'
-                  ? 'bg-slate-800 text-white border border-slate-700'
-                  : 'text-slate-400 hover:text-white'
-              )}
-            >
-              <SettingsIcon className="w-3.5 h-3.5" />
-              <span>Global Point Rules</span>
-            </button>
+        <form onSubmit={handleSavePoints} className="space-y-6">
+          {pointsMessage && (
+            <div className="p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>{pointsMessage}</span>
+            </div>
+          )}
 
-            <button
-              onClick={() => setPointsSubTab('scoring_matrix')}
-              className={clsx(
-                'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5',
-                pointsSubTab === 'scoring_matrix'
-                  ? 'bg-slate-800 text-amber-300 border border-amber-500/30'
-                  : 'text-slate-400 hover:text-white'
-              )}
-            >
-              <Sliders className="w-3.5 h-3.5 text-amber-400" />
-              <span>Rating Breakpoints (e.g. 5★=90, 4.5★=85, 4★=80)</span>
-            </button>
-          </div>
-
-          <form onSubmit={handleSavePoints} className="space-y-5">
-            {pointsMessage && (
-              <div className="p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>{pointsMessage}</span>
-              </div>
-            )}
-
-            {/* SUBTAB 1: GLOBAL POINT RULES */}
-            {pointsSubTab === 'global' && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {/* Facebook Account Approval Reward */}
-                  <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3">
-                    <div className="flex items-center gap-2 text-indigo-400">
-                      <Coins className="w-4 h-4 text-amber-400" />
-                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                        Facebook Account Approval Reward
-                      </h4>
-                    </div>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">
-                      Points awarded immediately after an admin approves an SMM's submitted Facebook profile.
-                    </p>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          min="0"
-                          value={fbAccountReward}
-                          onChange={(e) => setFbAccountReward(Number(e.target.value))}
-                          className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-bold text-amber-300"
-                        />
-                        <span className="text-xs font-bold text-slate-400">PTS</span>
-                      </div>
-                      <span className="text-[10px] text-slate-500 mt-1 block">Default: 40 PTS per approved account</span>
-                    </div>
-                  </div>
-
-                  {/* Facebook Account 5-Account Milestone Bonus */}
-                  <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3">
-                    <div className="flex items-center gap-2 text-pink-400">
-                      <Gift className="w-4 h-4 text-pink-400" />
-                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                        Account Milestone Bonus
-                      </h4>
-                    </div>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">
-                      Extra gamified bonus points awarded automatically every time an SMM reaches the milestone target.
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-[10px] text-slate-400 block mb-1 font-semibold">Bonus Points</label>
-                        <input
-                          type="number"
-                          min="0"
-                          value={fbMilestoneReward}
-                          onChange={(e) => setFbMilestoneReward(Number(e.target.value))}
-                          className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-amber-300"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-[10px] text-slate-400 block mb-1 font-semibold">Every (Accounts)</label>
-                        <input
-                          type="number"
-                          min="1"
-                          value={fbMilestoneStep}
-                          onChange={(e) => setFbMilestoneStep(Number(e.target.value))}
-                          className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-white"
-                        />
-                      </div>
-                    </div>
-                    <span className="text-[10px] text-slate-500 block">Default: +100 PTS every 5 accounts</span>
-                  </div>
-
-                  {/* Global Daily Task Base / Max Points */}
-                  <div className="glass-card rounded-2xl p-5 border border-indigo-500/30 bg-indigo-950/10 space-y-3 sm:col-span-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-emerald-400">
-                        <CalendarCheck className="w-4 h-4 text-emerald-400" />
-                        <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                          Global Daily Task Max Reward (5/5 Rating)
-                        </h4>
-                      </div>
-                      <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
-                        Evaluated at 12:00 AM Midnight
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-300 leading-relaxed">
-                      Points are evaluated at 12:00 AM midnight based on the SMM's daily average star rating and matching breakpoints configured in the Breakpoints tab.
-                    </p>
-                    <div className="flex items-center gap-2 max-w-xs">
-                      <input
-                        type="number"
-                        min="0"
-                        value={defaultDailyReward}
-                        onChange={(e) => setDefaultDailyReward(Number(e.target.value))}
-                        className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-bold text-emerald-300"
-                      />
-                      <span className="text-xs font-bold text-slate-400">PTS (Max)</span>
-                    </div>
-                  </div>
-
-                  {/* bKash Point Redemption Settings */}
-                  <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3 sm:col-span-2">
-                    <div className="flex items-center gap-2 text-pink-400">
-                      <Coins className="w-4 h-4 text-pink-400" />
-                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                        bKash Withdrawal Settings (1 Point = 1 BDT)
-                      </h4>
-                    </div>
-                    <p className="text-[11px] text-slate-400 leading-relaxed">
-                      Configure minimum points required per withdrawal and the recurring join & work cycle interval (default 7 days).
-                    </p>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
-                      <div>
-                        <label className="text-[10px] text-slate-400 block mb-1 font-semibold">Min Withdrawal (PTS)</label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            min="1"
-                            value={minWithdrawalPoints}
-                            onChange={(e) => setMinWithdrawalPoints(Number(e.target.value))}
-                            className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-amber-300"
-                          />
-                          <span className="text-xs font-bold text-slate-400">PTS</span>
-                        </div>
-                        <span className="text-[10px] text-slate-500 mt-0.5 block">Default: 50 PTS (৳ 50 BDT)</span>
-                      </div>
-
-                      <div>
-                        <label className="text-[10px] text-slate-400 block mb-1 font-semibold">Cycle Interval (Days)</label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="number"
-                            min="1"
-                            value={withdrawalCycleDays}
-                            onChange={(e) => setWithdrawalCycleDays(Number(e.target.value))}
-                            className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-indigo-300"
-                          />
-                          <span className="text-xs font-bold text-slate-400">Days</span>
-                        </div>
-                        <span className="text-[10px] text-slate-500 mt-0.5 block">Default: 7 Days from join date</span>
-                      </div>
-                    </div>
-                  </div>
+          {/* 1. DAILY TASK RATING POINTS (BREAKPOINTS) */}
+          <div className="space-y-4">
+            <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs space-y-1.5">
+              <div className="font-bold flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                  <span>Daily Task Rating Points & Breakpoints</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleResetBreakpoints}
+                    className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700 transition-colors"
+                  >
+                    <RotateCcw className="w-3 h-3" /> Reset 0.5 Steps
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleAddBreakpoint}
+                    className="text-[11px] text-indigo-300 hover:text-white flex items-center gap-1 bg-indigo-600/30 hover:bg-indigo-600/50 px-2.5 py-1 rounded-lg border border-indigo-500/40 font-semibold transition-colors"
+                  >
+                    <Plus className="w-3 h-3" /> Add Breakpoint
+                  </button>
                 </div>
               </div>
-            )}
+              <p className="text-[11px] text-slate-300 leading-relaxed">
+                Specify the exact reward points awarded for each star rating breakpoint (e.g. 5.0 ⭐ = 90 PTS, 4.5 ⭐ = 85 PTS, 4.0 ⭐ = 80 PTS). At 12:00 AM midnight, the SMM's daily average review rating determines the points they receive.
+              </p>
+            </div>
 
-            {/* SUBTAB 2: RATING BREAKPOINTS */}
-            {pointsSubTab === 'scoring_matrix' && (
-              <div className="space-y-5">
-                <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs space-y-1.5">
-                  <div className="font-bold flex items-center justify-between">
-                    <div className="flex items-center gap-1.5">
-                      <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
-                      <span>Rating Breakpoints & Point Distribution Rules</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleResetBreakpoints}
-                        className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700 transition-colors"
-                      >
-                        <RotateCcw className="w-3 h-3" /> Reset 0.5 Steps
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleAddBreakpoint}
-                        className="text-[11px] text-indigo-300 hover:text-white flex items-center gap-1 bg-indigo-600/30 hover:bg-indigo-600/50 px-2.5 py-1 rounded-lg border border-indigo-500/40 font-semibold transition-colors"
-                      >
-                        <Plus className="w-3 h-3" /> Add Breakpoint
-                      </button>
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-slate-300 leading-relaxed">
-                    Specify the exact points awarded for each star rating breakpoint (e.g., 5.0 ⭐ = 90 PTS, 4.5 ⭐ = 85 PTS, 4.0 ⭐ = 80 PTS). At midnight, the SMM's daily average rating is matched against these break points.
-                  </p>
-                </div>
+            {/* Breakpoints Table */}
+            <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3">
+              <div className="grid grid-cols-12 gap-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider pb-2 border-b border-slate-800">
+                <div className="col-span-3 sm:col-span-3">Rating Threshold (≥ Stars)</div>
+                <div className="col-span-5 sm:col-span-5">Tier Label / Description</div>
+                <div className="col-span-3 sm:col-span-3">Points Awarded</div>
+                <div className="col-span-1 text-center">Action</div>
+              </div>
 
-                {/* Breakpoints Table / Cards */}
-                <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3">
-                  <div className="grid grid-cols-12 gap-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider pb-2 border-b border-slate-800">
-                    <div className="col-span-3 sm:col-span-3">Rating Threshold (≥ Stars)</div>
-                    <div className="col-span-5 sm:col-span-5">Tier Label / Description</div>
-                    <div className="col-span-3 sm:col-span-3">Points Awarded</div>
-                    <div className="col-span-1 text-center">Action</div>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    {breakpoints.map((bp, idx) => (
-                      <div
-                        key={idx}
-                        className="grid grid-cols-12 gap-3 items-center p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all"
-                      >
-                        {/* Rating Threshold */}
-                        <div className="col-span-3 sm:col-span-3 flex items-center gap-1.5">
-                          <input
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            max="5"
-                            value={bp.minRating}
-                            onChange={(e) => handleBreakpointChange(idx, 'minRating', Number(e.target.value))}
-                            className="w-18 sm:w-20 px-2.5 py-1.5 rounded-lg glass-input text-xs font-extrabold text-amber-300 text-center"
-                          />
-                          <Star className="w-4 h-4 text-amber-400 fill-amber-400 flex-shrink-0" />
-                        </div>
-
-                        {/* Label */}
-                        <div className="col-span-5 sm:col-span-5">
-                          <input
-                            type="text"
-                            value={bp.label || ''}
-                            onChange={(e) => handleBreakpointChange(idx, 'label', e.target.value)}
-                            placeholder="e.g. 4.5 ⭐ (Superior)"
-                            className="w-full px-2.5 py-1.5 rounded-lg glass-input text-xs text-white"
-                          />
-                        </div>
-
-                        {/* Points */}
-                        <div className="col-span-3 sm:col-span-3 flex items-center gap-1.5">
-                          <input
-                            type="number"
-                            min="0"
-                            value={bp.points}
-                            onChange={(e) => handleBreakpointChange(idx, 'points', Number(e.target.value))}
-                            className="w-20 sm:w-24 px-2.5 py-1.5 rounded-lg glass-input text-xs font-black text-emerald-300 text-center"
-                          />
-                          <span className="text-[11px] font-bold text-slate-400">PTS</span>
-                        </div>
-
-                        {/* Delete Action */}
-                        <div className="col-span-1 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveBreakpoint(idx)}
-                            disabled={breakpoints.length <= 1}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                            title="Remove breakpoint"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Interactive Breakpoint Simulator */}
-                <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
-                      <Calculator className="w-4 h-4 text-indigo-400" /> Breakpoint Test Simulator:
-                    </span>
-                    <span className="text-[11px] text-slate-400">
-                      Live testing how average ratings evaluate to reward points
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-4 flex-wrap">
-                    <div className="flex items-center gap-2">
-                      <label className="text-xs text-slate-400 font-semibold">Test Average Score:</label>
+              <div className="space-y-2.5">
+                {breakpoints.map((bp, idx) => (
+                  <div
+                    key={idx}
+                    className="grid grid-cols-12 gap-3 items-center p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all"
+                  >
+                    {/* Rating Threshold */}
+                    <div className="col-span-3 sm:col-span-3 flex items-center gap-1.5">
                       <input
                         type="number"
                         step="0.1"
                         min="0"
                         max="5"
-                        value={simulatedRating}
-                        onChange={(e) => setSimulatedRating(Number(e.target.value))}
-                        className="w-20 px-2.5 py-1.5 rounded-lg glass-input text-xs font-black text-amber-300 text-center"
+                        value={bp.minRating}
+                        onChange={(e) => handleBreakpointChange(idx, 'minRating', Number(e.target.value))}
+                        className="w-18 sm:w-20 px-2.5 py-1.5 rounded-lg glass-input text-xs font-extrabold text-amber-300 text-center"
                       />
-                      <span className="text-xs font-bold text-amber-400">⭐</span>
+                      <Star className="w-4 h-4 text-amber-400 fill-amber-400 flex-shrink-0" />
                     </div>
 
-                    {(() => {
-                      const res = getSimulatedPoints(simulatedRating);
-                      return (
-                        <div className="flex items-center gap-2 bg-indigo-500/15 border border-indigo-500/30 px-3.5 py-1.5 rounded-xl text-xs">
-                          <span className="text-slate-300">
-                            Result for <strong>{simulatedRating} ⭐</strong>:
-                          </span>
-                          <span className="text-emerald-300 font-black">
-                            +{res.points} PTS
-                          </span>
-                          <span className="text-[10px] text-indigo-300 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-500/30">
-                            {res.tier}
-                          </span>
-                        </div>
-                      );
-                    })()}
+                    {/* Label */}
+                    <div className="col-span-5 sm:col-span-5">
+                      <input
+                        type="text"
+                        value={bp.label || ''}
+                        onChange={(e) => handleBreakpointChange(idx, 'label', e.target.value)}
+                        placeholder="e.g. 4.5 ⭐ (Superior)"
+                        className="w-full px-2.5 py-1.5 rounded-lg glass-input text-xs text-white"
+                      />
+                    </div>
+
+                    {/* Points */}
+                    <div className="col-span-3 sm:col-span-3 flex items-center gap-1.5">
+                      <input
+                        type="number"
+                        min="0"
+                        value={bp.points}
+                        onChange={(e) => handleBreakpointChange(idx, 'points', Number(e.target.value))}
+                        className="w-20 sm:w-24 px-2.5 py-1.5 rounded-lg glass-input text-xs font-black text-emerald-300 text-center"
+                      />
+                      <span className="text-[11px] font-bold text-slate-400">PTS</span>
+                    </div>
+
+                    {/* Delete Action */}
+                    <div className="col-span-1 text-center">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBreakpoint(idx)}
+                        disabled={breakpoints.length <= 1}
+                        className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Remove breakpoint"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Interactive Breakpoint Simulator */}
+            <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                  <Calculator className="w-4 h-4 text-indigo-400" /> Breakpoint Test Simulator:
+                </span>
+                <span className="text-[11px] text-slate-400">
+                  Live testing how average ratings evaluate to reward points
+                </span>
+              </div>
+
+              <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <label className="text-xs text-slate-400 font-semibold">Test Average Score:</label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    max="5"
+                    value={simulatedRating}
+                    onChange={(e) => setSimulatedRating(Number(e.target.value))}
+                    className="w-20 px-2.5 py-1.5 rounded-lg glass-input text-xs font-black text-amber-300 text-center"
+                  />
+                  <span className="text-xs font-bold text-amber-400">⭐</span>
+                </div>
+
+                {(() => {
+                  const res = getSimulatedPoints(simulatedRating);
+                  return (
+                    <div className="flex items-center gap-2 bg-indigo-500/15 border border-indigo-500/30 px-3.5 py-1.5 rounded-xl text-xs">
+                      <span className="text-slate-300">
+                        Result for <strong>{simulatedRating} ⭐</strong>:
+                      </span>
+                      <span className="text-emerald-300 font-black">
+                        +{res.points} PTS
+                      </span>
+                      <span className="text-[10px] text-indigo-300 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-500/30">
+                        {res.tier}
+                      </span>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+
+          {/* 2. FACEBOOK ACCOUNT & MILESTONE REWARDS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Facebook Account Approval Reward */}
+            <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3">
+              <div className="flex items-center gap-2 text-indigo-400">
+                <Coins className="w-4 h-4 text-amber-400" />
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                  Facebook Account Approval Reward
+                </h4>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Points awarded immediately after an admin approves an SMM's submitted Facebook profile.
+              </p>
+              <div>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    value={fbAccountReward}
+                    onChange={(e) => setFbAccountReward(Number(e.target.value))}
+                    className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-bold text-amber-300"
+                  />
+                  <span className="text-xs font-bold text-slate-400">PTS</span>
+                </div>
+                <span className="text-[10px] text-slate-500 mt-1 block">Default: 40 PTS per approved account</span>
+              </div>
+            </div>
+
+            {/* Facebook Account 5-Account Milestone Bonus */}
+            <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3">
+              <div className="flex items-center gap-2 text-pink-400">
+                <Gift className="w-4 h-4 text-pink-400" />
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                  Account Milestone Bonus
+                </h4>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Extra gamified bonus points awarded automatically every time an SMM reaches the milestone target.
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-[10px] text-slate-400 block mb-1 font-semibold">Bonus Points</label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={fbMilestoneReward}
+                    onChange={(e) => setFbMilestoneReward(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-amber-300"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] text-slate-400 block mb-1 font-semibold">Every (Accounts)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={fbMilestoneStep}
+                    onChange={(e) => setFbMilestoneStep(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-white"
+                  />
                 </div>
               </div>
-            )}
-
-            <div className="flex justify-end pt-2">
-              <Button type="submit" variant="glow" isLoading={isLoading} leftIcon={<Save className="w-4 h-4" />}>
-                Save Point & Breakpoint Settings
-              </Button>
+              <span className="text-[10px] text-slate-500 block">Default: +100 PTS every 5 accounts</span>
             </div>
-          </form>
-        </div>
+
+            {/* bKash Point Redemption Settings */}
+            <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3 sm:col-span-2">
+              <div className="flex items-center gap-2 text-pink-400">
+                <Coins className="w-4 h-4 text-pink-400" />
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                  bKash Withdrawal Settings (1 Point = 1 BDT)
+                </h4>
+              </div>
+              <p className="text-[11px] text-slate-400 leading-relaxed">
+                Configure minimum points required per withdrawal and the recurring join & work cycle interval (default 7 days).
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
+                <div>
+                  <label className="text-[10px] text-slate-400 block mb-1 font-semibold">Min Withdrawal (PTS)</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      value={minWithdrawalPoints}
+                      onChange={(e) => setMinWithdrawalPoints(Number(e.target.value))}
+                      className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-amber-300"
+                    />
+                    <span className="text-xs font-bold text-slate-400">PTS</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 mt-0.5 block">Default: 50 PTS (৳ 50 BDT)</span>
+                </div>
+
+                <div>
+                  <label className="text-[10px] text-slate-400 block mb-1 font-semibold">Cycle Interval (Days)</label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min="1"
+                      value={withdrawalCycleDays}
+                      onChange={(e) => setWithdrawalCycleDays(Number(e.target.value))}
+                      className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-indigo-300"
+                    />
+                    <span className="text-xs font-bold text-slate-400">Days</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 mt-0.5 block">Default: 7 Days from join date</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <Button type="submit" variant="glow" isLoading={isLoading} leftIcon={<Save className="w-4 h-4" />}>
+              Save Point & Rating Settings
+            </Button>
+          </div>
+        </form>
       )}
 
       {/* TAB 2: RECOVERY EMAIL */}

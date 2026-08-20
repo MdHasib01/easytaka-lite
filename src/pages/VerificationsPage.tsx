@@ -66,6 +66,7 @@ export const VerificationsPage: React.FC = () => {
   const {
     dailySubmissions,
     adminScoreRules,
+    adminRatingBreakpoints,
     adminDefaultDailyReward,
     isSubmissionsLoading,
     fetchDailySubmissions,
@@ -958,6 +959,7 @@ export const VerificationsPage: React.FC = () => {
                   key={sub._id}
                   submission={sub}
                   scoreRules={adminScoreRules}
+                  ratingBreakpoints={adminRatingBreakpoints}
                   defaultDailyReward={adminDefaultDailyReward}
                   onReview={reviewDailySubmission}
                   onZoomImage={(url) => setSelectedLightboxImg(url)}

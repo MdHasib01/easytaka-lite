@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { DailyWorkSubmission, DailyTaskScoreRules, User } from '../../types';
+import { DailyWorkSubmission, DailyTaskScoreRules, RatingBreakpoint, User } from '../../types';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { ProgressBar } from '../ui/ProgressBar';
@@ -28,6 +28,7 @@ import confetti from 'canvas-confetti';
 interface DailySubmissionReviewCardProps {
   submission: DailyWorkSubmission;
   scoreRules?: DailyTaskScoreRules | null;
+  ratingBreakpoints?: RatingBreakpoint[];
   defaultDailyReward?: number;
   onReview: (
     id: string,
@@ -44,15 +45,29 @@ interface DailySubmissionReviewCardProps {
 export const DailySubmissionReviewCard: React.FC<DailySubmissionReviewCardProps> = ({
   submission,
   scoreRules,
+  ratingBreakpoints = [],
   defaultDailyReward = 100,
   onReview,
   onZoomImage,
 }) => {
+  const sortedBreakpoints = Array.isArray(ratingBreakpoints) && ratingBreakpoints.length > 0
+    ? [...ratingBreakpoints].sort((a, b) => b.minRating - a.minRating)
+    : [];
+
+  const getPointsForScore = (score: number) => {
+    if (sortedBreakpoints.length > 0) {
+      const matched = sortedBreakpoints.find((bp) => score >= bp.minRating - 0.05);
+      return matched ? matched.points : (sortedBreakpoints[sortedBreakpoints.length - 1]?.points || 0);
+    }
+    if (score === 5) return scoreRules?.score5Points ?? defaultDailyReward;
+    if (score === 4) return scoreRules?.score4Points ?? Math.round(defaultDailyReward * 0.8);
+    if (score === 3) return scoreRules?.score3Points ?? Math.round(defaultDailyReward * 0.6);
+    if (score === 2) return scoreRules?.score2Points ?? Math.round(defaultDailyReward * 0.4);
+    return scoreRules?.score1Points ?? Math.round(defaultDailyReward * 0.2);
+  };
+
   const [selectedScore, setSelectedScore] = useState<number>(4);
-  const [pointsInput, setPointsInput] = useState<number>(() => {
-    if (scoreRules?.score4Points !== undefined) return scoreRules.score4Points;
-    return Math.round(defaultDailyReward * 0.8);
-  });
+  const [pointsInput, setPointsInput] = useState<number>(() => getPointsForScore(4));
   const [adminFeedback, setAdminFeedback] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -64,13 +79,7 @@ export const DailySubmissionReviewCard: React.FC<DailySubmissionReviewCardProps>
 
   const handleScoreChange = (score: number) => {
     setSelectedScore(score);
-    let pts = defaultDailyReward;
-    if (score === 5) pts = scoreRules?.score5Points ?? defaultDailyReward;
-    else if (score === 4) pts = scoreRules?.score4Points ?? Math.round(defaultDailyReward * 0.8);
-    else if (score === 3) pts = scoreRules?.score3Points ?? Math.round(defaultDailyReward * 0.6);
-    else if (score === 2) pts = scoreRules?.score2Points ?? Math.round(defaultDailyReward * 0.4);
-    else if (score === 1) pts = scoreRules?.score1Points ?? Math.round(defaultDailyReward * 0.2);
-    setPointsInput(pts);
+    setPointsInput(getPointsForScore(score));
   };
 
   const handleApprove = async () => {
@@ -362,37 +371,51 @@ export const DailySubmissionReviewCard: React.FC<DailySubmissionReviewCardProps>
 
           {/* Star Rating Selector */}
           <div className="flex items-center gap-2 flex-wrap">
-            {[5, 4, 3, 2, 1].map((s) => {
-              let pts = defaultDailyReward;
-              if (s === 5) pts = scoreRules?.score5Points ?? defaultDailyReward;
-              else if (s === 4) pts = scoreRules?.score4Points ?? Math.round(defaultDailyReward * 0.8);
-              else if (s === 3) pts = scoreRules?.score3Points ?? Math.round(defaultDailyReward * 0.6);
-              else if (s === 2) pts = scoreRules?.score2Points ?? Math.round(defaultDailyReward * 0.4);
-              else if (s === 1) pts = scoreRules?.score1Points ?? Math.round(defaultDailyReward * 0.2);
+            {sortedBreakpoints.length > 0
+              ? sortedBreakpoints.map((bp) => {
+                  const isSelected = selectedScore === bp.minRating;
+                  return (
+                    <button
+                      key={bp.minRating}
+                      type="button"
+                      onClick={() => handleScoreChange(bp.minRating)}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                        isSelected
+                          ? 'bg-indigo-600 text-white border-indigo-400 shadow-glow-brand ring-2 ring-indigo-500'
+                          : 'bg-slate-900/80 text-slate-300 border-slate-700 hover:border-slate-500'
+                      }`}
+                    >
+                      <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                      <span>{bp.label || `${bp.minRating} ⭐`}</span>
+                      <span className="text-[10px] text-amber-300 font-black">({bp.points} PTS)</span>
+                    </button>
+                  );
+                })
+              : [5, 4, 3, 2, 1].map((s) => {
+                  const pts = getPointsForScore(s);
+                  const isSelected = selectedScore === s;
 
-              const isSelected = selectedScore === s;
-
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => handleScoreChange(s)}
-                  className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
-                    isSelected
-                      ? 'bg-indigo-600 text-white border-indigo-400 shadow-glow-brand ring-2 ring-indigo-500'
-                      : 'bg-slate-900/80 text-slate-300 border-slate-700 hover:border-slate-500'
-                  }`}
-                >
-                  <div className="flex items-center gap-0.5">
-                    {Array.from({ length: s }).map((_, i) => (
-                      <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <span>{s}/5</span>
-                  <span className="text-[10px] text-amber-300 font-black">({pts} PTS)</span>
-                </button>
-              );
-            })}
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => handleScoreChange(s)}
+                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 border ${
+                        isSelected
+                          ? 'bg-indigo-600 text-white border-indigo-400 shadow-glow-brand ring-2 ring-indigo-500'
+                          : 'bg-slate-900/80 text-slate-300 border-slate-700 hover:border-slate-500'
+                      }`}
+                    >
+                      <div className="flex items-center gap-0.5">
+                        {Array.from({ length: s }).map((_, i) => (
+                          <Star key={i} className="w-3 h-3 fill-amber-400 text-amber-400" />
+                        ))}
+                      </div>
+                      <span>{s}/5</span>
+                      <span className="text-[10px] text-amber-300 font-black">({pts} PTS)</span>
+                    </button>
+                  );
+                })}
           </div>
 
           {/* Points & Feedback Input */}
