@@ -27,7 +27,9 @@ import {
   Compass,
   Image,
   Zap,
+  ListChecks,
 } from 'lucide-react';
+import { MandatoryTasksManager } from '../components/admin/MandatoryTasksManager';
 
 export const AdminDailyTasksPage: React.FC = () => {
   const {
@@ -193,6 +195,7 @@ export const AdminDailyTasksPage: React.FC = () => {
       <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto">
         {[
           { id: 'all', label: 'All Daily Tasks' },
+          { id: 'mandatory_checklist', label: 'Mandatory Checklist & Groups (বাধ্যতামূলক চেকলিস্ট)' },
           { id: 'global_rotation', label: 'Global Rotated Routines' },
           { id: 'targeted_quota', label: 'Targeted Quota Campaigns' },
           { id: 'paused', label: 'Paused' },
@@ -201,19 +204,22 @@ export const AdminDailyTasksPage: React.FC = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
               activeTab === tab.id
                 ? 'bg-indigo-600 text-white shadow-glow-brand'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
           >
+            {tab.id === 'mandatory_checklist' && <ListChecks className="w-3.5 h-3.5 text-emerald-400" />}
             {tab.label}
           </button>
         ))}
       </div>
 
-      {/* Tasks List Grid */}
-      {filteredTasks.length === 0 ? (
+      {/* Mandatory Checklist Manager Tab */}
+      {activeTab === 'mandatory_checklist' ? (
+        <MandatoryTasksManager />
+      ) : filteredTasks.length === 0 ? (
         <div className="glass-card rounded-2xl p-12 text-center border border-dashed border-slate-800 space-y-3">
           <Shuffle className="w-12 h-12 text-slate-600 mx-auto" />
           <h3 className="text-base font-bold text-white">No Daily Tasks Found</h3>

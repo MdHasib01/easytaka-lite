@@ -205,7 +205,35 @@ export interface DynamicTaskItem {
   completedAt?: string;
 }
 
+export type MandatoryTaskType =
+  | 'profile_pic'
+  | 'cover_photo'
+  | 'marital_status'
+  | 'school_college'
+  | 'identity_post'
+  | 'group_join'
+  | 'custom';
+
+export interface MandatoryDailyTask {
+  id: string;
+  title: string;
+  titleEn?: string;
+  description?: string;
+  taskType: MandatoryTaskType;
+  groupName?: string;
+  targetUrl?: string;
+  isEnabled: boolean;
+  order?: number;
+}
+
+export interface MandatoryChecklistItem {
+  taskId: string;
+  isDone: boolean;
+  completedAt?: string;
+}
+
 export interface RoutineItemState {
+  mandatoryChecklist?: MandatoryChecklistItem[];
   profilePicUploaded?: boolean;
   coverPhotoUploaded?: boolean;
   maritalStatusUpdated?: boolean;
@@ -276,6 +304,11 @@ export interface DailyAccountSummary {
   maritalStatusUpdated?: boolean;
   schoolCollegeUpdated?: boolean;
   identityPostDone?: boolean;
+  mandatoryChecklist?: Array<{
+    taskId: string;
+    isDone: boolean;
+    title?: string;
+  }>;
   commentsCount?: number;
   communityRepliesCount?: number;
   storyPostDone?: boolean;
@@ -347,6 +380,7 @@ export interface SystemSettings {
   defaultDailyCompletionReward: number;
   dailyTaskScoreRules?: DailyTaskScoreRules;
   ratingBreakpoints?: RatingBreakpoint[];
+  mandatoryDailyTasks?: MandatoryDailyTask[];
   minWithdrawalPoints?: number;
   maxWithdrawalPoints?: number;
   withdrawalCycleDays?: number;

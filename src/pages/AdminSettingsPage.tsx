@@ -26,10 +26,12 @@ import {
   RotateCcw,
   Calculator,
   Sliders,
+  ListChecks,
 } from 'lucide-react';
 import { RatingBreakpoint } from '../types';
+import { MandatoryTasksManager } from '../components/admin/MandatoryTasksManager';
 
-type SettingsTab = 'points' | 'recovery_email' | 'ai_config';
+type SettingsTab = 'points' | 'mandatory_tasks' | 'recovery_email' | 'ai_config';
 type AiProvider = 'openai' | 'gemini';
 
 const MODEL_OPTIONS: Record<AiProvider, string[]> = {
@@ -289,6 +291,19 @@ export const AdminSettingsPage: React.FC = () => {
         >
           <Coins className="w-4 h-4 text-amber-400" />
           <span>Point & Rating Settings</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('mandatory_tasks')}
+          className={clsx(
+            'px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap',
+            activeTab === 'mandatory_tasks'
+              ? 'bg-indigo-600 text-white shadow-glow-brand'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          )}
+        >
+          <ListChecks className="w-4 h-4 text-emerald-400" />
+          <span>Mandatory Checklist & Groups</span>
         </button>
 
         <button
@@ -873,6 +888,9 @@ export const AdminSettingsPage: React.FC = () => {
           </div>
         </form>
       )}
+
+      {/* TAB 4: MANDATORY DAILY CHECKLIST & GROUPS */}
+      {activeTab === 'mandatory_tasks' && <MandatoryTasksManager />}
     </div>
   );
 };

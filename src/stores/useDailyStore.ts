@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import api from '../services/api';
-import { DailyRoutineCardData, RoutineItemState, DailyWorkSubmission, DailyTaskScoreRules, RatingBreakpoint } from '../types';
+import { DailyRoutineCardData, RoutineItemState, DailyWorkSubmission, DailyTaskScoreRules, RatingBreakpoint, MandatoryDailyTask } from '../types';
 import confetti from 'canvas-confetti';
 import { useAuthStore } from './useAuthStore';
 
@@ -13,6 +13,7 @@ interface DailyState {
   dailyTaskCompletionReward: number;
   scoreRules: DailyTaskScoreRules | null;
   ratingBreakpoints: RatingBreakpoint[];
+  mandatoryDailyTasks: MandatoryDailyTask[];
   dailyRewardClaimedToday: boolean;
   submission: DailyWorkSubmission | null;
   justEarnedDailyReward: { awarded: boolean; amount: number; score?: number } | null;
@@ -60,6 +61,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
   dailyTaskCompletionReward: 100,
   scoreRules: null,
   ratingBreakpoints: [],
+  mandatoryDailyTasks: [],
   dailyRewardClaimedToday: false,
   submission: null,
   justEarnedDailyReward: null,
@@ -86,6 +88,7 @@ export const useDailyStore = create<DailyState>((set, get) => ({
         dailyTaskCompletionReward: res.data.dailyTaskCompletionReward ?? 100,
         scoreRules: res.data.scoreRules || null,
         ratingBreakpoints: res.data.ratingBreakpoints || [],
+        mandatoryDailyTasks: res.data.mandatoryDailyTasks || [],
         dailyRewardClaimedToday: !!res.data.dailyRewardClaimedToday,
         submission: res.data.submission || null,
         isLoading: false,
