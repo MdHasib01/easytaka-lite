@@ -11,6 +11,7 @@ interface SubmitProofModalProps {
   onClose: () => void;
   task: Task | null;
   onSubmit: (taskId: string, payload: any) => Promise<{ success: boolean; message: string }>;
+  onSuccess?: () => void;
 }
 
 export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
@@ -18,6 +19,7 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
   onClose,
   task,
   onSubmit,
+  onSuccess,
 }) => {
   const { accounts, selectedAccount } = useAccountStore();
   const [facebookAccountId, setFacebookAccountId] = useState<string>(
@@ -63,9 +65,12 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
 
     if (res.success) {
       setFeedback({ type: 'success', message: res.message });
+      if (onSuccess) {
+        onSuccess();
+      }
       setTimeout(() => {
         onClose();
-      }, 1000);
+      }, 600);
     } else {
       setFeedback({ type: 'error', message: res.message });
     }

@@ -1020,14 +1020,19 @@ export const VerificationsPage: React.FC = () => {
 
                     <div className="flex items-center gap-1.5 font-bold text-xs">
                       {isApproved ? (
-                        <div className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-xl flex items-center gap-1">
-                          <Coins className="w-3.5 h-3.5 text-emerald-400" />
-                          <span>+{sub.pointsAwarded || task?.rewardPoints} Pts Credited</span>
+                        <div className="bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-xl flex items-center gap-1">
+                          <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                          <span>⭐ {sub.rating || 5}/5 Rated</span>
+                        </div>
+                      ) : isRejected ? (
+                        <div className="bg-rose-500/15 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-xl flex items-center gap-1">
+                          <XCircle className="w-3.5 h-3.5 text-rose-400" />
+                          <span>Revision Needed</span>
                         </div>
                       ) : (
                         <div className="bg-amber-500/15 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-xl flex items-center gap-1">
-                          <Coins className="w-3.5 h-3.5 text-amber-400" />
-                          <span>+{task?.rewardPoints || 50} Pts Reward</span>
+                          <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+                          <span>Awaiting Review</span>
                         </div>
                       )}
                     </div>

@@ -31,6 +31,7 @@ import {
   HelpCircle,
   LifeBuoy,
   Compass,
+  Star,
 } from 'lucide-react';
 
 export const TasksPage: React.FC = () => {
@@ -437,7 +438,7 @@ export const TasksPage: React.FC = () => {
           <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-center gap-2">
             <Clock className="w-4 h-4 text-amber-400 flex-shrink-0 animate-spin" />
             <span>
-              These task proofs have been submitted and are currently in the Admin verification queue. Once approved, your points will be credited immediately.
+              These task proofs have been submitted and are currently in the Admin verification queue. Once approved and rated, your daily points will be evaluated at 12:00 AM midnight.
             </span>
           </div>
 
@@ -481,9 +482,9 @@ export const TasksPage: React.FC = () => {
                         </p>
                       </div>
 
-                      <div className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-xl flex items-center gap-1.5 text-xs font-bold">
-                        <Coins className="w-3.5 h-3.5 text-amber-400" />
-                        <span>+{task?.rewardPoints || 50} {t('common.pts')} Pending</span>
+                      <div className="bg-amber-500/15 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-xl flex items-center gap-1.5 text-xs font-semibold">
+                        <Clock className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Awaiting Review</span>
                       </div>
                     </div>
 
@@ -551,11 +552,11 @@ export const TasksPage: React.FC = () => {
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
               <span>
-                Verified and approved task submissions. Points have been credited directly to your reward balance.
+                Verified and approved task submissions. Evaluated for daily rewards at 12:00 AM midnight.
               </span>
             </div>
             <span className="font-extrabold text-emerald-300 whitespace-nowrap">
-              +{totalRewardPointsEarned} {t('common.pts')} Total
+              {approvedSubmissions.length} Tasks Approved
             </span>
           </div>
 
@@ -564,7 +565,7 @@ export const TasksPage: React.FC = () => {
               <CheckCircle2 className="w-12 h-12 text-slate-600 mx-auto" />
               <h3 className="text-base font-bold text-white">No Completed Tasks Yet</h3>
               <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                Once your submitted proofs are verified by the Admin team, they will appear here with points credited.
+                Once your submitted proofs are verified by the Admin team, they will appear here with your quality rating.
               </p>
             </div>
           ) : (
@@ -591,9 +592,9 @@ export const TasksPage: React.FC = () => {
                         </p>
                       </div>
 
-                      <div className="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-xl flex items-center gap-1.5 text-xs font-bold shadow-sm">
-                        <Coins className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>+{sub.pointsAwarded || task?.rewardPoints} {t('common.pts')} Credited</span>
+                      <div className="bg-emerald-500/15 border border-emerald-500/30 px-3 py-1 rounded-xl flex items-center gap-1.5 text-xs font-bold text-emerald-300 shadow-sm">
+                        <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                        <span>⭐ {sub.rating || 5}/5 Rated</span>
                       </div>
                     </div>
 
@@ -722,6 +723,9 @@ export const TasksPage: React.FC = () => {
         onClose={() => setProofModalTask(null)}
         task={proofModalTask}
         onSubmit={submitProof}
+        onSuccess={() => {
+          handleTabChange('under_review');
+        }}
       />
 
       {/* Create / Edit Modal */}

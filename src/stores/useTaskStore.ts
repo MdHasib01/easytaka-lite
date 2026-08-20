@@ -115,8 +115,30 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     set({ isLoading: true });
     try {
       const res = await api.post(`/tasks/${taskId}/submit`, payload);
-      set({ isLoading: false });
-      return { success: true, message: res.data.message };
+      const newSubmission = res.data.submission;
+
+      // Optimistically update tasks and mySubmissions in Zustand state
+      set((state) => ({
+        tasks: state.tasks.map((t) =>
+          t._id === taskId ? { ...t, mySubmission: newSubmission } : t
+        ),
+        mySubmissions: newSubmission
+          ? [
+              newSubmission,
+              ...state.mySubmissions.filter((s) => {
+                const sTaskId = typeof s.taskId === 'object' ? (s.taskId as any)?._id : s.taskId;
+                return sTaskId !== taskId && s._id !== newSubmission._id;
+              }),
+            ]
+          : state.mySubmissions,
+        isLoading: false,
+      }));
+
+      // Background re-fetch to ensure full population
+      get().fetchTasks();
+      get().fetchMySubmissions();
+
+      return { success: true, message: res.data.message || 'Proof submitted successfully!' };
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Failed to submit proof';
       set({ isLoading: false, error: msg });

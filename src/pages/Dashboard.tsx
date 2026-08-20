@@ -32,9 +32,10 @@ import {
   Gift,
   Wallet,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 
 export const Dashboard: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuthStore();
   const {
     routines,
@@ -457,6 +458,9 @@ export const Dashboard: React.FC = () => {
         onClose={() => setSelectedTaskForProof(null)}
         task={selectedTaskForProof}
         onSubmit={submitProof}
+        onSuccess={() => {
+          navigate('/tasks?tab=under_review');
+        }}
       />
 
       {/* Admin Create Task Modal */}
