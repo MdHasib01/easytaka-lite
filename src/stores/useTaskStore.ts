@@ -34,7 +34,7 @@ interface TaskState {
     id: string,
     action: 'approve' | 'reject',
     adminNote?: string,
-    bonusPoints?: number
+    rating?: number
   ) => Promise<{ success: boolean; message: string }>;
 }
 
@@ -115,18 +115,10 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     set({ isLoading: true });
     try {
       const res = await api.post(`/tasks/${taskId}/submit`, payload);
-      const submission = res.data.submission;
-
-      // Update tasks list to reflect submission
-      set((state) => ({
-        tasks: state.tasks.map((t) => (t._id === taskId ? { ...t, mySubmission: submission } : t)),
-        mySubmissions: [submission, ...state.mySubmissions.filter((s) => s.taskId !== taskId)],
-        isLoading: false,
-      }));
-
-      return { success: true, message: res.data.message || 'Proof submitted successfully!' };
+      set({ isLoading: false });
+      return { success: true, message: res.data.message };
     } catch (err: any) {
-      const msg = err.response?.data?.message || 'Submission failed';
+      const msg = err.response?.data?.message || 'Failed to submit proof';
       set({ isLoading: false, error: msg });
       return { success: false, message: msg };
     }
@@ -153,12 +145,12 @@ export const useTaskStore = create<TaskState>((set, get) => ({
     }
   },
 
-  verifySubmission: async (id, action, adminNote, bonusPoints) => {
+  verifySubmission: async (id, action, adminNote, rating) => {
     try {
       const res = await api.put(`/tasks/submissions/${id}/verify`, {
         action,
         adminNote,
-        bonusPoints,
+        rating,
       });
       const updatedSubmission = res.data.submission;
 

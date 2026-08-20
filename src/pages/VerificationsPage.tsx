@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useAuthStore } from '../stores/useAuthStore';
 import { useTaskStore } from '../stores/useTaskStore';
 import { useAccountStore } from '../stores/useAccountStore';
+import { useDailyStore } from '../stores/useDailyStore';
 import { VerificationCard } from '../components/tasks/VerificationCard';
+import { DailySubmissionReviewCard } from '../components/daily/DailySubmissionReviewCard';
 import { InviteSmmModal } from '../components/admin/InviteSmmModal';
 import { SmmVerificationModal } from '../components/admin/SmmVerificationModal';
 import { PointSettingsModal } from '../components/admin/PointSettingsModal';
@@ -44,6 +46,8 @@ import {
   LifeBuoy,
   Compass,
   BookOpen,
+  CalendarCheck,
+  Star,
 } from 'lucide-react';
 import {
   TaskSubmission,
@@ -60,13 +64,21 @@ export const VerificationsPage: React.FC = () => {
   const { submissions, mySubmissions, fetchSubmissions, fetchMySubmissions, verifySubmission, isLoading } =
     useTaskStore();
   const { allAccounts, fetchAllAccounts, verifyAccount } = useAccountStore();
+  const {
+    dailySubmissions,
+    adminScoreRules,
+    adminDefaultDailyReward,
+    isSubmissionsLoading,
+    fetchDailySubmissions,
+    reviewDailySubmission,
+  } = useDailyStore();
 
   const isAdmin = user?.role === 'admin';
 
-  // Admin Top-level view tab: 'smm_verifications' | 'fb_accounts' | 'task_proofs'
-  const [adminActiveTab, setAdminActiveTab] = useState<'smm_verifications' | 'fb_accounts' | 'task_proofs'>(
-    'smm_verifications'
-  );
+  // Admin Top-level view tab: 'smm_verifications' | 'fb_accounts' | 'task_proofs' | 'daily_routine_reviews'
+  const [adminActiveTab, setAdminActiveTab] = useState<
+    'smm_verifications' | 'fb_accounts' | 'task_proofs' | 'daily_routine_reviews'
+  >('smm_verifications');
 
   // SMM Verifications list state
   const [smmList, setSmmList] = useState<User[]>([]);
@@ -96,6 +108,8 @@ export const VerificationsPage: React.FC = () => {
 
   // Task proofs filter state
   const [taskStatusFilter, setTaskStatusFilter] = useState<string>('pending');
+  // Daily routine reviews filter state
+  const [dailyStatusFilter, setDailyStatusFilter] = useState<string>('pending');
   const [selectedLightboxImg, setSelectedLightboxImg] = useState<string | null>(null);
 
   const fetchSmmVerifications = async (status: string) => {
@@ -114,21 +128,25 @@ export const VerificationsPage: React.FC = () => {
 
   useEffect(() => {
     if (isAdmin) {
+      fetchDailySubmissions();
       if (adminActiveTab === 'smm_verifications') {
         fetchSmmVerifications(smmStatusFilter);
       } else if (adminActiveTab === 'fb_accounts') {
         fetchAllAccounts(accountStatusFilter);
-      } else {
+      } else if (adminActiveTab === 'task_proofs') {
         fetchSubmissions(taskStatusFilter);
+      } else if (adminActiveTab === 'daily_routine_reviews') {
+        fetchDailySubmissions({ status: dailyStatusFilter });
       }
     } else {
       fetchMySubmissions();
     }
-  }, [isAdmin, adminActiveTab, smmStatusFilter, accountStatusFilter, taskStatusFilter]);
+  }, [isAdmin, adminActiveTab, smmStatusFilter, accountStatusFilter, taskStatusFilter, dailyStatusFilter]);
 
   const pendingSmmCount = smmList.filter((s) => s.status === 'pending_verification').length;
   const pendingTaskCount = submissions.filter((s) => s.status === 'pending').length;
   const pendingAccountCount = allAccounts.filter((a) => a.approvalStatus === 'pending').length;
+  const pendingDailyCount = dailySubmissions.filter((s) => s.status === 'pending').length;
 
   const handleOpenApproveModal = (account: FacebookAccount) => {
     setApprovingAccount(account);
@@ -296,6 +314,23 @@ export const VerificationsPage: React.FC = () => {
             {pendingTaskCount > 0 && (
               <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold">
                 {pendingTaskCount}
+              </span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setAdminActiveTab('daily_routine_reviews')}
+            className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+              adminActiveTab === 'daily_routine_reviews'
+                ? 'bg-indigo-600 text-white shadow-glow-brand'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+            }`}
+          >
+            <CalendarCheck className="w-4 h-4" />
+            <span>Daily Routine Reviews</span>
+            {pendingDailyCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold">
+                {pendingDailyCount}
               </span>
             )}
           </button>
@@ -878,6 +913,64 @@ export const VerificationsPage: React.FC = () => {
             ) : (
               submissions.map((sub) => (
                 <VerificationCard key={sub._id} submission={sub} onVerify={verifySubmission} />
+              ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* VIEW 3.5: DAILY ROUTINE REVIEWS (ADMIN) */}
+      {isAdmin && adminActiveTab === 'daily_routine_reviews' && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto">
+            {[
+              { id: 'pending', label: 'Pending Review', count: pendingDailyCount },
+              { id: 'approved', label: 'Approved & Rewarded' },
+              { id: 'rejected', label: 'Revision Requested' },
+              { id: 'all', label: 'All Daily Submissions' },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setDailyStatusFilter(tab.id)}
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 whitespace-nowrap ${
+                  dailyStatusFilter === tab.id
+                    ? 'bg-indigo-600 text-white shadow-glow-brand'
+                    : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <span>{tab.label}</span>
+                {tab.count !== undefined && tab.count > 0 && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-amber-400 text-slate-950 text-[10px] font-extrabold">
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="space-y-4">
+            {isSubmissionsLoading ? (
+              <div className="glass-card rounded-2xl p-12 text-center text-xs text-slate-400">
+                Loading daily routine submissions...
+              </div>
+            ) : dailySubmissions.length === 0 ? (
+              <div className="glass-card rounded-2xl p-12 text-center border border-dashed border-slate-800 space-y-2">
+                <CheckCircle2 className="w-12 h-12 text-slate-600 mx-auto" />
+                <h3 className="text-base font-bold text-white">No Daily Routine Submissions in this Filter</h3>
+                <p className="text-xs text-slate-400">
+                  When SMMs complete their daily routine checklists and submit their work, submissions will appear here for grading.
+                </p>
+              </div>
+            ) : (
+              dailySubmissions.map((sub) => (
+                <DailySubmissionReviewCard
+                  key={sub._id}
+                  submission={sub}
+                  scoreRules={adminScoreRules}
+                  defaultDailyReward={adminDefaultDailyReward}
+                  onReview={reviewDailySubmission}
+                  onZoomImage={(url) => setSelectedLightboxImg(url)}
+                />
               ))
             )}
           </div>

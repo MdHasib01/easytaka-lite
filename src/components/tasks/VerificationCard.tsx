@@ -13,6 +13,8 @@ import {
   ZoomIn,
   MessageSquare,
   Sparkles,
+  Star,
+  Award,
 } from 'lucide-react';
 
 interface VerificationCardProps {
@@ -21,14 +23,14 @@ interface VerificationCardProps {
     id: string,
     action: 'approve' | 'reject',
     adminNote?: string,
-    bonusPoints?: number
+    rating?: number
   ) => Promise<{ success: boolean; message: string }>;
 }
 
 export const VerificationCard: React.FC<VerificationCardProps> = ({ submission, onVerify }) => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [adminNote, setAdminNote] = useState(submission.adminNote || '');
-  const [bonusPoints, setBonusPoints] = useState(0);
+  const [rating, setRating] = useState<number>(submission.rating || 5);
   const [isProcessing, setIsProcessing] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -38,14 +40,14 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({ submission, 
 
   const handleAction = async (action: 'approve' | 'reject') => {
     if (action === 'reject' && !adminNote.trim()) {
-      setFeedback('Please write a cancellation note explaining why proof was rejected.');
+      setFeedback('Please write a feedback note explaining why proof was rejected.');
       return;
     }
 
     setIsProcessing(true);
     setFeedback(null);
 
-    const res = await onVerify(submission._id, action, adminNote.trim(), bonusPoints);
+    const res = await onVerify(submission._id, action, adminNote.trim(), rating);
     setIsProcessing(false);
 
     if (!res.success) {
@@ -83,14 +85,29 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({ submission, 
         </div>
 
         <div className="flex items-center gap-2">
-          <Badge variant={submission.status === 'approved' ? 'approved' : submission.status === 'rejected' ? 'rejected' : 'pending'}>
+          <Badge
+            variant={
+              submission.status === 'approved'
+                ? 'approved'
+                : submission.status === 'rejected'
+                ? 'rejected'
+                : 'pending'
+            }
+          >
             {submission.status.toUpperCase()}
           </Badge>
 
-          <div className="flex items-center gap-1 bg-amber-500/15 border border-amber-500/30 px-2.5 py-1 rounded-xl text-amber-300 font-bold text-xs">
-            <Coins className="w-3.5 h-3.5 text-amber-400" />
-            <span>+{task?.rewardPoints || 50} Pts</span>
-          </div>
+          {submission.status === 'approved' ? (
+            <div className="flex items-center gap-1 bg-emerald-500/15 border border-emerald-500/30 px-2.5 py-1 rounded-xl text-emerald-300 font-bold text-xs">
+              <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+              <span>⭐ {submission.rating || 5}/5 Rated</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 bg-indigo-500/15 border border-indigo-500/30 px-2.5 py-1 rounded-xl text-indigo-300 font-medium text-xs">
+              <Clock className="w-3.5 h-3.5 text-indigo-400" />
+              <span>12 AM Daily Point System</span>
+            </div>
+          )}
         </div>
       </div>
 
@@ -182,28 +199,44 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({ submission, 
       {/* Admin Action & Verification Form */}
       {submission.status === 'pending' ? (
         <div className="pt-3 border-t border-slate-800/80 space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="sm:col-span-2">
-              <input
-                type="text"
-                value={adminNote}
-                onChange={(e) => setAdminNote(e.target.value)}
-                placeholder="Optional approval note or REQUIRED cancellation reason if rejecting..."
-                className="w-full px-3.5 py-2 rounded-xl glass-input text-xs"
-              />
+          {/* Star Rating Selector */}
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5">
+              <span className="text-[11px] font-semibold text-slate-400">Quality Rating:</span>
+              <div className="flex items-center gap-1">
+                {[1, 2, 3, 4, 5].map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setRating(s)}
+                    className={`p-1 rounded-lg transition-all ${
+                      rating >= s ? 'text-amber-400' : 'text-slate-600 hover:text-slate-400'
+                    }`}
+                  >
+                    <Star
+                      className={`w-5 h-5 ${
+                        rating >= s ? 'fill-amber-400 text-amber-400' : 'text-slate-600'
+                      }`}
+                    />
+                  </button>
+                ))}
+                <span className="text-xs font-bold text-amber-300 ml-1">({rating}/5)</span>
+              </div>
             </div>
-            <div>
-              <input
-                type="number"
-                min="0"
-                step="5"
-                value={bonusPoints}
-                onChange={(e) => setBonusPoints(Number(e.target.value))}
-                placeholder="Bonus points (opt)"
-                className="w-full px-3.5 py-2 rounded-xl glass-input text-xs text-amber-300"
-                title="Optional bonus reward points"
-              />
-            </div>
+
+            <span className="text-[10px] text-slate-500">
+              Daily points will be calculated at 12:00 AM based on average rating
+            </span>
+          </div>
+
+          <div>
+            <input
+              type="text"
+              value={adminNote}
+              onChange={(e) => setAdminNote(e.target.value)}
+              placeholder="Optional approval note or REQUIRED feedback note if rejecting..."
+              className="w-full px-3.5 py-2 rounded-xl glass-input text-xs"
+            />
           </div>
 
           {feedback && <p className="text-xs text-rose-400 font-medium">{feedback}</p>}
@@ -225,15 +258,23 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({ submission, 
               onClick={() => handleAction('approve')}
               leftIcon={<CheckCircle2 className="w-4 h-4" />}
             >
-              Approve & Reward +{(task?.rewardPoints || 50) + Number(bonusPoints)} Pts
+              Approve Task (⭐ {rating}/5)
             </Button>
           </div>
         </div>
       ) : (
-        <div className="pt-2 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-          <span>
-            Verified by: <span className="text-slate-200 font-medium">{submission.verifiedBy ? (submission.verifiedBy as User).name : 'Admin'}</span>
-          </span>
+        <div className="pt-2 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <span>
+              Verified by:{' '}
+              <span className="text-slate-200 font-medium">
+                {submission.verifiedBy ? (submission.verifiedBy as User).name : 'Admin'}
+              </span>
+            </span>
+            {submission.rating && (
+              <span className="text-amber-300 font-semibold">• Rating: ⭐ {submission.rating}/5</span>
+            )}
+          </div>
           {submission.adminNote && (
             <span className="italic text-slate-300">"{submission.adminNote}"</span>
           )}

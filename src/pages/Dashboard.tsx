@@ -43,6 +43,7 @@ export const Dashboard: React.FC = () => {
     completedAccountsCount,
     dailyTaskCompletionReward,
     dailyRewardClaimedToday,
+    submission,
     justEarnedDailyReward,
     clearDailyRewardToast,
     fetchTodayRoutines,
@@ -173,6 +174,7 @@ export const Dashboard: React.FC = () => {
             streakDays={user?.streakDays || 0}
             dailyTaskCompletionReward={dailyTaskCompletionReward}
             dailyRewardClaimedToday={dailyRewardClaimedToday}
+            submission={submission}
           />
 
           <AccountMilestoneProgressBar milestoneProgress={milestoneProgress} />
@@ -387,7 +389,7 @@ export const Dashboard: React.FC = () => {
                 <div>
                   <h3 className="text-lg font-bold text-white">Today's Fixed Daily Routines</h3>
                   <p className="text-xs text-slate-400">
-                    Complete 100% of the checklist to claim your <strong className="text-amber-300">+{dailyTaskCompletionReward} PTS</strong> reward
+                    Complete tasks and submit for Admin review to earn up to <strong className="text-amber-300">+{dailyTaskCompletionReward} PTS</strong>
                   </p>
                 </div>
               </div>

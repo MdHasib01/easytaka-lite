@@ -1,7 +1,21 @@
 import React from 'react';
 import { ProgressBar } from '../ui/ProgressBar';
-import { Flame, CheckCircle2, Trophy, ArrowRight, Sparkles, Coins, Award } from 'lucide-react';
+import { Button } from '../ui/Button';
+import {
+  Flame,
+  CheckCircle2,
+  Trophy,
+  ArrowRight,
+  Sparkles,
+  Coins,
+  Award,
+  Clock,
+  AlertCircle,
+  Star,
+  Send,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { DailyWorkSubmission } from '../../types';
 
 interface DailyProgressBannerProps {
   overallProgress: number;
@@ -10,6 +24,8 @@ interface DailyProgressBannerProps {
   streakDays?: number;
   dailyTaskCompletionReward?: number;
   dailyRewardClaimedToday?: boolean;
+  submission?: DailyWorkSubmission | null;
+  onSubmitClick?: () => void;
 }
 
 export const DailyProgressBanner: React.FC<DailyProgressBannerProps> = ({
@@ -17,10 +33,14 @@ export const DailyProgressBanner: React.FC<DailyProgressBannerProps> = ({
   totalAccounts,
   completedAccountsCount,
   streakDays = 0,
-  dailyTaskCompletionReward = 50,
+  dailyTaskCompletionReward = 100,
   dailyRewardClaimedToday = false,
+  submission,
+  onSubmitClick,
 }) => {
-  const isAllComplete = overallProgress >= 100 && totalAccounts > 0;
+  const isApproved = submission?.status === 'approved' || dailyRewardClaimedToday;
+  const isPending = submission?.status === 'pending';
+  const isRejected = submission?.status === 'rejected';
 
   return (
     <div className="relative overflow-hidden rounded-3xl glass-panel p-6 border border-slate-700/60 bg-gradient-to-r from-slate-900/90 via-indigo-950/40 to-slate-900/90 shadow-2xl">
@@ -37,16 +57,26 @@ export const DailyProgressBanner: React.FC<DailyProgressBannerProps> = ({
               Daily Engagement Focus
             </span>
 
-            {/* Daily Task Completion Reward Pill */}
-            {dailyRewardClaimedToday ? (
+            {/* Status Pill */}
+            {isApproved ? (
               <span className="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 text-xs font-bold flex items-center gap-1.5 shadow-sm">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                +{dailyTaskCompletionReward} PTS Daily Reward Claimed!
+                ⭐ {submission?.reviewScore ? `${submission.reviewScore}/5` : '5/5'} Approved (+{submission?.pointsAwarded || dailyTaskCompletionReward} PTS Credited)
+              </span>
+            ) : isPending ? (
+              <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 shadow-sm animate-pulse">
+                <Clock className="w-3.5 h-3.5 text-amber-400" />
+                Submitted — Awaiting Admin Review
+              </span>
+            ) : isRejected ? (
+              <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/40 text-xs font-bold flex items-center gap-1.5 shadow-sm">
+                <AlertCircle className="w-3.5 h-3.5 text-rose-400" />
+                Revision Requested
               </span>
             ) : (
               <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center gap-1.5 shadow-sm">
                 <Coins className="w-3.5 h-3.5 text-amber-400" />
-                Complete 100% to Earn +{dailyTaskCompletionReward} PTS
+                Earn up to +{dailyTaskCompletionReward} PTS (Admin Review)
               </span>
             )}
 
@@ -59,18 +89,41 @@ export const DailyProgressBanner: React.FC<DailyProgressBannerProps> = ({
           </div>
 
           <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-            {isAllComplete
-              ? '🎉 Outstanding! All Daily Routines Completed!'
+            {isApproved
+              ? '🎉 Outstanding! Daily Routine Evaluated & Rewarded!'
+              : isPending
+              ? '📋 Daily Routine Submitted for Review!'
+              : isRejected
+              ? '⚠️ Daily Routine Revision Needed'
               : overallProgress > 50
               ? '⚡ You are making great daily progress!'
               : '🚀 Ready to crush today’s Facebook tasks?'}
           </h2>
 
           <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-            {isAllComplete
-              ? `You have finished all required comments, replies, and routine warmups for today! Your +${dailyTaskCompletionReward} PTS daily reward and streak have been credited.`
-              : `Complete the routine checklist across all ${totalAccounts} Facebook profiles today to claim your +${dailyTaskCompletionReward} PTS daily completion reward.`}
+            {isApproved
+              ? `Your daily routine has been approved by the Admin team! ${submission?.adminFeedback ? `Feedback: "${submission.adminFeedback}"` : ''}`
+              : isPending
+              ? 'Your routine checklist across all profiles has been submitted to the Admin queue for review and scoring.'
+              : isRejected
+              ? `Admin feedback: "${submission?.adminFeedback || 'Please update and resubmit.'}"`
+              : `Complete the routine checklist across all ${totalAccounts} Facebook profiles today and submit your day's work to receive your review score and reward points.`}
           </p>
+
+          {/* Submission action button if not submitted or rejected */}
+          {!isApproved && !isPending && onSubmitClick && totalAccounts > 0 && (
+            <div className="pt-2">
+              <Button
+                size="sm"
+                variant="glow"
+                onClick={onSubmitClick}
+                leftIcon={<Send className="w-3.5 h-3.5" />}
+                className="shadow-glow-brand text-xs"
+              >
+                {isRejected ? 'Resubmit Daily Routine for Review' : "Submit Day's Routine for Admin Review"}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Right Progress Card */}

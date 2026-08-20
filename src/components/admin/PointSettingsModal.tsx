@@ -3,7 +3,6 @@ import { useSettingsStore } from '../../stores/useSettingsStore';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { Badge } from '../ui/Badge';
-import api from '../../services/api';
 import {
   Coins,
   Settings,
@@ -16,8 +15,11 @@ import {
   Save,
   CheckCircle2,
   CalendarCheck,
+  Star,
+  ShieldCheck,
+  FileCheck,
 } from 'lucide-react';
-import { User } from '../../types';
+import { DailyTaskScoreRules } from '../../types';
 
 interface PointSettingsModalProps {
   isOpen: boolean;
@@ -28,31 +30,30 @@ export const PointSettingsModal: React.FC<PointSettingsModalProps> = ({
   isOpen,
   onClose,
 }) => {
-  const { settings, fetchSettings, updateSettings, updateSmmDailyReward, isLoading } =
-    useSettingsStore();
+  const { settings, fetchSettings, updateSettings, isLoading } = useSettingsStore();
 
-  const [activeTab, setActiveTab] = useState<'global' | 'smm_rewards'>('global');
-  const [smms, setSmms] = useState<User[]>([]);
-  const [isSmmLoading, setIsSmmLoading] = useState(false);
-  const [savingSmmId, setSavingSmmId] = useState<string | null>(null);
-  const [savedSmmSuccessId, setSavedSmmSuccessId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'global' | 'scoring_matrix'>('global');
 
   // Form states for Global Config
   const [fbAccountReward, setFbAccountReward] = useState<number>(40);
   const [fbMilestoneReward, setFbMilestoneReward] = useState<number>(100);
   const [fbMilestoneStep, setFbMilestoneStep] = useState<number>(5);
-  const [defaultDailyReward, setDefaultDailyReward] = useState<number>(50);
+  const [defaultDailyReward, setDefaultDailyReward] = useState<number>(100);
   const [minWithdrawalPoints, setMinWithdrawalPoints] = useState<number>(50);
+  const [maxWithdrawalPoints, setMaxWithdrawalPoints] = useState<number>(1000);
   const [withdrawalCycleDays, setWithdrawalCycleDays] = useState<number>(7);
   const [globalSaveMessage, setGlobalSaveMessage] = useState<string | null>(null);
 
-  // Per-SMM reward inputs state
-  const [smmDailyRewards, setSmmDailyRewards] = useState<Record<string, number>>({});
+  // Score Matrix Form States
+  const [score5, setScore5] = useState<number>(100);
+  const [score4, setScore4] = useState<number>(80);
+  const [score3, setScore3] = useState<number>(60);
+  const [score2, setScore2] = useState<number>(40);
+  const [score1, setScore1] = useState<number>(20);
 
   useEffect(() => {
     if (isOpen) {
       fetchSettings();
-      fetchSmms();
     }
   }, [isOpen]);
 
@@ -61,30 +62,38 @@ export const PointSettingsModal: React.FC<PointSettingsModalProps> = ({
       setFbAccountReward(settings.facebookAccountReward ?? 40);
       setFbMilestoneReward(settings.facebookMilestoneReward ?? 100);
       setFbMilestoneStep(settings.facebookMilestoneStep ?? 5);
-      setDefaultDailyReward(settings.defaultDailyCompletionReward ?? 50);
+      setDefaultDailyReward(settings.defaultDailyCompletionReward ?? 100);
       setMinWithdrawalPoints(settings.minWithdrawalPoints ?? 50);
+      setMaxWithdrawalPoints(settings.maxWithdrawalPoints ?? 1000);
       setWithdrawalCycleDays(settings.withdrawalCycleDays ?? 7);
+
+      const rules = settings.dailyTaskScoreRules;
+      if (rules) {
+        setScore5(rules.score5Points ?? 100);
+        setScore4(rules.score4Points ?? 80);
+        setScore3(rules.score3Points ?? 60);
+        setScore2(rules.score2Points ?? 40);
+        setScore1(rules.score1Points ?? 20);
+      } else {
+        const max = settings.defaultDailyCompletionReward || 100;
+        setScore5(max);
+        setScore4(Math.round(max * 0.8));
+        setScore3(Math.round(max * 0.6));
+        setScore2(Math.round(max * 0.4));
+        setScore1(Math.round(max * 0.2));
+      }
     }
   }, [settings]);
 
-  const fetchSmms = async () => {
-    setIsSmmLoading(true);
-    try {
-      const res = await api.get('/auth/smms');
-      if (res.data.success) {
-        const list = res.data.smms || [];
-        setSmms(list);
-        const map: Record<string, number> = {};
-        list.forEach((s: User) => {
-          map[s._id || s.id] = s.dailyTaskCompletionReward ?? 50;
-        });
-        setSmmDailyRewards(map);
-      }
-    } catch (err) {
-      console.error('Fetch SMMs error:', err);
-    } finally {
-      setIsSmmLoading(false);
-    }
+  // When default daily max reward changes, automatically recalculate score tiers if desired
+  const handleMaxDailyChange = (val: number) => {
+    const num = Math.max(0, val);
+    setDefaultDailyReward(num);
+    setScore5(num);
+    setScore4(Math.round(num * 0.8));
+    setScore3(Math.round(num * 0.6));
+    setScore2(Math.round(num * 0.4));
+    setScore1(Math.round(num * 0.2));
   };
 
   const handleSaveGlobal = async (e: React.FormEvent) => {
@@ -96,24 +105,21 @@ export const PointSettingsModal: React.FC<PointSettingsModalProps> = ({
       facebookMilestoneReward: Number(fbMilestoneReward),
       facebookMilestoneStep: Number(fbMilestoneStep),
       defaultDailyCompletionReward: Number(defaultDailyReward),
+      dailyTaskScoreRules: {
+        score5Points: Number(score5),
+        score4Points: Number(score4),
+        score3Points: Number(score3),
+        score2Points: Number(score2),
+        score1Points: Number(score1),
+      },
       minWithdrawalPoints: Number(minWithdrawalPoints),
+      maxWithdrawalPoints: Number(maxWithdrawalPoints),
       withdrawalCycleDays: Number(withdrawalCycleDays),
     });
 
     if (res.success) {
-      setGlobalSaveMessage('Global reward settings saved successfully!');
+      setGlobalSaveMessage('Global reward and daily scoring settings saved successfully!');
       setTimeout(() => setGlobalSaveMessage(null), 4000);
-    }
-  };
-
-  const handleSaveSmmReward = async (smmId: string) => {
-    const points = smmDailyRewards[smmId] ?? 50;
-    setSavingSmmId(smmId);
-    const res = await updateSmmDailyReward(smmId, points);
-    setSavingSmmId(null);
-    if (res.success) {
-      setSavedSmmSuccessId(smmId);
-      setTimeout(() => setSavedSmmSuccessId(null), 3000);
     }
   };
 
@@ -122,7 +128,7 @@ export const PointSettingsModal: React.FC<PointSettingsModalProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       title="Reward & Point Management Center"
-      subtitle="Configure global point incentives and customize daily completion rewards per SMM agent."
+      subtitle="Configure global point incentives and daily task review scoring rules for all SMM agents."
       size="xl"
     >
       <div className="space-y-6">
@@ -141,254 +147,320 @@ export const PointSettingsModal: React.FC<PointSettingsModalProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab('smm_rewards')}
+            onClick={() => setActiveTab('scoring_matrix')}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-              activeTab === 'smm_rewards'
+              activeTab === 'scoring_matrix'
                 ? 'bg-indigo-600 text-white shadow-glow-brand'
                 : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
             }`}
           >
-            <Users className="w-4 h-4" />
-            <span>User-Specific Daily Rewards ({smms.length})</span>
+            <Star className="w-4 h-4 text-amber-400" />
+            <span>Daily Review Scoring Matrix (1–5 ⭐)</span>
           </button>
         </div>
 
-        {/* TAB 1: GLOBAL SETTINGS */}
-        {activeTab === 'global' && (
-          <form onSubmit={handleSaveGlobal} className="space-y-5">
-            {globalSaveMessage && (
-              <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>{globalSaveMessage}</span>
-              </div>
-            )}
+        {/* Form */}
+        <form onSubmit={handleSaveGlobal} className="space-y-5">
+          {globalSaveMessage && (
+            <div className="p-3 rounded-xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <span>{globalSaveMessage}</span>
+            </div>
+          )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Facebook Account Creation Reward */}
-              <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-3">
-                <div className="flex items-center gap-2 text-indigo-400">
-                  <Coins className="w-4 h-4 text-amber-400" />
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                    Facebook Account Approval Reward
-                  </h4>
-                </div>
-                <p className="text-[11px] text-slate-400">
-                  Points awarded to the SMM immediately after an admin approves their submitted Facebook profile.
-                </p>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min="0"
-                      value={fbAccountReward}
-                      onChange={(e) => setFbAccountReward(Number(e.target.value))}
-                      className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-bold text-amber-300"
-                    />
-                    <span className="text-xs font-bold text-slate-400">PTS</span>
+          {/* TAB 1: GLOBAL SETTINGS */}
+          {activeTab === 'global' && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Facebook Account Creation Reward */}
+                <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-3">
+                  <div className="flex items-center gap-2 text-indigo-400">
+                    <Coins className="w-4 h-4 text-amber-400" />
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                      Facebook Account Approval Reward
+                    </h4>
                   </div>
-                  <span className="text-[10px] text-slate-500 mt-1 block">Default: 40 PTS per approved account</span>
-                </div>
-              </div>
-
-              {/* Facebook Account 5-Account Milestone Bonus */}
-              <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-3">
-                <div className="flex items-center gap-2 text-pink-400">
-                  <Gift className="w-4 h-4" />
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                    Account Milestone Bonus
-                  </h4>
-                </div>
-                <p className="text-[11px] text-slate-400">
-                  Extra gamified bonus points awarded automatically every time an SMM reaches the milestone target.
-                </p>
-                <div className="grid grid-cols-2 gap-2">
+                  <p className="text-[11px] text-slate-400">
+                    Points awarded immediately after an admin approves an SMM's submitted Facebook profile.
+                  </p>
                   <div>
-                    <label className="text-[10px] text-slate-400 block mb-1">Bonus Points</label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={fbMilestoneReward}
-                      onChange={(e) => setFbMilestoneReward(Number(e.target.value))}
-                      className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-amber-300"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-slate-400 block mb-1">Every (Accounts)</label>
-                    <input
-                      type="number"
-                      min="1"
-                      value={fbMilestoneStep}
-                      onChange={(e) => setFbMilestoneStep(Number(e.target.value))}
-                      className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-white"
-                    />
-                  </div>
-                </div>
-                <span className="text-[10px] text-slate-500 block">Default: +100 PTS every 5 accounts</span>
-              </div>
-
-              {/* Default Daily Task Completion Reward */}
-              <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-3 sm:col-span-2">
-                <div className="flex items-center gap-2 text-emerald-400">
-                  <CalendarCheck className="w-4 h-4" />
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                    Default Daily Task Completion Reward
-                  </h4>
-                </div>
-                <p className="text-[11px] text-slate-400">
-                  Fallback points awarded when an SMM finishes 100% of their daily routine tasks within the day, unless overridden for a specific user in the User-Specific tab.
-                </p>
-                <div className="flex items-center gap-2 max-w-xs">
-                  <input
-                    type="number"
-                    min="0"
-                    value={defaultDailyReward}
-                    onChange={(e) => setDefaultDailyReward(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-bold text-emerald-300"
-                  />
-                  <span className="text-xs font-bold text-slate-400">PTS</span>
-                </div>
-                <span className="text-[10px] text-slate-500 block">Default: 50 PTS on 100% daily checklist completion</span>
-              </div>
-
-              {/* bKash Point Redemption & 7-Day Cycle Configuration */}
-              <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-3 sm:col-span-2">
-                <div className="flex items-center gap-2 text-pink-400">
-                  <Coins className="w-4 h-4 text-pink-400" />
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                    bKash Withdrawal & 7-Day Cycle Settings (1 Point = 1 BDT)
-                  </h4>
-                </div>
-                <p className="text-[11px] text-slate-400">
-                  Configure minimum points required per withdrawal and the recurring join & work cycle interval (default 7 days).
-                </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
-                  <div>
-                    <label className="text-[10px] text-slate-400 block mb-1">Min Withdrawal (PTS)</label>
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
-                        min="1"
-                        value={minWithdrawalPoints}
-                        onChange={(e) => setMinWithdrawalPoints(Number(e.target.value))}
-                        className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-amber-300"
+                        min="0"
+                        value={fbAccountReward}
+                        onChange={(e) => setFbAccountReward(Number(e.target.value))}
+                        className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-bold text-amber-300"
                       />
                       <span className="text-xs font-bold text-slate-400">PTS</span>
                     </div>
-                    <span className="text-[10px] text-slate-500 mt-0.5 block">Default: 50 PTS (৳ 50 BDT)</span>
+                    <span className="text-[10px] text-slate-500 mt-1 block">Default: 40 PTS per approved account</span>
                   </div>
+                </div>
 
-                  <div>
-                    <label className="text-[10px] text-slate-400 block mb-1">Cycle Interval (Days)</label>
-                    <div className="flex items-center gap-2">
+                {/* Facebook Account 5-Account Milestone Bonus */}
+                <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-3">
+                  <div className="flex items-center gap-2 text-pink-400">
+                    <Gift className="w-4 h-4" />
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                      Account Milestone Bonus
+                    </h4>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Extra gamified bonus points awarded automatically every time an SMM reaches the milestone target.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] text-slate-400 block mb-1">Bonus Points</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={fbMilestoneReward}
+                        onChange={(e) => setFbMilestoneReward(Number(e.target.value))}
+                        className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-amber-300"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-slate-400 block mb-1">Every (Accounts)</label>
                       <input
                         type="number"
                         min="1"
-                        value={withdrawalCycleDays}
-                        onChange={(e) => setWithdrawalCycleDays(Number(e.target.value))}
-                        className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-indigo-300"
+                        value={fbMilestoneStep}
+                        onChange={(e) => setFbMilestoneStep(Number(e.target.value))}
+                        className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-white"
                       />
-                      <span className="text-xs font-bold text-slate-400">Days</span>
                     </div>
-                    <span className="text-[10px] text-slate-500 mt-0.5 block">Default: 7 Days from join date</span>
+                  </div>
+                  <span className="text-[10px] text-slate-500 block">Default: +100 PTS every 5 accounts</span>
+                </div>
+
+                {/* Global Daily Task Base / Max Points */}
+                <div className="glass-card rounded-2xl p-4 border border-indigo-500/30 bg-indigo-950/10 space-y-3 sm:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-emerald-400">
+                      <CalendarCheck className="w-4 h-4" />
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                        Global Daily Task Max Reward (5/5 Rating)
+                      </h4>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                      Global System
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    Maximum daily completion reward for completing daily tasks. When SMMs submit their daily routine, Admins review their work and award points based on their 1–5 review score (e.g. 5/5 = 100 PTS, 4/5 = 80 PTS).
+                  </p>
+                  <div className="flex items-center gap-2 max-w-xs">
+                    <input
+                      type="number"
+                      min="0"
+                      value={defaultDailyReward}
+                      onChange={(e) => handleMaxDailyChange(Number(e.target.value))}
+                      className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-bold text-emerald-300"
+                    />
+                    <span className="text-xs font-bold text-slate-400">PTS (Max)</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400 block">
+                    Default: 100 PTS for a perfect 5/5 score. Points scale proportionally across 1–5 ratings.
+                  </span>
+                </div>
+
+                {/* bKash Point Redemption & 7-Day Cycle Configuration */}
+                <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-3 sm:col-span-2">
+                  <div className="flex items-center gap-2 text-pink-400">
+                    <Coins className="w-4 h-4 text-pink-400" />
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                      bKash Withdrawal Settings (1 Point = 1 BDT)
+                    </h4>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Configure minimum points required per withdrawal and the recurring join & work cycle interval (default 7 days).
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
+                    <div>
+                      <label className="text-[10px] text-slate-400 block mb-1">Min Withdrawal (PTS)</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="1"
+                          value={minWithdrawalPoints}
+                          onChange={(e) => setMinWithdrawalPoints(Number(e.target.value))}
+                          className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-amber-300"
+                        />
+                        <span className="text-xs font-bold text-slate-400">PTS</span>
+                      </div>
+                      <span className="text-[10px] text-slate-500 mt-0.5 block">Default: 50 PTS (৳ 50 BDT)</span>
+                    </div>
+
+                    <div>
+                      <label className="text-[10px] text-slate-400 block mb-1">Cycle Interval (Days)</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="1"
+                          value={withdrawalCycleDays}
+                          onChange={(e) => setWithdrawalCycleDays(Number(e.target.value))}
+                          className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-indigo-300"
+                        />
+                        <span className="text-xs font-bold text-slate-400">Days</span>
+                      </div>
+                      <span className="text-[10px] text-slate-500 mt-0.5 block">Default: 7 Days from join date</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+          )}
 
-            <div className="flex justify-end pt-2">
-              <Button
-                type="submit"
-                variant="glow"
-                isLoading={isLoading}
-                leftIcon={<Save className="w-4 h-4" />}
-              >
-                Save Global Settings
-              </Button>
-            </div>
-          </form>
-        )}
-
-        {/* TAB 2: USER-SPECIFIC DAILY REWARDS */}
-        {activeTab === 'smm_rewards' && (
-          <div className="space-y-4">
-            <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs">
-              💡 <strong>Custom Daily Task Rewards:</strong> Configure how many points each specific SMM agent will receive upon completing all their daily Facebook engagement tasks for the day.
-            </div>
-
-            {isSmmLoading ? (
-              <div className="p-8 text-center text-xs text-slate-400">Loading SMM agents...</div>
-            ) : smms.length === 0 ? (
-              <div className="p-8 text-center text-xs text-slate-400">No active SMM agents found.</div>
-            ) : (
-              <div className="divide-y divide-slate-800/60 max-h-96 overflow-y-auto pr-1">
-                {smms.map((smm) => {
-                  const id = smm._id || smm.id;
-                  const currentReward = smmDailyRewards[id] ?? (smm.dailyTaskCompletionReward ?? 50);
-                  const isSaving = savingSmmId === id;
-                  const isSaved = savedSmmSuccessId === id;
-
-                  return (
-                    <div
-                      key={id}
-                      className="py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
-                    >
-                      <div className="flex items-center gap-3">
-                        {smm.avatar ? (
-                          <img
-                            src={smm.avatar}
-                            alt={smm.name}
-                            className="w-10 h-10 rounded-xl object-cover border border-slate-700"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-xl bg-indigo-600/20 text-indigo-300 font-bold flex items-center justify-center text-sm border border-indigo-500/30">
-                            {(smm.name || smm.email).charAt(0).toUpperCase()}
-                          </div>
-                        )}
-                        <div>
-                          <h5 className="font-bold text-white text-xs sm:text-sm">{smm.name || 'SMM Agent'}</h5>
-                          <p className="text-[11px] text-slate-400">{smm.email}</p>
-                          <span className="text-[10px] text-amber-300 font-semibold">
-                            Balance: {smm.rewardPoints || 0} pts
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                        <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-1">
-                          <span className="text-[11px] text-slate-400 font-semibold">Daily Reward:</span>
-                          <input
-                            type="number"
-                            min="0"
-                            value={currentReward}
-                            onChange={(e) =>
-                              setSmmDailyRewards({
-                                ...smmDailyRewards,
-                                [id]: Number(e.target.value),
-                              })
-                            }
-                            className="w-16 bg-transparent text-xs font-black text-amber-300 focus:outline-none text-right"
-                          />
-                          <span className="text-[11px] font-bold text-slate-400">PTS</span>
-                        </div>
-
-                        <Button
-                          size="sm"
-                          variant={isSaved ? 'success' : 'secondary'}
-                          onClick={() => handleSaveSmmReward(id)}
-                          isLoading={isSaving}
-                          className="text-xs"
-                          leftIcon={isSaved ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : undefined}
-                        >
-                          {isSaved ? 'Saved' : 'Save'}
-                        </Button>
-                      </div>
-                    </div>
-                  );
-                })}
+          {/* TAB 2: DAILY REVIEW SCORING MATRIX */}
+          {activeTab === 'scoring_matrix' && (
+            <div className="space-y-4">
+              <div className="p-3.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs space-y-1">
+                <div className="font-bold flex items-center gap-1.5">
+                  <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                  <span>Global Daily Task Review Scoring System</span>
+                </div>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  When an SMM completes and submits their daily Facebook tasks, the Admin reviews and rates their work from 1 to 5. Define the points awarded for each score level below:
+                </p>
               </div>
-            )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                {/* 5 Stars */}
+                <div className="p-3.5 rounded-2xl bg-emerald-950/30 border border-emerald-500/40 space-y-2 text-center">
+                  <div className="flex items-center justify-center gap-0.5 text-amber-400">
+                    {[1, 2, 3, 4, 5].map((s) => (
+                      <Star key={s} className="w-3.5 h-3.5 fill-amber-400" />
+                    ))}
+                  </div>
+                  <span className="text-xs font-bold text-emerald-300 block">5 / 5 (Excellent)</span>
+                  <div className="flex items-center justify-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={score5}
+                      onChange={(e) => setScore5(Number(e.target.value))}
+                      className="w-16 px-2 py-1 rounded-lg glass-input text-center text-xs font-black text-emerald-300"
+                    />
+                    <span className="text-[10px] text-slate-400 font-bold">PTS</span>
+                  </div>
+                </div>
+
+                {/* 4 Stars */}
+                <div className="p-3.5 rounded-2xl bg-indigo-950/30 border border-indigo-500/40 space-y-2 text-center">
+                  <div className="flex items-center justify-center gap-0.5 text-amber-400">
+                    {[1, 2, 3, 4].map((s) => (
+                      <Star key={s} className="w-3.5 h-3.5 fill-amber-400" />
+                    ))}
+                    <Star className="w-3.5 h-3.5 text-slate-600" />
+                  </div>
+                  <span className="text-xs font-bold text-indigo-300 block">4 / 5 (Very Good)</span>
+                  <div className="flex items-center justify-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={score4}
+                      onChange={(e) => setScore4(Number(e.target.value))}
+                      className="w-16 px-2 py-1 rounded-lg glass-input text-center text-xs font-black text-indigo-300"
+                    />
+                    <span className="text-[10px] text-slate-400 font-bold">PTS</span>
+                  </div>
+                </div>
+
+                {/* 3 Stars */}
+                <div className="p-3.5 rounded-2xl bg-amber-950/20 border border-amber-500/30 space-y-2 text-center">
+                  <div className="flex items-center justify-center gap-0.5 text-amber-400">
+                    {[1, 2, 3].map((s) => (
+                      <Star key={s} className="w-3.5 h-3.5 fill-amber-400" />
+                    ))}
+                    {[4, 5].map((s) => (
+                      <Star key={s} className="w-3.5 h-3.5 text-slate-600" />
+                    ))}
+                  </div>
+                  <span className="text-xs font-bold text-amber-300 block">3 / 5 (Good)</span>
+                  <div className="flex items-center justify-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={score3}
+                      onChange={(e) => setScore3(Number(e.target.value))}
+                      className="w-16 px-2 py-1 rounded-lg glass-input text-center text-xs font-black text-amber-300"
+                    />
+                    <span className="text-[10px] text-slate-400 font-bold">PTS</span>
+                  </div>
+                </div>
+
+                {/* 2 Stars */}
+                <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2 text-center">
+                  <div className="flex items-center justify-center gap-0.5 text-amber-400">
+                    {[1, 2].map((s) => (
+                      <Star key={s} className="w-3.5 h-3.5 fill-amber-400" />
+                    ))}
+                    {[3, 4, 5].map((s) => (
+                      <Star key={s} className="w-3.5 h-3.5 text-slate-600" />
+                    ))}
+                  </div>
+                  <span className="text-xs font-bold text-slate-300 block">2 / 5 (Average)</span>
+                  <div className="flex items-center justify-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={score2}
+                      onChange={(e) => setScore2(Number(e.target.value))}
+                      className="w-16 px-2 py-1 rounded-lg glass-input text-center text-xs font-black text-slate-300"
+                    />
+                    <span className="text-[10px] text-slate-400 font-bold">PTS</span>
+                  </div>
+                </div>
+
+                {/* 1 Star */}
+                <div className="p-3.5 rounded-2xl bg-rose-950/20 border border-rose-500/30 space-y-2 text-center">
+                  <div className="flex items-center justify-center gap-0.5 text-amber-400">
+                    <Star className="w-3.5 h-3.5 fill-amber-400" />
+                    {[2, 3, 4, 5].map((s) => (
+                      <Star key={s} className="w-3.5 h-3.5 text-slate-600" />
+                    ))}
+                  </div>
+                  <span className="text-xs font-bold text-rose-300 block">1 / 5 (Poor)</span>
+                  <div className="flex items-center justify-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={score1}
+                      onChange={(e) => setScore1(Number(e.target.value))}
+                      className="w-16 px-2 py-1 rounded-lg glass-input text-center text-xs font-black text-rose-300"
+                    />
+                    <span className="text-[10px] text-slate-400 font-bold">PTS</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-xs text-slate-400 space-y-1">
+                <span className="font-semibold text-slate-300 block">💡 How Admin Review Works:</span>
+                <p>
+                  1. SMM completes their daily checklist across all Facebook accounts and clicks <strong>"Submit Day's Routine"</strong>.
+                </p>
+                <p>
+                  2. Admin opens <strong>Verification Portal &gt; Daily Routine Reviews</strong> to inspect the comments, replies, story posts, and dynamic tasks.
+                </p>
+                <p>
+                  3. Admin selects a score (e.g. 4/5), and the system automatically pre-fills <strong>{score4} PTS</strong> (or Admin can customize points), writes feedback notes, and approves the submission.
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end pt-3 border-t border-slate-800">
+            <Button
+              type="submit"
+              variant="glow"
+              isLoading={isLoading}
+              leftIcon={<Save className="w-4 h-4" />}
+            >
+              Save Point Settings
+            </Button>
           </div>
-        )}
+        </form>
       </div>
     </Modal>
   );

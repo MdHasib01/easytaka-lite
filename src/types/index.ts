@@ -117,6 +117,7 @@ export interface TaskSubmission {
   status: SubmissionStatus;
   adminNote?: string;
   pointsAwarded: number;
+  rating?: number;
   verifiedBy?: string | User;
   verifiedAt?: string;
   createdAt: string;
@@ -248,6 +249,59 @@ export interface DailyRoutineCardData {
   };
 }
 
+export interface DailyTaskScoreRules {
+  score5Points: number;
+  score4Points: number;
+  score3Points: number;
+  score2Points: number;
+  score1Points: number;
+}
+
+export interface DailyAccountSummary {
+  facebookAccountId?: string;
+  accountName: string;
+  profileUrl?: string;
+  avatarUrl?: string;
+  accountMode?: string;
+  assignedProduct?: string;
+  completionPercentage: number;
+  isCompleted: boolean;
+  commentsCount: number;
+  communityRepliesCount: number;
+  storyPostDone: boolean;
+  feedScrollDone: boolean;
+  groupShareCount: number;
+  dynamicChecklist?: Array<{
+    title: string;
+    taskType: string;
+    mode: string;
+    isDone: boolean;
+  }>;
+  notes?: string;
+}
+
+export interface DailyWorkSubmission {
+  _id: string;
+  smmId: string | User;
+  date: string;
+  overallProgress: number;
+  totalAccounts: number;
+  completedAccountsCount: number;
+  accountSummaries: DailyAccountSummary[];
+  smmNotes?: string;
+  proofUrl?: string;
+  screenshotUrl?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  reviewScore?: number | null;
+  pointsAwarded?: number;
+  adminFeedback?: string;
+  reviewedBy?: string | { _id: string; name: string; email: string };
+  reviewedAt?: string;
+  submittedAt?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface PointTransaction {
   _id: string;
   userId: string;
@@ -274,7 +328,9 @@ export interface SystemSettings {
   facebookMilestoneReward: number;
   facebookMilestoneStep: number;
   defaultDailyCompletionReward: number;
+  dailyTaskScoreRules?: DailyTaskScoreRules;
   minWithdrawalPoints?: number;
+  maxWithdrawalPoints?: number;
   withdrawalCycleDays?: number;
   pointToBdtRate?: number;
   withdrawalEnabled?: boolean;

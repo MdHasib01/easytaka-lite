@@ -4,6 +4,7 @@ import { useDailyStore } from '../stores/useDailyStore';
 import { useAccountStore } from '../stores/useAccountStore';
 import { DailyChecklistCard } from '../components/daily/DailyChecklistCard';
 import { DailyProgressBanner } from '../components/daily/DailyProgressBanner';
+import { SubmitDailyWorkModal } from '../components/daily/SubmitDailyWorkModal';
 import { Button } from '../components/ui/Button';
 import {
   CalendarCheck,
@@ -14,6 +15,10 @@ import {
   Flame,
   CheckCircle2,
   BookOpen,
+  Send,
+  Clock,
+  AlertCircle,
+  Star,
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SmmGuidelineModal } from '../components/accounts/SmmGuidelineModal';
@@ -27,16 +32,21 @@ export const DailyRoutinesPage: React.FC = () => {
     totalAccounts,
     completedAccountsCount,
     dailyTaskCompletionReward,
+    scoreRules,
     dailyRewardClaimedToday,
+    submission,
     fetchTodayRoutines,
     updateRoutineProgress,
+    submitDailyWork,
   } = useDailyStore();
   const { accounts, fetchMyAccounts } = useAccountStore();
 
   const [guidelineModalOpen, setGuidelineModalOpen] = useState(false);
+  const [submitModalOpen, setSubmitModalOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
+  const [actionSuccessMsg, setActionSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     fetchMyAccounts();
@@ -47,7 +57,25 @@ export const DailyRoutinesPage: React.FC = () => {
     await updateRoutineProgress(accountId, updates, selectedDate);
   };
 
+  const handleSubmitDailyWork = async (data: {
+    date: string;
+    smmNotes?: string;
+    proofUrl?: string;
+    screenshotUrl?: string;
+  }) => {
+    const res = await submitDailyWork(data);
+    if (res.success) {
+      setActionSuccessMsg('Daily routine submitted successfully! Awaiting Admin review & scoring.');
+      setTimeout(() => setActionSuccessMsg(null), 5000);
+      fetchTodayRoutines(selectedDate);
+    }
+    return res;
+  };
+
   const isToday = selectedDate === new Date().toISOString().split('T')[0];
+  const isApproved = submission?.status === 'approved' || dailyRewardClaimedToday;
+  const isPending = submission?.status === 'pending';
+  const isRejected = submission?.status === 'rejected';
 
   return (
     <div className="space-y-6 pb-12">
@@ -63,11 +91,27 @@ export const DailyRoutinesPage: React.FC = () => {
             </span>
           </div>
           <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Fixed daily must-do tasks (comments, community replies, story posts, feed warmup) for each Facebook account.
+            Execute daily tasks across your accounts and submit your day's work for Admin review & points.
           </p>
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Submit Work Button */}
+          {routines.length > 0 && !isApproved && (
+            <Button
+              variant={isPending ? 'secondary' : 'glow'}
+              onClick={() => setSubmitModalOpen(true)}
+              leftIcon={isPending ? <Clock className="w-4 h-4 text-amber-400" /> : <Send className="w-4 h-4" />}
+              className={isPending ? 'border-amber-500/30 text-amber-300' : 'shadow-glow-brand'}
+            >
+              {isPending
+                ? 'Update Submission'
+                : isRejected
+                ? 'Resubmit Work'
+                : "Submit Day's Routine"}
+            </Button>
+          )}
+
           <Button
             variant="secondary"
             onClick={() => setGuidelineModalOpen(true)}
@@ -97,7 +141,14 @@ export const DailyRoutinesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Progress Banner */}
+      {actionSuccessMsg && (
+        <div className="p-4 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-2 shadow-glow-success">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+          <span>{actionSuccessMsg}</span>
+        </div>
+      )}
+
+      {/* Progress & Submission Status Banner */}
       <DailyProgressBanner
         overallProgress={overallProgress}
         totalAccounts={totalAccounts}
@@ -105,7 +156,45 @@ export const DailyRoutinesPage: React.FC = () => {
         streakDays={user?.streakDays || 0}
         dailyTaskCompletionReward={dailyTaskCompletionReward}
         dailyRewardClaimedToday={dailyRewardClaimedToday}
+        submission={submission}
+        onSubmitClick={() => setSubmitModalOpen(true)}
       />
+
+      {/* Submission Feedback Card (if evaluated or rejected) */}
+      {submission && (isApproved || isRejected) && submission.adminFeedback && (
+        <div
+          className={`p-4 rounded-2xl border text-xs flex items-start gap-3 ${
+            isApproved
+              ? 'bg-emerald-950/20 border-emerald-500/30 text-emerald-200'
+              : 'bg-rose-950/20 border-rose-500/30 text-rose-200'
+          }`}
+        >
+          {isApproved ? (
+            <Star className="w-5 h-5 text-amber-400 fill-amber-400 flex-shrink-0 mt-0.5" />
+          ) : (
+            <AlertCircle className="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5" />
+          )}
+          <div className="space-y-1">
+            <div className="font-bold text-white text-sm flex items-center gap-2">
+              <span>Admin Evaluation:</span>
+              {submission.reviewScore && (
+                <span className="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 text-xs font-black">
+                  ⭐ {submission.reviewScore}/5 ({submission.pointsAwarded} PTS)
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              "{submission.adminFeedback}"
+            </p>
+            {submission.reviewedBy && typeof submission.reviewedBy === 'object' && (
+              <span className="text-[10px] text-slate-400 block pt-0.5">
+                Reviewed by {(submission.reviewedBy as any).name || 'Admin'} on{' '}
+                {submission.reviewedAt ? new Date(submission.reviewedAt).toLocaleString() : 'Recently'}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Routines Grid per Account */}
       {routines.length === 0 ? (
@@ -137,6 +226,20 @@ export const DailyRoutinesPage: React.FC = () => {
       <SmmGuidelineModal
         isOpen={guidelineModalOpen}
         onClose={() => setGuidelineModalOpen(false)}
+      />
+
+      {/* Submit Daily Work Modal */}
+      <SubmitDailyWorkModal
+        isOpen={submitModalOpen}
+        onClose={() => setSubmitModalOpen(false)}
+        date={selectedDate}
+        overallProgress={overallProgress}
+        totalAccounts={totalAccounts}
+        completedAccountsCount={completedAccountsCount}
+        routines={routines}
+        maxPoints={dailyTaskCompletionReward}
+        scoreRules={scoreRules}
+        onSubmit={handleSubmitDailyWork}
       />
     </div>
   );
