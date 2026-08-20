@@ -160,7 +160,14 @@ export const SubmitDailyWorkModal: React.FC<SubmitDailyWorkModalProps> = ({
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <span className="text-slate-400 text-[11px]">
-                    {r.routine.items?.commentsCount || 0} comments • {r.routine.items?.communityRepliesCount || 0} replies
+                    {[
+                      r.routine.items?.profilePicUploaded,
+                      r.routine.items?.coverPhotoUploaded,
+                      r.routine.items?.maritalStatusUpdated,
+                      r.routine.items?.schoolCollegeUpdated,
+                      r.routine.items?.identityPostDone,
+                    ].filter(Boolean).length}
+                    /5 tasks done
                   </span>
                   <span
                     className={`font-bold text-xs ${

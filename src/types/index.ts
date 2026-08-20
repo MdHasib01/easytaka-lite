@@ -206,11 +206,16 @@ export interface DynamicTaskItem {
 }
 
 export interface RoutineItemState {
-  feedScrollDone: boolean;
-  commentsCount: number;
-  communityRepliesCount: number;
-  storyPostDone: boolean;
-  groupShareCount: number;
+  profilePicUploaded?: boolean;
+  coverPhotoUploaded?: boolean;
+  maritalStatusUpdated?: boolean;
+  schoolCollegeUpdated?: boolean;
+  identityPostDone?: boolean;
+  feedScrollDone?: boolean;
+  commentsCount?: number;
+  communityRepliesCount?: number;
+  storyPostDone?: boolean;
+  groupShareCount?: number;
   customChecklist?: Array<{ taskName: string; isDone: boolean }>;
   dynamicChecklist?: DynamicTaskItem[];
 }
@@ -266,11 +271,16 @@ export interface DailyAccountSummary {
   assignedProduct?: string;
   completionPercentage: number;
   isCompleted: boolean;
-  commentsCount: number;
-  communityRepliesCount: number;
-  storyPostDone: boolean;
-  feedScrollDone: boolean;
-  groupShareCount: number;
+  profilePicUploaded?: boolean;
+  coverPhotoUploaded?: boolean;
+  maritalStatusUpdated?: boolean;
+  schoolCollegeUpdated?: boolean;
+  identityPostDone?: boolean;
+  commentsCount?: number;
+  communityRepliesCount?: number;
+  storyPostDone?: boolean;
+  feedScrollDone?: boolean;
+  groupShareCount?: number;
   dynamicChecklist?: Array<{
     title: string;
     taskType: string;

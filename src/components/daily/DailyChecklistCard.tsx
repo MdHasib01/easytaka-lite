@@ -4,24 +4,24 @@ import { DailyRoutineCardData, RoutineItemState, DynamicTaskItem } from '../../t
 import { ProgressBar } from '../ui/ProgressBar';
 import { Button } from '../ui/Button';
 import {
-  MessageCircle,
-  Share2,
+  Camera,
   Image,
-  Compass,
+  Heart,
+  GraduationCap,
+  FileText,
   CheckCircle2,
-  Plus,
-  Minus,
   ExternalLink,
   Sparkles,
   Copy,
   Check,
-  FileText,
   ThumbsUp,
+  MessageCircle,
   Zap,
   Users,
   Award,
   HelpCircle,
   LifeBuoy,
+  Compass,
   BookOpen,
 } from 'lucide-react';
 import { SmmGuidelineModal } from '../accounts/SmmGuidelineModal';
@@ -38,23 +38,15 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
   const { t } = useTranslation();
   const { account, routine } = cardData;
   const items = routine.items || {
-    feedScrollDone: false,
-    commentsCount: 0,
-    communityRepliesCount: 0,
-    storyPostDone: false,
-    groupShareCount: 0,
+    profilePicUploaded: false,
+    coverPhotoUploaded: false,
+    maritalStatusUpdated: false,
+    schoolCollegeUpdated: false,
+    identityPostDone: false,
     dynamicChecklist: [],
   };
 
   const dynamicTasks: DynamicTaskItem[] = items.dynamicChecklist || [];
-
-  const targets = account.routineTargets || {
-    feedComments: 5,
-    communityReplies: 3,
-    storyPost: true,
-    groupShare: 2,
-    feedScrollMinutes: 10,
-  };
 
   const [copiedCaptionIndex, setCopiedCaptionIndex] = useState<number | null>(null);
   const [playbookModalOpen, setPlaybookModalOpen] = useState(false);
@@ -128,32 +120,19 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
     }
   };
 
-  const handleCommentChange = (delta: number) => {
-    const newVal = Math.max(0, (items.commentsCount || 0) + delta);
-    onUpdate(account.id, { commentsCount: newVal });
-  };
-
-  const handleRepliesChange = (delta: number) => {
-    const newVal = Math.max(0, (items.communityRepliesCount || 0) + delta);
-    onUpdate(account.id, { communityRepliesCount: newVal });
-  };
-
-  const handleShareChange = (delta: number) => {
-    const newVal = Math.max(0, (items.groupShareCount || 0) + delta);
-    onUpdate(account.id, { groupShareCount: newVal });
-  };
-
-  const handleToggleStory = () => {
-    onUpdate(account.id, { storyPostDone: !items.storyPostDone });
-  };
-
-  const handleToggleFeedScroll = () => {
-    onUpdate(account.id, { feedScrollDone: !items.feedScrollDone });
+  const handleToggleTask = (field: keyof RoutineItemState) => {
+    onUpdate(account.id, { [field]: !items[field] });
   };
 
   const handleToggleDynamicTask = (index: number) => {
     const updated = dynamicTasks.map((tItem, idx) =>
-      idx === index ? { ...tItem, isDone: !tItem.isDone, completedAt: !tItem.isDone ? new Date().toISOString() : undefined } : tItem
+      idx === index
+        ? {
+            ...tItem,
+            isDone: !tItem.isDone,
+            completedAt: !tItem.isDone ? new Date().toISOString() : undefined,
+          }
+        : tItem
     );
     onUpdate(account.id, { dynamicChecklist: updated });
   };
@@ -168,11 +147,11 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
   const handleMarkAllDone = () => {
     const updatedDynamic = dynamicTasks.map((tItem) => ({ ...tItem, isDone: true }));
     onUpdate(account.id, {
-      commentsCount: targets.feedComments,
-      communityRepliesCount: targets.communityReplies,
-      storyPostDone: true,
-      feedScrollDone: true,
-      groupShareCount: targets.groupShare,
+      profilePicUploaded: true,
+      coverPhotoUploaded: true,
+      maritalStatusUpdated: true,
+      schoolCollegeUpdated: true,
+      identityPostDone: true,
       dynamicChecklist: updatedDynamic,
     });
   };
@@ -197,6 +176,14 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
   };
 
   const isCompleted = routine.completionPercentage >= 100;
+
+  const completedCount = [
+    items.profilePicUploaded,
+    items.coverPhotoUploaded,
+    items.maritalStatusUpdated,
+    items.schoolCollegeUpdated,
+    items.identityPostDone,
+  ].filter(Boolean).length;
 
   return (
     <div
@@ -268,7 +255,7 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
                   : 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30'
               }`}
             >
-              {routine.completionPercentage}% {t('common.done')}
+              {routine.completionPercentage}% {t('common.done')} ({completedCount}/5)
             </span>
           </div>
         </div>
@@ -278,138 +265,195 @@ export const DailyChecklistCard: React.FC<DailyChecklistCardProps> = ({
           <ProgressBar progress={routine.completionPercentage} size="sm" showPercentage={false} />
         </div>
 
-        {/* Base Must-Do Checklist Items */}
-        <div className="space-y-2.5">
-          {/* 1. Post Comments */}
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
-                <MessageCircle className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-xs font-semibold text-slate-200">{t('daily.postComments')}</div>
-                <div className="text-[11px] text-slate-400">
-                  Target: {targets.feedComments}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => handleCommentChange(-1)}
-                className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors"
-              >
-                <Minus className="w-3.5 h-3.5" />
-              </button>
-              <span
-                className={`w-8 text-center text-xs font-bold tabular-nums ${
-                  (items.commentsCount || 0) >= targets.feedComments ? 'text-emerald-400' : 'text-slate-200'
-                }`}
-              >
-                {items.commentsCount || 0}/{targets.feedComments}
-              </span>
-              <button
-                onClick={() => handleCommentChange(1)}
-                className="w-7 h-7 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white flex items-center justify-center transition-colors shadow-sm"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* 2. Community Replies */}
-          <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
-                <Share2 className="w-4 h-4" />
-              </div>
-              <div>
-                <div className="text-xs font-semibold text-slate-200">{t('daily.communityReplies')}</div>
-                <div className="text-[11px] text-slate-400">
-                  Target: {targets.communityReplies}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-1.5">
-              <button
-                onClick={() => handleRepliesChange(-1)}
-                className="w-7 h-7 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition-colors"
-              >
-                <Minus className="w-3.5 h-3.5" />
-              </button>
-              <span
-                className={`w-8 text-center text-xs font-bold tabular-nums ${
-                  (items.communityRepliesCount || 0) >= targets.communityReplies ? 'text-emerald-400' : 'text-slate-200'
-                }`}
-              >
-                {items.communityRepliesCount || 0}/{targets.communityReplies}
-              </span>
-              <button
-                onClick={() => handleRepliesChange(1)}
-                className="w-7 h-7 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white flex items-center justify-center transition-colors shadow-sm"
-              >
-                <Plus className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* 3. Story / Reel Post */}
-          {targets.storyPost && (
-            <div
-              onClick={handleToggleStory}
-              className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-colors ${
-                items.storyPostDone
-                  ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
-                  : 'bg-slate-900/60 border-slate-800/80 text-slate-300 hover:border-slate-700'
-              }`}
-            >
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
-                  <Image className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-slate-200">{t('daily.storyReelPost')}</div>
-                  <div className="text-[11px] text-slate-400">Engage followers with fresh stories</div>
-                </div>
-              </div>
-
-              <div className="flex items-center">
-                {items.storyPostDone ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                ) : (
-                  <div className="w-5 h-5 rounded-full border border-slate-600" />
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* 4. Feed Scroll & Warmup */}
+        {/* Profile Setup Checklist in Bangla */}
+        <div className="space-y-2">
+          {/* 1. Upload Profile Picture */}
           <div
-            onClick={handleToggleFeedScroll}
-            className={`flex items-center justify-between p-2.5 rounded-xl border cursor-pointer transition-colors ${
-              items.feedScrollDone
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-300'
-                : 'bg-slate-900/60 border-slate-800/80 text-slate-300 hover:border-slate-700'
+            onClick={() => handleToggleTask('profilePicUploaded')}
+            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+              items.profilePicUploaded
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 shadow-sm'
+                : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900'
             }`}
           >
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
-                <Compass className="w-4 h-4" />
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  items.profilePicUploaded
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20'
+                }`}
+              >
+                <Camera className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-xs font-semibold text-slate-200">
-                  {t('daily.feedWarmup')} ({targets.feedScrollMinutes || 10} min)
+                <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5 flex-wrap">
+                  <span>প্রোফাইল পিকচার আপলোড</span>
+                  <span className="text-[10px] text-slate-400 font-normal">(Upload profile picture)</span>
                 </div>
-                <div className="text-[11px] text-slate-400">Scroll feed & react naturally</div>
+                <div className="text-[11px] text-slate-400 mt-0.5">বাস্তবসম্মত ও শালীন প্রোফাইল ছবি যুক্ত করুন</div>
               </div>
             </div>
 
-            <div className="flex items-center">
-              {items.feedScrollDone ? (
+            <div className="flex items-center flex-shrink-0 ml-2">
+              {items.profilePicUploaded ? (
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
               ) : (
-                <div className="w-5 h-5 rounded-full border border-slate-600" />
+                <div className="w-5 h-5 rounded-full border border-slate-600 hover:border-slate-400" />
+              )}
+            </div>
+          </div>
+
+          {/* 2. Upload Cover Photo */}
+          <div
+            onClick={() => handleToggleTask('coverPhotoUploaded')}
+            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+              items.coverPhotoUploaded
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 shadow-sm'
+                : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  items.coverPhotoUploaded
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
+                }`}
+              >
+                <Image className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5 flex-wrap">
+                  <span>কভার ফটো আপলোড</span>
+                  <span className="text-[10px] text-slate-400 font-normal">(Upload Cover photo)</span>
+                </div>
+                <div className="text-[11px] text-slate-400 mt-0.5">প্রাকৃতিক বা রুচিশীল কভার ছবি আপলোড করুন</div>
+              </div>
+            </div>
+
+            <div className="flex items-center flex-shrink-0 ml-2">
+              {items.coverPhotoUploaded ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              ) : (
+                <div className="w-5 h-5 rounded-full border border-slate-600 hover:border-slate-400" />
+              )}
+            </div>
+          </div>
+
+          {/* 3. Update Marital Status */}
+          <div
+            onClick={() => handleToggleTask('maritalStatusUpdated')}
+            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+              items.maritalStatusUpdated
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 shadow-sm'
+                : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  items.maritalStatusUpdated
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-rose-500/10 text-rose-400 border border-rose-500/20'
+                }`}
+              >
+                <Heart className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5 flex-wrap">
+                  <span>বৈবাহিক অবস্থা আপডেট</span>
+                  <span className="text-[10px] text-rose-300 font-bold px-1.5 py-0.2 rounded bg-rose-500/15 border border-rose-500/30">
+                    Married
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-400 mt-0.5">
+                  Relationship Status অবশ্যই "Married" (বিবাহিত) সিলেক্ট করুন
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center flex-shrink-0 ml-2">
+              {items.maritalStatusUpdated ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              ) : (
+                <div className="w-5 h-5 rounded-full border border-slate-600 hover:border-slate-400" />
+              )}
+            </div>
+          </div>
+
+          {/* 4. Update School/College Information */}
+          <div
+            onClick={() => handleToggleTask('schoolCollegeUpdated')}
+            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+              items.schoolCollegeUpdated
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 shadow-sm'
+                : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  items.schoolCollegeUpdated
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                }`}
+              >
+                <GraduationCap className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5 flex-wrap">
+                  <span>স্কুল/কলেজের তথ্য আপডেট</span>
+                  <span className="text-[10px] text-slate-400 font-normal">(School/College info)</span>
+                </div>
+                <div className="text-[11px] text-slate-400 mt-0.5">প্রোফাইলে বাস্তবসম্মত স্কুল বা কলেজের তথ্য যোগ করুন</div>
+              </div>
+            </div>
+
+            <div className="flex items-center flex-shrink-0 ml-2">
+              {items.schoolCollegeUpdated ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              ) : (
+                <div className="w-5 h-5 rounded-full border border-slate-600 hover:border-slate-400" />
+              )}
+            </div>
+          </div>
+
+          {/* 5. Complete Post Related to Profile & Identity */}
+          <div
+            onClick={() => handleToggleTask('identityPostDone')}
+            className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
+              items.identityPostDone
+                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300 shadow-sm'
+                : 'bg-slate-900/70 border-slate-800 text-slate-300 hover:border-slate-700 hover:bg-slate-900'
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${
+                  items.identityPostDone
+                    ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                    : 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20'
+                }`}
+              >
+                <FileText className="w-4 h-4" />
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-100 flex items-center gap-1.5 flex-wrap">
+                  <span>প্রোফাইল ও পরিচয়ের সাথে মিল রেখে পোস্ট</span>
+                  <span className="text-[10px] text-slate-400 font-normal">(Identity Post)</span>
+                </div>
+                <div className="text-[11px] text-slate-400 mt-0.5">
+                  আইডির মা/সংসার বা বাস্তব পরিচয়ের সাথে মিল রেখে পোস্ট সম্পন্ন করুন
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center flex-shrink-0 ml-2">
+              {items.identityPostDone ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              ) : (
+                <div className="w-5 h-5 rounded-full border border-slate-600 hover:border-slate-400" />
               )}
             </div>
           </div>

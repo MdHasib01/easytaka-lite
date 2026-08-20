@@ -22,6 +22,10 @@ import {
   Share2,
   Image,
   Zap,
+  Camera,
+  Heart,
+  GraduationCap,
+  FileText,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -265,25 +269,61 @@ export const DailySubmissionReviewCard: React.FC<DailySubmissionReviewCardProps>
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 flex-wrap text-[11px] text-slate-300">
-                <span className="flex items-center gap-1 bg-slate-950/60 px-2 py-0.5 rounded border border-slate-800">
-                  <MessageCircle className="w-3 h-3 text-indigo-400" />
-                  {acc.commentsCount} Comments
+              <div className="flex items-center gap-1.5 flex-wrap text-[11px] text-slate-300">
+                <span
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded border ${
+                    acc.profilePicUploaded
+                      ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-semibold'
+                      : 'bg-slate-950/60 text-slate-500 border-slate-800'
+                  }`}
+                >
+                  <Camera className="w-3 h-3" />
+                  {acc.profilePicUploaded ? '✓ প্রোফাইল পিক' : 'পিকচার বাকি'}
                 </span>
-                <span className="flex items-center gap-1 bg-slate-950/60 px-2 py-0.5 rounded border border-slate-800">
-                  <Share2 className="w-3 h-3 text-cyan-400" />
-                  {acc.communityRepliesCount} Replies
+
+                <span
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded border ${
+                    acc.coverPhotoUploaded
+                      ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30 font-semibold'
+                      : 'bg-slate-950/60 text-slate-500 border-slate-800'
+                  }`}
+                >
+                  <Image className="w-3 h-3" />
+                  {acc.coverPhotoUploaded ? '✓ কভার ফটো' : 'কভার বাকি'}
                 </span>
-                {acc.storyPostDone && (
-                  <span className="text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                    ✓ Story
-                  </span>
-                )}
-                {acc.feedScrollDone && (
-                  <span className="text-amber-300 font-semibold bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20">
-                    ✓ Warmup
-                  </span>
-                )}
+
+                <span
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded border ${
+                    acc.maritalStatusUpdated
+                      ? 'bg-rose-500/15 text-rose-300 border-rose-500/30 font-semibold'
+                      : 'bg-slate-950/60 text-slate-500 border-slate-800'
+                  }`}
+                >
+                  <Heart className="w-3 h-3" />
+                  {acc.maritalStatusUpdated ? '✓ Married' : 'স্ট্যাটাস বাকি'}
+                </span>
+
+                <span
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded border ${
+                    acc.schoolCollegeUpdated
+                      ? 'bg-amber-500/15 text-amber-300 border-amber-500/30 font-semibold'
+                      : 'bg-slate-950/60 text-slate-500 border-slate-800'
+                  }`}
+                >
+                  <GraduationCap className="w-3 h-3" />
+                  {acc.schoolCollegeUpdated ? '✓ স্কুল/কলেজ' : 'শিক্ষা বাকি'}
+                </span>
+
+                <span
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded border ${
+                    acc.identityPostDone
+                      ? 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30 font-semibold'
+                      : 'bg-slate-950/60 text-slate-500 border-slate-800'
+                  }`}
+                >
+                  <FileText className="w-3 h-3" />
+                  {acc.identityPostDone ? '✓ পোস্ট সম্পন্ন' : 'পোস্ট বাকি'}
+                </span>
               </div>
 
               {acc.dynamicChecklist && acc.dynamicChecklist.length > 0 && (
