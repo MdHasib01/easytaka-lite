@@ -18,20 +18,41 @@ import {
   CheckCircle2,
   ShieldAlert,
   ChevronDown,
-  Filter,
+  Coins,
+  Gift,
+  Star,
+  CalendarCheck,
+  Settings as SettingsIcon,
+  Flame,
+  Award,
+  Plus,
+  Trash2,
+  RotateCcw,
+  Calculator,
+  Sliders,
 } from 'lucide-react';
+import { RatingBreakpoint } from '../types';
 
-type SettingsTab = 'recovery_email' | 'ai_config';
+type SettingsTab = 'points' | 'recovery_email' | 'ai_config';
 type AiProvider = 'openai' | 'gemini';
 
-// Current model options per provider, kept short-listed to the fast/cheap models
-// suited for this task (classifying a single short email). "Custom" covers
-// anything newer that isn't listed yet.
 const MODEL_OPTIONS: Record<AiProvider, string[]> = {
   openai: ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini', 'gpt-4.1', 'gpt-4.1-nano', 'o4-mini'],
   gemini: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'],
 };
 const CUSTOM_MODEL_VALUE = '__custom__';
+
+const DEFAULT_BREAKPOINTS: RatingBreakpoint[] = [
+  { minRating: 5.0, points: 90, label: '5.0 ⭐ (Excellent)' },
+  { minRating: 4.5, points: 85, label: '4.5 ⭐ (Superior)' },
+  { minRating: 4.0, points: 80, label: '4.0 ⭐ (Very Good)' },
+  { minRating: 3.5, points: 70, label: '3.5 ⭐ (Good Plus)' },
+  { minRating: 3.0, points: 60, label: '3.0 ⭐ (Good)' },
+  { minRating: 2.5, points: 50, label: '2.5 ⭐ (Satisfactory)' },
+  { minRating: 2.0, points: 40, label: '2.0 ⭐ (Average)' },
+  { minRating: 1.5, points: 30, label: '1.5 ⭐ (Below Average)' },
+  { minRating: 1.0, points: 20, label: '1.0 ⭐ (Poor)' },
+];
 
 const Toggle: React.FC<{ enabled: boolean; onChange: (v: boolean) => void }> = ({ enabled, onChange }) => (
   <button
@@ -56,7 +77,22 @@ export const AdminSettingsPage: React.FC = () => {
   const { settings, fetchSettings, updateSettings, isLoading } = useSettingsStore();
   const isAdmin = user?.role === 'admin';
 
-  const [activeTab, setActiveTab] = useState<SettingsTab>('recovery_email');
+  const [activeTab, setActiveTab] = useState<SettingsTab>('points');
+
+  // Point & Reward Settings Form State
+  const [pointsSubTab, setPointsSubTab] = useState<'global' | 'scoring_matrix'>('global');
+  const [fbAccountReward, setFbAccountReward] = useState<number>(40);
+  const [fbMilestoneReward, setFbMilestoneReward] = useState<number>(100);
+  const [fbMilestoneStep, setFbMilestoneStep] = useState<number>(5);
+  const [defaultDailyReward, setDefaultDailyReward] = useState<number>(100);
+  const [minWithdrawalPoints, setMinWithdrawalPoints] = useState<number>(50);
+  const [maxWithdrawalPoints, setMaxWithdrawalPoints] = useState<number>(1000);
+  const [withdrawalCycleDays, setWithdrawalCycleDays] = useState<number>(7);
+  const [pointsMessage, setPointsMessage] = useState<string | null>(null);
+
+  // Rating Breakpoints state
+  const [breakpoints, setBreakpoints] = useState<RatingBreakpoint[]>(DEFAULT_BREAKPOINTS);
+  const [simulatedRating, setSimulatedRating] = useState<number>(4.6);
 
   // Recovery Email form state
   const [address, setAddress] = useState('');
@@ -86,6 +122,26 @@ export const AdminSettingsPage: React.FC = () => {
 
   useEffect(() => {
     if (!settings) return;
+
+    // Load Point Settings
+    setFbAccountReward(settings.facebookAccountReward ?? 40);
+    setFbMilestoneReward(settings.facebookMilestoneReward ?? 100);
+    setFbMilestoneStep(settings.facebookMilestoneStep ?? 5);
+    setDefaultDailyReward(settings.defaultDailyCompletionReward ?? 100);
+    setMinWithdrawalPoints(settings.minWithdrawalPoints ?? 50);
+    setMaxWithdrawalPoints(settings.maxWithdrawalPoints ?? 1000);
+    setWithdrawalCycleDays(settings.withdrawalCycleDays ?? 7);
+
+    // Load Breakpoints
+    if (settings.ratingBreakpoints && settings.ratingBreakpoints.length > 0) {
+      setBreakpoints(
+        [...settings.ratingBreakpoints].sort((a, b) => b.minRating - a.minRating)
+      );
+    } else {
+      setBreakpoints(DEFAULT_BREAKPOINTS);
+    }
+
+    // Load Recovery Email
     if (settings.recoveryEmailConfig) {
       setAddress(settings.recoveryEmailConfig.address || '');
       setImapHost(settings.recoveryEmailConfig.imapHost || 'imap.gmail.com');
@@ -95,6 +151,8 @@ export const AdminSettingsPage: React.FC = () => {
       setRecoveryEnabled(Boolean(settings.recoveryEmailConfig.enabled));
       setAppPasswordSet(Boolean(settings.recoveryEmailConfig.appPasswordSet));
     }
+
+    // Load AI Config
     if (settings.aiConfig) {
       const loadedProvider = settings.aiConfig.provider || 'openai';
       const loadedModel = settings.aiConfig.model || '';
@@ -115,6 +173,61 @@ export const AdminSettingsPage: React.FC = () => {
       </div>
     );
   }
+
+  // Breakpoint Handlers
+  const handleBreakpointChange = (index: number, field: keyof RatingBreakpoint, val: any) => {
+    const updated = [...breakpoints];
+    updated[index] = { ...updated[index], [field]: val };
+    setBreakpoints(updated);
+  };
+
+  const handleAddBreakpoint = () => {
+    const lowest = breakpoints[breakpoints.length - 1]?.minRating ?? 1.0;
+    const newMin = Math.max(0.5, Number((lowest - 0.5).toFixed(1)));
+    const newPoints = Math.max(0, (breakpoints[breakpoints.length - 1]?.points ?? 20) - 10);
+    setBreakpoints([
+      ...breakpoints,
+      { minRating: newMin, points: newPoints, label: `${newMin.toFixed(1)} ⭐ Tier` },
+    ]);
+  };
+
+  const handleRemoveBreakpoint = (index: number) => {
+    if (breakpoints.length <= 1) return;
+    setBreakpoints(breakpoints.filter((_, i) => i !== index));
+  };
+
+  const handleResetBreakpoints = () => {
+    setBreakpoints(DEFAULT_BREAKPOINTS);
+  };
+
+  const getSimulatedPoints = (rating: number) => {
+    const sorted = [...breakpoints].sort((a, b) => b.minRating - a.minRating);
+    const matched = sorted.find((bp) => rating >= bp.minRating - 0.05);
+    return matched ? { points: matched.points, tier: matched.label || `${matched.minRating} ⭐` } : { points: 0, tier: 'Below lowest tier' };
+  };
+
+  const handleSavePoints = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPointsMessage(null);
+
+    const sortedBreakpoints = [...breakpoints].sort((a, b) => b.minRating - a.minRating);
+
+    const res = await updateSettings({
+      facebookAccountReward: Number(fbAccountReward),
+      facebookMilestoneReward: Number(fbMilestoneReward),
+      facebookMilestoneStep: Number(fbMilestoneStep),
+      defaultDailyCompletionReward: Number(defaultDailyReward),
+      ratingBreakpoints: sortedBreakpoints,
+      minWithdrawalPoints: Number(minWithdrawalPoints),
+      maxWithdrawalPoints: Number(maxWithdrawalPoints),
+      withdrawalCycleDays: Number(withdrawalCycleDays),
+    });
+
+    if (res.success) {
+      setPointsMessage('Point reward rules and rating breakpoints saved successfully!');
+      setTimeout(() => setPointsMessage(null), 4000);
+    }
+  };
 
   const handleSaveRecoveryEmail = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -160,45 +273,395 @@ export const AdminSettingsPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8 pb-12 max-w-4xl mx-auto">
+    <div className="space-y-8 pb-12 max-w-5xl mx-auto">
       {/* Header */}
       <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Admin Settings</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Admin System Settings</h1>
         <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          Configure the recovery-email inbox watcher and the AI provider used to read Facebook OTP mail.
+          Configure global point rewards, rating break points (e.g. 5★=90, 4.5★=85, 4★=80), OTP mailbox watcher, and AI configuration.
         </p>
       </div>
 
       {/* Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-2">
+      <div className="flex items-center gap-2 border-b border-slate-800 pb-2 overflow-x-auto">
+        <button
+          onClick={() => setActiveTab('points')}
+          className={clsx(
+            'px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap',
+            activeTab === 'points'
+              ? 'bg-indigo-600 text-white shadow-glow-brand'
+              : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+          )}
+        >
+          <Coins className="w-4 h-4 text-amber-400" />
+          <span>Point & Breakpoint Settings</span>
+        </button>
+
         <button
           onClick={() => setActiveTab('recovery_email')}
           className={clsx(
-            'px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2',
+            'px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap',
             activeTab === 'recovery_email'
               ? 'bg-indigo-600 text-white shadow-glow-brand'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           )}
         >
-          <Mail className="w-4 h-4" />
+          <Mail className="w-4 h-4 text-indigo-400" />
           <span>Recovery Email</span>
         </button>
 
         <button
           onClick={() => setActiveTab('ai_config')}
           className={clsx(
-            'px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2',
+            'px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 whitespace-nowrap',
             activeTab === 'ai_config'
               ? 'bg-indigo-600 text-white shadow-glow-brand'
               : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
           )}
         >
-          <Sparkles className="w-4 h-4" />
+          <Sparkles className="w-4 h-4 text-purple-400" />
           <span>AI Configuration</span>
         </button>
       </div>
 
-      {/* TAB 1: RECOVERY EMAIL */}
+      {/* TAB 1: POINT & BREAKPOINT SETTINGS */}
+      {activeTab === 'points' && (
+        <div className="space-y-6">
+          {/* Sub-tabs for Point Settings */}
+          <div className="flex items-center gap-2 border-b border-slate-800/60 pb-2">
+            <button
+              onClick={() => setPointsSubTab('global')}
+              className={clsx(
+                'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5',
+                pointsSubTab === 'global'
+                  ? 'bg-slate-800 text-white border border-slate-700'
+                  : 'text-slate-400 hover:text-white'
+              )}
+            >
+              <SettingsIcon className="w-3.5 h-3.5" />
+              <span>Global Point Rules</span>
+            </button>
+
+            <button
+              onClick={() => setPointsSubTab('scoring_matrix')}
+              className={clsx(
+                'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5',
+                pointsSubTab === 'scoring_matrix'
+                  ? 'bg-slate-800 text-amber-300 border border-amber-500/30'
+                  : 'text-slate-400 hover:text-white'
+              )}
+            >
+              <Sliders className="w-3.5 h-3.5 text-amber-400" />
+              <span>Rating Breakpoints (e.g. 5★=90, 4.5★=85, 4★=80)</span>
+            </button>
+          </div>
+
+          <form onSubmit={handleSavePoints} className="space-y-5">
+            {pointsMessage && (
+              <div className="p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-xs font-semibold flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <span>{pointsMessage}</span>
+              </div>
+            )}
+
+            {/* SUBTAB 1: GLOBAL POINT RULES */}
+            {pointsSubTab === 'global' && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {/* Facebook Account Approval Reward */}
+                  <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3">
+                    <div className="flex items-center gap-2 text-indigo-400">
+                      <Coins className="w-4 h-4 text-amber-400" />
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                        Facebook Account Approval Reward
+                      </h4>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Points awarded immediately after an admin approves an SMM's submitted Facebook profile.
+                    </p>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          value={fbAccountReward}
+                          onChange={(e) => setFbAccountReward(Number(e.target.value))}
+                          className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-bold text-amber-300"
+                        />
+                        <span className="text-xs font-bold text-slate-400">PTS</span>
+                      </div>
+                      <span className="text-[10px] text-slate-500 mt-1 block">Default: 40 PTS per approved account</span>
+                    </div>
+                  </div>
+
+                  {/* Facebook Account 5-Account Milestone Bonus */}
+                  <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3">
+                    <div className="flex items-center gap-2 text-pink-400">
+                      <Gift className="w-4 h-4 text-pink-400" />
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                        Account Milestone Bonus
+                      </h4>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Extra gamified bonus points awarded automatically every time an SMM reaches the milestone target.
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-[10px] text-slate-400 block mb-1 font-semibold">Bonus Points</label>
+                        <input
+                          type="number"
+                          min="0"
+                          value={fbMilestoneReward}
+                          onChange={(e) => setFbMilestoneReward(Number(e.target.value))}
+                          className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-amber-300"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[10px] text-slate-400 block mb-1 font-semibold">Every (Accounts)</label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={fbMilestoneStep}
+                          onChange={(e) => setFbMilestoneStep(Number(e.target.value))}
+                          className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-white"
+                        />
+                      </div>
+                    </div>
+                    <span className="text-[10px] text-slate-500 block">Default: +100 PTS every 5 accounts</span>
+                  </div>
+
+                  {/* Global Daily Task Base / Max Points */}
+                  <div className="glass-card rounded-2xl p-5 border border-indigo-500/30 bg-indigo-950/10 space-y-3 sm:col-span-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-emerald-400">
+                        <CalendarCheck className="w-4 h-4 text-emerald-400" />
+                        <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                          Global Daily Task Max Reward (5/5 Rating)
+                        </h4>
+                      </div>
+                      <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                        Evaluated at 12:00 AM Midnight
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-300 leading-relaxed">
+                      Points are evaluated at 12:00 AM midnight based on the SMM's daily average star rating and matching breakpoints configured in the Breakpoints tab.
+                    </p>
+                    <div className="flex items-center gap-2 max-w-xs">
+                      <input
+                        type="number"
+                        min="0"
+                        value={defaultDailyReward}
+                        onChange={(e) => setDefaultDailyReward(Number(e.target.value))}
+                        className="w-full px-3.5 py-2.5 rounded-xl glass-input text-sm font-bold text-emerald-300"
+                      />
+                      <span className="text-xs font-bold text-slate-400">PTS (Max)</span>
+                    </div>
+                  </div>
+
+                  {/* bKash Point Redemption Settings */}
+                  <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3 sm:col-span-2">
+                    <div className="flex items-center gap-2 text-pink-400">
+                      <Coins className="w-4 h-4 text-pink-400" />
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                        bKash Withdrawal Settings (1 Point = 1 BDT)
+                      </h4>
+                    </div>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Configure minimum points required per withdrawal and the recurring join & work cycle interval (default 7 days).
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
+                      <div>
+                        <label className="text-[10px] text-slate-400 block mb-1 font-semibold">Min Withdrawal (PTS)</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="1"
+                            value={minWithdrawalPoints}
+                            onChange={(e) => setMinWithdrawalPoints(Number(e.target.value))}
+                            className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-amber-300"
+                          />
+                          <span className="text-xs font-bold text-slate-400">PTS</span>
+                        </div>
+                        <span className="text-[10px] text-slate-500 mt-0.5 block">Default: 50 PTS (৳ 50 BDT)</span>
+                      </div>
+
+                      <div>
+                        <label className="text-[10px] text-slate-400 block mb-1 font-semibold">Cycle Interval (Days)</label>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="number"
+                            min="1"
+                            value={withdrawalCycleDays}
+                            onChange={(e) => setWithdrawalCycleDays(Number(e.target.value))}
+                            className="w-full px-3 py-2 rounded-xl glass-input text-xs font-bold text-indigo-300"
+                          />
+                          <span className="text-xs font-bold text-slate-400">Days</span>
+                        </div>
+                        <span className="text-[10px] text-slate-500 mt-0.5 block">Default: 7 Days from join date</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* SUBTAB 2: RATING BREAKPOINTS */}
+            {pointsSubTab === 'scoring_matrix' && (
+              <div className="space-y-5">
+                <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs space-y-1.5">
+                  <div className="font-bold flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Star className="w-4 h-4 text-amber-400 fill-amber-400" />
+                      <span>Rating Breakpoints & Point Distribution Rules</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={handleResetBreakpoints}
+                        className="text-[11px] text-slate-400 hover:text-white flex items-center gap-1 bg-slate-900/80 px-2.5 py-1 rounded-lg border border-slate-700 transition-colors"
+                      >
+                        <RotateCcw className="w-3 h-3" /> Reset 0.5 Steps
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleAddBreakpoint}
+                        className="text-[11px] text-indigo-300 hover:text-white flex items-center gap-1 bg-indigo-600/30 hover:bg-indigo-600/50 px-2.5 py-1 rounded-lg border border-indigo-500/40 font-semibold transition-colors"
+                      >
+                        <Plus className="w-3 h-3" /> Add Breakpoint
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    Specify the exact points awarded for each star rating breakpoint (e.g., 5.0 ⭐ = 90 PTS, 4.5 ⭐ = 85 PTS, 4.0 ⭐ = 80 PTS). At midnight, the SMM's daily average rating is matched against these break points.
+                  </p>
+                </div>
+
+                {/* Breakpoints Table / Cards */}
+                <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-3">
+                  <div className="grid grid-cols-12 gap-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider pb-2 border-b border-slate-800">
+                    <div className="col-span-3 sm:col-span-3">Rating Threshold (≥ Stars)</div>
+                    <div className="col-span-5 sm:col-span-5">Tier Label / Description</div>
+                    <div className="col-span-3 sm:col-span-3">Points Awarded</div>
+                    <div className="col-span-1 text-center">Action</div>
+                  </div>
+
+                  <div className="space-y-2.5">
+                    {breakpoints.map((bp, idx) => (
+                      <div
+                        key={idx}
+                        className="grid grid-cols-12 gap-3 items-center p-2.5 rounded-xl bg-slate-900/60 border border-slate-800/80 hover:border-slate-700 transition-all"
+                      >
+                        {/* Rating Threshold */}
+                        <div className="col-span-3 sm:col-span-3 flex items-center gap-1.5">
+                          <input
+                            type="number"
+                            step="0.1"
+                            min="0"
+                            max="5"
+                            value={bp.minRating}
+                            onChange={(e) => handleBreakpointChange(idx, 'minRating', Number(e.target.value))}
+                            className="w-18 sm:w-20 px-2.5 py-1.5 rounded-lg glass-input text-xs font-extrabold text-amber-300 text-center"
+                          />
+                          <Star className="w-4 h-4 text-amber-400 fill-amber-400 flex-shrink-0" />
+                        </div>
+
+                        {/* Label */}
+                        <div className="col-span-5 sm:col-span-5">
+                          <input
+                            type="text"
+                            value={bp.label || ''}
+                            onChange={(e) => handleBreakpointChange(idx, 'label', e.target.value)}
+                            placeholder="e.g. 4.5 ⭐ (Superior)"
+                            className="w-full px-2.5 py-1.5 rounded-lg glass-input text-xs text-white"
+                          />
+                        </div>
+
+                        {/* Points */}
+                        <div className="col-span-3 sm:col-span-3 flex items-center gap-1.5">
+                          <input
+                            type="number"
+                            min="0"
+                            value={bp.points}
+                            onChange={(e) => handleBreakpointChange(idx, 'points', Number(e.target.value))}
+                            className="w-20 sm:w-24 px-2.5 py-1.5 rounded-lg glass-input text-xs font-black text-emerald-300 text-center"
+                          />
+                          <span className="text-[11px] font-bold text-slate-400">PTS</span>
+                        </div>
+
+                        {/* Delete Action */}
+                        <div className="col-span-1 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveBreakpoint(idx)}
+                            disabled={breakpoints.length <= 1}
+                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Remove breakpoint"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Interactive Breakpoint Simulator */}
+                <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-white flex items-center gap-1.5">
+                      <Calculator className="w-4 h-4 text-indigo-400" /> Breakpoint Test Simulator:
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      Live testing how average ratings evaluate to reward points
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs text-slate-400 font-semibold">Test Average Score:</label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="5"
+                        value={simulatedRating}
+                        onChange={(e) => setSimulatedRating(Number(e.target.value))}
+                        className="w-20 px-2.5 py-1.5 rounded-lg glass-input text-xs font-black text-amber-300 text-center"
+                      />
+                      <span className="text-xs font-bold text-amber-400">⭐</span>
+                    </div>
+
+                    {(() => {
+                      const res = getSimulatedPoints(simulatedRating);
+                      return (
+                        <div className="flex items-center gap-2 bg-indigo-500/15 border border-indigo-500/30 px-3.5 py-1.5 rounded-xl text-xs">
+                          <span className="text-slate-300">
+                            Result for <strong>{simulatedRating} ⭐</strong>:
+                          </span>
+                          <span className="text-emerald-300 font-black">
+                            +{res.points} PTS
+                          </span>
+                          <span className="text-[10px] text-indigo-300 bg-indigo-950/60 px-2 py-0.5 rounded border border-indigo-500/30">
+                            {res.tier}
+                          </span>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex justify-end pt-2">
+              <Button type="submit" variant="glow" isLoading={isLoading} leftIcon={<Save className="w-4 h-4" />}>
+                Save Point & Breakpoint Settings
+              </Button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* TAB 2: RECOVERY EMAIL */}
       {activeTab === 'recovery_email' && (
         <form onSubmit={handleSaveRecoveryEmail} className="space-y-5">
           {recoveryMessage && (
@@ -208,7 +671,7 @@ export const AdminSettingsPage: React.FC = () => {
             </div>
           )}
 
-          <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-4">
+          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-indigo-400">
                 <Mail className="w-4 h-4" />
@@ -252,10 +715,10 @@ export const AdminSettingsPage: React.FC = () => {
                   type={showAppPassword ? 'text' : 'password'}
                   value={appPassword}
                   onChange={(e) => setAppPassword(e.target.value)}
-                  placeholder={appPasswordSet ? '•••• •••• •••• ••••' : 'Enter mailbox app password'}
+                  placeholder={appPasswordSet ? '•••• •••• •••• ••••' : 'Enter 16-char app password'}
                   className="w-full px-3.5 py-2.5 pl-9 pr-10 rounded-xl glass-input text-sm text-white placeholder-slate-500"
                 />
-                <Lock className="w-4 h-4 text-amber-400 absolute left-3 top-3" />
+                <Lock className="w-4 h-4 text-indigo-400 absolute left-3 top-3" />
                 <button
                   type="button"
                   onClick={() => setShowAppPassword(!showAppPassword)}
@@ -266,64 +729,66 @@ export const AdminSettingsPage: React.FC = () => {
               </div>
             </div>
 
-            <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                Trigger Sender{' '}
-                <span className="text-slate-500 font-normal">(matched by sender name only, not the email address)</span>
-              </label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={triggerSender}
-                  onChange={(e) => setTriggerSender(e.target.value)}
-                  placeholder="Facebook <notification@facebook.com>"
-                  className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm text-white placeholder-slate-500"
-                />
-                <Filter className="w-4 h-4 text-emerald-400 absolute left-3 top-3" />
-              </div>
-              <span className="text-[10px] text-slate-500 mt-1 block">
-                Only the name before "&lt;" is used to match — e.g. entering "Facebook" (or pasting the full "Facebook
-                &lt;notification@facebook.com&gt;") both just check that "Facebook" appears in the sender. Leave blank
-                to fall back to a generic Facebook/Meta sender match.
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] text-slate-400 block mb-1">IMAP Host</label>
+                <label className="text-xs font-semibold text-slate-300 block mb-1.5">IMAP Host</label>
                 <div className="relative">
                   <input
                     type="text"
                     value={imapHost}
                     onChange={(e) => setImapHost(e.target.value)}
-                    className="w-full px-3 py-2 pl-8 rounded-xl glass-input text-xs font-semibold text-white"
+                    placeholder="imap.gmail.com"
+                    className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm text-white"
                   />
-                  <Server className="w-3.5 h-3.5 text-cyan-400 absolute left-2.5 top-2.5" />
+                  <Server className="w-4 h-4 text-indigo-400 absolute left-3 top-3" />
                 </div>
               </div>
+
               <div>
-                <label className="text-[10px] text-slate-400 block mb-1">IMAP Port</label>
+                <label className="text-xs font-semibold text-slate-300 block mb-1.5">IMAP Port (SSL)</label>
                 <div className="relative">
                   <input
                     type="number"
                     value={imapPort}
                     onChange={(e) => setImapPort(Number(e.target.value))}
-                    className="w-full px-3 py-2 pl-8 rounded-xl glass-input text-xs font-semibold text-white"
+                    placeholder="993"
+                    className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm text-white"
                   />
-                  <Hash className="w-3.5 h-3.5 text-cyan-400 absolute left-2.5 top-2.5" />
+                  <Hash className="w-4 h-4 text-indigo-400 absolute left-3 top-3" />
                 </div>
               </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-[10px] text-slate-400 block mb-1">Poll Interval (sec)</label>
+                <label className="text-xs font-semibold text-slate-300 block mb-1.5">Poll Interval (seconds)</label>
                 <div className="relative">
                   <input
                     type="number"
-                    min={30}
+                    min={10}
+                    max={600}
                     value={pollIntervalSeconds}
                     onChange={(e) => setPollIntervalSeconds(Number(e.target.value))}
-                    className="w-full px-3 py-2 pl-8 rounded-xl glass-input text-xs font-semibold text-white"
+                    placeholder="60"
+                    className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm text-white"
                   />
-                  <Clock className="w-3.5 h-3.5 text-cyan-400 absolute left-2.5 top-2.5" />
+                  <Clock className="w-4 h-4 text-indigo-400 absolute left-3 top-3" />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                  Sender Filter <span className="text-slate-500 font-normal">(optional)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={triggerSender}
+                    onChange={(e) => setTriggerSender(e.target.value)}
+                    placeholder="security@facebookmail.com"
+                    className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm text-white placeholder-slate-500"
+                  />
+                  <Mail className="w-4 h-4 text-indigo-400 absolute left-3 top-3" />
                 </div>
               </div>
             </div>
@@ -331,13 +796,13 @@ export const AdminSettingsPage: React.FC = () => {
 
           <div className="flex justify-end pt-2">
             <Button type="submit" variant="glow" isLoading={isLoading} leftIcon={<Save className="w-4 h-4" />}>
-              Save Recovery Email Settings
+              Save Recovery Email
             </Button>
           </div>
         </form>
       )}
 
-      {/* TAB 2: AI CONFIGURATION */}
+      {/* TAB 3: AI CONFIGURATION */}
       {activeTab === 'ai_config' && (
         <form onSubmit={handleSaveAiConfig} className="space-y-5">
           {aiMessage && (
@@ -347,11 +812,11 @@ export const AdminSettingsPage: React.FC = () => {
             </div>
           )}
 
-          <div className="glass-card rounded-2xl p-4 border border-slate-800 space-y-4">
+          <div className="glass-card rounded-2xl p-5 border border-slate-800 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-indigo-400">
-                <Cpu className="w-4 h-4" />
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider">AI Email Analysis</h4>
+                <Sparkles className="w-4 h-4" />
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">AI Classification</h4>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-[11px] text-slate-400 font-semibold">{aiEnabled ? 'Enabled' : 'Disabled'}</span>
@@ -359,44 +824,47 @@ export const AdminSettingsPage: React.FC = () => {
               </div>
             </div>
             <p className="text-[11px] text-slate-400">
-              The AI model used to read incoming Facebook mail and decide whether it contains a recovery-email OTP
-              code.
+              When enabled, incoming emails matching the watcher are passed to the configured AI model to extract OTPs
+              and classify the message type.
             </p>
 
             <div>
               <label className="text-xs font-semibold text-slate-300 block mb-1.5">Provider</label>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
                   onClick={() => {
                     setProvider('openai');
-                    setModel('');
+                    setModel(MODEL_OPTIONS.openai[0]);
                     setIsCustomModel(false);
                   }}
                   className={clsx(
-                    'px-3.5 py-2.5 rounded-xl text-sm font-semibold border transition-colors',
+                    'p-3 rounded-xl border text-left transition-all',
                     provider === 'openai'
-                      ? 'bg-indigo-600 text-white border-indigo-500'
-                      : 'glass-input text-slate-300 border-slate-700 hover:border-slate-600'
+                      ? 'border-indigo-500 bg-indigo-600/10 text-white shadow-glow-brand'
+                      : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700'
                   )}
                 >
-                  OpenAI
+                  <div className="font-bold text-sm">OpenAI</div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">GPT-4o, GPT-4.1-mini, etc.</div>
                 </button>
+
                 <button
                   type="button"
                   onClick={() => {
                     setProvider('gemini');
-                    setModel('');
+                    setModel(MODEL_OPTIONS.gemini[0]);
                     setIsCustomModel(false);
                   }}
                   className={clsx(
-                    'px-3.5 py-2.5 rounded-xl text-sm font-semibold border transition-colors',
+                    'p-3 rounded-xl border text-left transition-all',
                     provider === 'gemini'
-                      ? 'bg-indigo-600 text-white border-indigo-500'
-                      : 'glass-input text-slate-300 border-slate-700 hover:border-slate-600'
+                      ? 'border-indigo-500 bg-indigo-600/10 text-white shadow-glow-brand'
+                      : 'border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700'
                   )}
                 >
-                  Gemini
+                  <div className="font-bold text-sm">Google Gemini</div>
+                  <div className="text-[11px] text-slate-400 mt-0.5">Gemini 2.5 Flash, 2.0, etc.</div>
                 </button>
               </div>
             </div>

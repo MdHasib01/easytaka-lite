@@ -7,7 +7,6 @@ import { VerificationCard } from '../components/tasks/VerificationCard';
 import { DailySubmissionReviewCard } from '../components/daily/DailySubmissionReviewCard';
 import { InviteSmmModal } from '../components/admin/InviteSmmModal';
 import { SmmVerificationModal } from '../components/admin/SmmVerificationModal';
-import { PointSettingsModal } from '../components/admin/PointSettingsModal';
 import { AssignAccountModal } from '../components/accounts/AssignAccountModal';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
@@ -86,7 +85,7 @@ export const VerificationsPage: React.FC = () => {
   const [isSmmLoading, setIsSmmLoading] = useState<boolean>(false);
   const [selectedSmmForReview, setSelectedSmmForReview] = useState<User | null>(null);
   const [inviteModalOpen, setInviteModalOpen] = useState<boolean>(false);
-  const [settingsModalOpen, setSettingsModalOpen] = useState<boolean>(false);
+  const [assignModalOpen, setAssignModalOpen] = useState<boolean>(false);
 
   // Facebook Accounts filter state
   const [accountStatusFilter, setAccountStatusFilter] = useState<string>('pending');
@@ -237,14 +236,6 @@ export const VerificationsPage: React.FC = () => {
 
         {isAdmin && (
           <div className="flex items-center gap-3">
-            <Button
-              variant="secondary"
-              onClick={() => setSettingsModalOpen(true)}
-              leftIcon={<Settings className="w-4 h-4 text-indigo-400" />}
-            >
-              Point Settings
-            </Button>
-
             <Button
               variant="glow"
               onClick={() => setInviteModalOpen(true)}
@@ -1117,12 +1108,6 @@ export const VerificationsPage: React.FC = () => {
         isOpen={inviteModalOpen}
         onClose={() => setInviteModalOpen(false)}
         onSuccess={() => fetchSmmVerifications(smmStatusFilter)}
-      />
-
-      {/* Admin Point Settings Center Modal */}
-      <PointSettingsModal
-        isOpen={settingsModalOpen}
-        onClose={() => setSettingsModalOpen(false)}
       />
 
       {/* Admin SMM Review & Document Inspection Modal */}

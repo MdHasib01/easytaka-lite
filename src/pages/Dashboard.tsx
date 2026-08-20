@@ -132,10 +132,10 @@ export const Dashboard: React.FC = () => {
             <>
               <Button
                 variant="secondary"
-                onClick={() => setPointSettingsModalOpen(true)}
+                onClick={() => navigate('/settings')}
                 leftIcon={<Settings className="w-4 h-4 text-indigo-400" />}
               >
-                Point Settings
+                Settings & Points
               </Button>
               <Button
                 variant="secondary"

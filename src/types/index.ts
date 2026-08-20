@@ -322,6 +322,13 @@ export interface PointTransaction {
   createdAt: string;
 }
 
+export interface RatingBreakpoint {
+  _id?: string;
+  minRating: number;
+  points: number;
+  label?: string;
+}
+
 export interface SystemSettings {
   _id?: string;
   facebookAccountReward: number;
@@ -329,6 +336,7 @@ export interface SystemSettings {
   facebookMilestoneStep: number;
   defaultDailyCompletionReward: number;
   dailyTaskScoreRules?: DailyTaskScoreRules;
+  ratingBreakpoints?: RatingBreakpoint[];
   minWithdrawalPoints?: number;
   maxWithdrawalPoints?: number;
   withdrawalCycleDays?: number;
