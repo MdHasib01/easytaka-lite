@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { FacebookAccount, AccountStatus, User } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { LinkPreview } from '../ui/LinkPreview';
 import {
-  ExternalLink,
   MessageCircle,
   Share2,
   Lock,
@@ -257,15 +257,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({
                   </span>
                 )}
               </div>
-              <a
-                href={account.profileUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1 mt-0.5 truncate max-w-[200px]"
-              >
-                <ExternalLink className="w-3 h-3 flex-shrink-0" />
-                <span className="truncate">{account.profileUrl}</span>
-              </a>
+              <LinkPreview url={account.profileUrl} variant="badge" className="mt-0.5 max-w-[220px]" />
             </div>
           </div>
 

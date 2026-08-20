@@ -3,10 +3,10 @@ import { TaskSubmission, Task, User, FacebookAccount } from '../../types';
 import { Button } from '../ui/Button';
 import { Badge } from '../ui/Badge';
 import { ImageLightbox } from '../ui/ImageLightbox';
+import { LinkPreview } from '../ui/LinkPreview';
 import {
   CheckCircle2,
   XCircle,
-  ExternalLink,
   Coins,
   Clock,
   User as UserIcon,
@@ -128,15 +128,7 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({ submission, 
               <label className="text-[11px] font-semibold text-slate-400 block mb-1">
                 Submitted Profile / Proof Link:
               </label>
-              <a
-                href={submission.profileUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 bg-blue-500/10 border border-blue-500/20 p-2.5 rounded-xl font-medium truncate"
-              >
-                <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="truncate">{submission.profileUrl}</span>
-              </a>
+              <LinkPreview url={submission.profileUrl} variant="card" />
             </div>
           )}
 
@@ -145,15 +137,7 @@ export const VerificationCard: React.FC<VerificationCardProps> = ({ submission, 
               <label className="text-[11px] font-semibold text-slate-400 block mb-1">
                 Target Action Proof URL:
               </label>
-              <a
-                href={submission.proofUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1.5 text-xs text-indigo-400 hover:text-indigo-300 bg-indigo-500/10 border border-indigo-500/20 p-2.5 rounded-xl font-medium truncate"
-              >
-                <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
-                <span className="truncate">{submission.proofUrl}</span>
-              </a>
+              <LinkPreview url={submission.proofUrl} variant="card" />
             </div>
           )}
 

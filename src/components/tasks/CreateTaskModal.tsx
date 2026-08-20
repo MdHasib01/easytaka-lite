@@ -3,6 +3,7 @@ import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { Task, TaskType, TaskTargetMode, TaskTargetProduct } from '../../types';
 import { Link as LinkIcon, Calendar, CheckSquare, Sparkles, Award, ShieldCheck, HelpCircle, LifeBuoy, Compass, Milk } from 'lucide-react';
+import { LinkPreview } from '../ui/LinkPreview';
 
 interface CreateTaskModalProps {
   isOpen: boolean;
@@ -329,6 +330,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
               />
               <LinkIcon className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
             </div>
+            <LinkPreview url={targetUrl} variant="card" className="mt-2" />
           </div>
 
           <div>

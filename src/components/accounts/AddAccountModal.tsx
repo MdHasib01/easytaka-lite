@@ -26,6 +26,7 @@ import type {
   FacebookWorkloadTier,
 } from '../../types';
 import { FacebookProfileExampleCard } from './FacebookProfileExampleCard';
+import { LinkPreview } from '../ui/LinkPreview';
 
 interface AddAccountModalProps {
   isOpen: boolean;
@@ -351,6 +352,7 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
             />
             <LinkIcon className="w-4 h-4 text-blue-400 absolute left-3 top-3" />
           </div>
+          <LinkPreview url={profileUrl} variant="card" className="mt-2" />
         </div>
 
         {/* 2. Account Name */}

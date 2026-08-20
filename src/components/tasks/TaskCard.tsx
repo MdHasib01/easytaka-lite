@@ -2,10 +2,10 @@ import React from 'react';
 import { Task, UserRole } from '../../types';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { LinkPreview } from '../ui/LinkPreview';
 import {
   Coins,
   Calendar,
-  ExternalLink,
   CheckCircle2,
   Clock,
   XCircle,
@@ -153,19 +153,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
 
         {/* Task Details & Links */}
         <div className="pt-2 border-t border-slate-800/80 space-y-2 text-xs text-slate-400">
-          {task.targetUrl && (
-            <div className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 truncate">
-              <ExternalLink className="w-3.5 h-3.5 flex-shrink-0" />
-              <a
-                href={task.targetUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="truncate hover:underline"
-              >
-                {task.targetUrl}
-              </a>
-            </div>
-          )}
+          {task.targetUrl && <LinkPreview url={task.targetUrl} variant="badge" />}
 
           <div className="flex items-center justify-between text-[11px] text-slate-400">
             <div className="flex items-center gap-2">

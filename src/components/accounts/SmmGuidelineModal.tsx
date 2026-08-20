@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
 import type { FacebookAccount, FacebookAccountMode, FacebookAssignedProduct } from '../../types';
+import { FacebookProfileExampleCard } from './FacebookProfileExampleCard';
 
 interface SmmGuidelineModalProps {
   isOpen: boolean;
@@ -826,19 +827,9 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
                 </div>
               </div>
 
-              {/* Account Creation SOP */}
-              <div className="p-3.5 rounded-xl bg-amber-950/20 border border-amber-500/30 space-y-2 mt-3">
-                <strong className="text-amber-300 block font-semibold flex items-center gap-1.5 text-xs">
-                  <Sparkles className="w-4 h-4 text-amber-400" />
-                  নতুন ফেসবুক অ্যাকাউন্ট তৈরি ও রেজিস্ট্রেশন নিয়মাবলী:
-                </strong>
-                <ul className="text-[11px] text-slate-300 space-y-1.5 pl-1">
-                  <li><strong>১. মেয়ের নাম:</strong> অ্যাকাউন্টটি অবশ্যই বাস্তব ও মার্জিত কোনো মেয়ের নামে হতে হবে।</li>
-                  <li><strong>২. ম্যারিড স্ট্যাটাস:</strong> অ্যাকাউন্টের Relationship/Marital Status "Married" (বিবাহিত) দিতে হবে।</li>
-                  <li><strong>৩. প্রোফাইল ছবি:</strong> কোনো ট্রাস্টেড বা জনপ্রিয় সেলিব্রিটি প্রোফাইল থেকে ছবি কপি করে দেওয়া যাবে না (স্বাভাবিক ছবি দিন)।</li>
-                  <li><strong>৪. ফেক নাম নিষিদ্ধ:</strong> "Angel Sadia", "Dimple Queen" জাতীয় অবাস্তব/কাল্পনিক নাম দেওয়া যাবে না।</li>
-                  <li><strong>৫. নামের ভাষা:</strong> মেয়েদের নাম কিছু বাংলায় এবং কিছু ইংরেজিতে দিতে হবে।</li>
-                </ul>
+              {/* Account Creation SOP & Example Card */}
+              <div className="mt-3">
+                <FacebookProfileExampleCard />
               </div>
             </div>
           </div>

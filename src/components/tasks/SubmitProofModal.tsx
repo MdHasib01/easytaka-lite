@@ -6,6 +6,7 @@ import { Task } from '../../types';
 import { useAccountStore } from '../../stores/useAccountStore';
 import { Link as LinkIcon, Send, AlertCircle, Coins, Sparkles } from 'lucide-react';
 import { FacebookProfileExampleCard } from '../accounts/FacebookProfileExampleCard';
+import { LinkPreview } from '../ui/LinkPreview';
 
 interface SubmitProofModalProps {
   isOpen: boolean;
@@ -107,6 +108,16 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
           </div>
         )}
 
+        {/* Target Post / Group Link Preview */}
+        {task.targetUrl && (
+          <div>
+            <label className="text-[11px] font-semibold text-slate-400 block mb-1">
+              This task targets:
+            </label>
+            <LinkPreview url={task.targetUrl} variant="card" />
+          </div>
+        )}
+
         {/* Facebook Account Creation Example & Bangla Guidelines */}
         {isAccountCreation && (
           <FacebookProfileExampleCard className="mb-2" />
@@ -150,6 +161,7 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
             />
             <LinkIcon className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
           </div>
+          <LinkPreview url={profileUrl} variant="card" className="mt-2" />
         </div>
 
         {/* Cloudinary Screenshot Uploader */}
