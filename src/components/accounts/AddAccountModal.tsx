@@ -25,6 +25,7 @@ import type {
   FacebookAssignedProduct,
   FacebookWorkloadTier,
 } from '../../types';
+import { FacebookProfileExampleCard } from './FacebookProfileExampleCard';
 
 interface AddAccountModalProps {
   isOpen: boolean;
@@ -182,6 +183,9 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       maxWidth="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Facebook Profile Example & Bangla Guidelines */}
+        <FacebookProfileExampleCard className="mb-2" />
+
         {/* SMM Mode Notice for Non-Admins */}
         {!isAdmin && (
           <div className="p-3.5 rounded-2xl bg-indigo-950/20 border border-indigo-500/30 text-xs space-y-1">
@@ -351,20 +355,25 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
 
         {/* 2. Account Name */}
         <div>
-          <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-            Account Name <span className="text-rose-400">*</span>
+          <label className="text-xs font-semibold text-slate-300 block mb-1.5 flex items-center justify-between">
+            <span>Account Name (মেয়ের নাম) <span className="text-rose-400">*</span></span>
+            <span className="text-[11px] text-amber-300 font-normal">বাংলা বা ইংরেজি মেয়ের নাম</span>
           </label>
           <div className="relative">
             <input
               type="text"
               value={accountName}
               onChange={(e) => setAccountName(e.target.value)}
-              placeholder="e.g. John Doe / Marketer Sarah"
+              placeholder="যেমন: সাদিয়া ইসলাম / Nusrat Jahan (মেয়ের নাম)"
               className="w-full px-3.5 py-2.5 pl-9 rounded-xl glass-input text-sm text-white placeholder-slate-500"
               required
             />
             <UserIcon className="w-4 h-4 text-indigo-400 absolute left-3 top-3" />
           </div>
+          <p className="text-[11px] text-slate-400 mt-1.5 flex items-center gap-1">
+            <span className="text-amber-400 font-bold">⚠️ নোট:</span>
+            <span>মেয়ের নামে হতে হবে (কিছু বাংলায়, কিছু ইংরেজিতে)। "Angel Sadia", "Dimple Queen" জাতীয় অবাস্তব নাম দেওয়া যাবে না।</span>
+          </p>
         </div>
 
         {/* 3. User ID / UID */}

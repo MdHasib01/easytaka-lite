@@ -4,7 +4,8 @@ import { Button } from '../ui/Button';
 import { CloudinaryUploader } from '../ui/CloudinaryUploader';
 import { Task } from '../../types';
 import { useAccountStore } from '../../stores/useAccountStore';
-import { Link as LinkIcon, Send, AlertCircle, Coins } from 'lucide-react';
+import { Link as LinkIcon, Send, AlertCircle, Coins, Sparkles } from 'lucide-react';
+import { FacebookProfileExampleCard } from '../accounts/FacebookProfileExampleCard';
 
 interface SubmitProofModalProps {
   isOpen: boolean;
@@ -34,7 +35,11 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
 
   if (!task) return null;
 
-  const isAccountCreation = task.taskType === 'create_account';
+  const isAccountCreation =
+    task.taskType === 'create_account' ||
+    task.title?.toLowerCase().includes('account') ||
+    task.title?.toLowerCase().includes('facebook account') ||
+    task.category?.toLowerCase().includes('account');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,6 +105,11 @@ export const SubmitProofModal: React.FC<SubmitProofModalProps> = ({
             <span className="font-semibold text-slate-200">Task Instructions:</span>
             <p className="whitespace-pre-line text-slate-400">{task.instructions}</p>
           </div>
+        )}
+
+        {/* Facebook Account Creation Example & Bangla Guidelines */}
+        {isAccountCreation && (
+          <FacebookProfileExampleCard className="mb-2" />
         )}
 
         {/* Select Managed Facebook Account */}

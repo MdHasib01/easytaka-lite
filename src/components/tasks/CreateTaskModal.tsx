@@ -97,6 +97,13 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       description: 'অফিশিয়াল পেইজের কমেন্ট সেকশনে রেসপন্স গাইডলাইন অনুযায়ী উত্তর দিন।',
     },
     {
+      value: '🆕 Create Facebook Account (নতুন ফেসবুক অ্যাকাউন্ট তৈরি)',
+      taskType: 'create_account' as TaskType,
+      targetMode: 'all' as TaskTargetMode,
+      category: 'Account Creation',
+      description: 'নতুন ফেসবুক অ্যাকাউন্ট তৈরি করে জমা দিন।\n\n📌 অ্যাকাউন্ট তৈরির জরুরি নিয়মাবলী:\n১. অ্যাকাউন্টটি অবশ্যই বাস্তব ও মার্জিত কোনো মেয়ের নামে হতে হবে।\n২. অ্যাকাউন্টের Relationship/Marital Status "Married" (বিবাহিত) দিতে হবে।\n৩. প্রোফাইল পিকচার কোনো ট্রাস্টেড বা জনপ্রিয় প্রোফাইল থেকে কপি করে দেওয়া যাবে না।\n৪. "Angel Sadia", "Dimple Queen" বা এই ধরনের অপ্রাসঙ্গিক/কাল্পনিক নাম দেওয়া যাবে না।\n৫. মেয়েদের নাম কিছু বাংলায় এবং কিছু ইংরেজিতে দিতে হবে।',
+    },
+    {
       value: 'custom',
       taskType: 'custom' as TaskType,
       targetMode: 'all' as TaskTargetMode,
