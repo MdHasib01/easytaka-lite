@@ -19,6 +19,7 @@ import {
   Wallet,
   Settings as SettingsIcon,
   UserCog,
+  Tags,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 
@@ -43,6 +44,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const navItems = isAdmin
     ? [
         { name: t('nav.adminDashboard'), path: '/', icon: LayoutDashboard },
+        { name: t('nav.brands') || 'Brands', path: '/brands', icon: Tags },
         {
           name: t('nav.tasksHub'),
           path: '/tasks',

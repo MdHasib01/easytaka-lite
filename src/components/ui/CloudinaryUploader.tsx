@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, CheckCircle, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import api from '../../services/api';
 import { Button } from './Button';
@@ -8,6 +8,7 @@ interface CloudinaryUploaderProps {
   defaultUrl?: string;
   label?: string;
   required?: boolean;
+  folder?: string;
 }
 
 export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
@@ -15,12 +16,20 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
   defaultUrl = '',
   label = 'Upload Screenshot Proof',
   required = false,
+  folder = 'esytaka_proofs',
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string>(defaultUrl);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Re-sync the preview when the caller's defaultUrl changes after mount —
+  // e.g. an edit modal that stays mounted across opens for different records
+  // and only updates its own "logoUrl" state via an effect one render later.
+  useEffect(() => {
+    setPreviewUrl(defaultUrl);
+  }, [defaultUrl]);
 
   const handleFile = async (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -43,7 +52,7 @@ export const CloudinaryUploader: React.FC<CloudinaryUploaderProps> = ({
     try {
       const formData = new FormData();
       formData.append('image', file);
-      formData.append('folder', 'esytaka_proofs');
+      formData.append('folder', folder);
 
       const response = await api.post('/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },

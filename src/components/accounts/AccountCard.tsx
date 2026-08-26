@@ -58,7 +58,8 @@ export const AccountCard: React.FC<AccountCardProps> = ({
   const isRejected = approvalStatus === 'rejected';
 
   const mode = account.accountMode || 'general';
-  const product = account.assignedProduct || 'none';
+  const assignedProduct = typeof account.assignedProductId === 'object' ? account.assignedProductId : null;
+  const productCode = account.assignedAllProducts ? 'all_products' : assignedProduct?.code || 'none';
   const workloadTier = account.workloadTier || 'active';
 
   const getModeBadge = () => {
@@ -97,40 +98,26 @@ export const AccountCard: React.FC<AccountCardProps> = ({
   };
 
   const getProductBadge = () => {
-    switch (product) {
-      case 'milkimom':
-        return (
-          <span className="px-2 py-0.5 rounded-lg bg-blue-500/15 text-blue-300 border border-blue-500/30 text-[10px] font-bold">
-            🥛 Milkimom (M)
-          </span>
-        );
-      case 'milkready':
-        return (
-          <span className="px-2 py-0.5 rounded-lg bg-rose-500/15 text-rose-300 border border-rose-500/30 text-[10px] font-bold">
-            🍼 MilkReady (MR)
-          </span>
-        );
-      case 'smoothflow':
-        return (
-          <span className="px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[10px] font-bold">
-            💧 SmoothFlow (SF)
-          </span>
-        );
-      case 'stableflow':
-        return (
-          <span className="px-2 py-0.5 rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[10px] font-bold">
-            🌊 StableFlow (ST)
-          </span>
-        );
-      case 'all_products':
-        return (
-          <span className="px-2 py-0.5 rounded-lg bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold">
-            ✨ All Products
-          </span>
-        );
-      default:
-        return null;
+    if (account.assignedAllProducts) {
+      return (
+        <span className="px-2 py-0.5 rounded-lg bg-indigo-500/15 text-indigo-300 border border-indigo-500/30 text-[10px] font-bold">
+          ✨ All Products
+        </span>
+      );
     }
+    if (!assignedProduct) return null;
+    return (
+      <span
+        className="px-2 py-0.5 rounded-lg border text-[10px] font-bold"
+        style={{
+          backgroundColor: `${assignedProduct.productColor}22`,
+          borderColor: `${assignedProduct.productColor}55`,
+          color: assignedProduct.productColor,
+        }}
+      >
+        {assignedProduct.name}
+      </span>
+    );
   };
 
   const creator =
@@ -492,7 +479,7 @@ export const AccountCard: React.FC<AccountCardProps> = ({
         onClose={() => setGuidelineModalOpen(false)}
         account={account}
         initialMode={account.accountMode}
-        initialProduct={account.assignedProduct}
+        initialProduct={productCode}
       />
     </div>
   );

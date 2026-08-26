@@ -88,20 +88,21 @@ export const TaskCard: React.FC<TaskCardProps> = ({
     }
   };
 
-  const getProductBadge = (targetProduct?: string) => {
-    if (!targetProduct || targetProduct === 'all' || targetProduct === 'all_products') return null;
-    switch (targetProduct) {
-      case 'milkimom':
-        return <span className="px-1.5 py-0.5 rounded bg-blue-500/15 text-blue-300 border border-blue-500/30 text-[9px] font-bold">🥛 Milkimom</span>;
-      case 'milkready':
-        return <span className="px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-300 border border-rose-500/30 text-[9px] font-bold">🍼 MilkReady</span>;
-      case 'smoothflow':
-        return <span className="px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 text-[9px] font-bold">💧 SmoothFlow</span>;
-      case 'stableflow':
-        return <span className="px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 text-[9px] font-bold">🌊 StableFlow</span>;
-      default:
-        return null;
-    }
+  const getProductBadge = () => {
+    const product = typeof task.targetProductId === 'object' ? task.targetProductId : null;
+    if (!product) return null;
+    return (
+      <span
+        className="px-1.5 py-0.5 rounded border text-[9px] font-bold"
+        style={{
+          backgroundColor: `${product.productColor}22`,
+          borderColor: `${product.productColor}55`,
+          color: product.productColor,
+        }}
+      >
+        {product.name}
+      </span>
+    );
   };
 
   const getModeStripe = (targetMode?: string) => {
@@ -130,7 +131,7 @@ export const TaskCard: React.FC<TaskCardProps> = ({
         <div className="flex items-center justify-between gap-2 flex-wrap">
           <div className="flex items-center gap-1.5 flex-wrap">
             {getModeBadge(task.targetMode)}
-            {getProductBadge(task.targetProduct)}
+            {getProductBadge()}
             <span className="text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-slate-800/80 text-slate-300 border border-slate-700/60">
               {getTypeLabel(task.taskType)}
             </span>

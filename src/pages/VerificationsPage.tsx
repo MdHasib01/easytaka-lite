@@ -54,9 +54,9 @@ import {
   User,
   FacebookAccount,
   FacebookAccountMode,
-  FacebookAssignedProduct,
   FacebookWorkloadTier,
 } from '../types';
+import { useBrandStore } from '../stores/useBrandStore';
 
 export const VerificationsPage: React.FC = () => {
   const { user } = useAuthStore();
@@ -72,6 +72,7 @@ export const VerificationsPage: React.FC = () => {
     fetchDailySubmissions,
     reviewDailySubmission,
   } = useDailyStore();
+  const { products, fetchAllProducts } = useBrandStore();
 
   const isAdmin = user?.role === 'admin';
 
@@ -94,7 +95,8 @@ export const VerificationsPage: React.FC = () => {
   const [assigningAccount, setAssigningAccount] = useState<FacebookAccount | null>(null);
   const [approvingAccount, setApprovingAccount] = useState<FacebookAccount | null>(null);
   const [approveMode, setApproveMode] = useState<FacebookAccountMode>('reviewer');
-  const [approveProduct, setApproveProduct] = useState<FacebookAssignedProduct>('milkimom');
+  const [approveProductId, setApproveProductId] = useState<string>('');
+  const [approveAllProducts, setApproveAllProducts] = useState<boolean>(false);
   const [approveWorkload, setApproveWorkload] = useState<FacebookWorkloadTier>('active');
   const [approveChildAge, setApproveChildAge] = useState<string>('');
   const [approvePurchaseHistory, setApprovePurchaseHistory] = useState<string>('');
@@ -128,6 +130,7 @@ export const VerificationsPage: React.FC = () => {
 
   useEffect(() => {
     if (isAdmin) {
+      fetchAllProducts();
       fetchDailySubmissions();
       if (adminActiveTab === 'smm_verifications') {
         fetchSmmVerifications(smmStatusFilter);
@@ -151,7 +154,12 @@ export const VerificationsPage: React.FC = () => {
   const handleOpenApproveModal = (account: FacebookAccount) => {
     setApprovingAccount(account);
     setApproveMode(account.accountMode || 'reviewer');
-    setApproveProduct(account.assignedProduct || 'milkimom');
+    const currentProductId =
+      (typeof account.assignedProductId === 'object' && account.assignedProductId?._id) ||
+      (typeof account.assignedProductId === 'string' && account.assignedProductId) ||
+      '';
+    setApproveProductId(currentProductId);
+    setApproveAllProducts(!!account.assignedAllProducts);
     setApproveWorkload(account.workloadTier || 'active');
     setApproveChildAge(account.childAge || '');
     setApprovePurchaseHistory(account.purchaseHistory || '');
@@ -172,7 +180,8 @@ export const VerificationsPage: React.FC = () => {
       approveCustomPoints,
       {
         accountMode: approveMode,
-        assignedProduct: approveProduct,
+        assignedProductId: approveAllProducts ? null : approveProductId || null,
+        assignedAllProducts: approveAllProducts,
         workloadTier: approveWorkload,
         childAge: approveChildAge.trim(),
         purchaseHistory: approvePurchaseHistory.trim(),
@@ -817,11 +826,15 @@ export const VerificationsPage: React.FC = () => {
                         </span>
                       )}
 
-                      {account.assignedProduct && account.assignedProduct !== 'none' && (
+                      {account.assignedAllProducts ? (
                         <span className="px-2 py-0.5 rounded-lg bg-blue-500/15 text-blue-300 border border-blue-500/30 text-[10px] font-bold">
-                          Product: {account.assignedProduct}
+                          Product: All Products
                         </span>
-                      )}
+                      ) : typeof account.assignedProductId === 'object' && account.assignedProductId?.name ? (
+                        <span className="px-2 py-0.5 rounded-lg bg-blue-500/15 text-blue-300 border border-blue-500/30 text-[10px] font-bold">
+                          Product: {account.assignedProductId.name}
+                        </span>
+                      ) : null}
 
                       {account.childAge && (
                         <span className="px-2 py-0.5 rounded-lg bg-slate-800 text-slate-300 border border-slate-700 text-[10px]">
@@ -1221,16 +1234,21 @@ export const VerificationsPage: React.FC = () => {
                     Assigned Product:
                   </label>
                   <select
-                    value={approveProduct}
-                    onChange={(e) => setApproveProduct(e.target.value as FacebookAssignedProduct)}
+                    value={approveAllProducts ? 'all_products' : approveProductId || 'none'}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setApproveAllProducts(val === 'all_products');
+                      setApproveProductId(val === 'all_products' || val === 'none' ? '' : val);
+                    }}
                     className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
                   >
-                    <option value="milkimom">🥛 Milkimom (M)</option>
-                    <option value="milkready">🍼 MilkReady (MR)</option>
-                    <option value="smoothflow">💧 SmoothFlow (SF)</option>
-                    <option value="stableflow">🌊 StableFlow (ST)</option>
-                    <option value="all_products">✨ All Products</option>
                     <option value="none">None / General</option>
+                    <option value="all_products">✨ All Products</option>
+                    {products.map((p) => (
+                      <option key={p._id} value={p._id}>
+                        {p.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

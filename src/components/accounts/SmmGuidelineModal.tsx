@@ -24,15 +24,20 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useAuthStore } from '../../stores/useAuthStore';
-import type { FacebookAccount, FacebookAccountMode, FacebookAssignedProduct } from '../../types';
+import type { FacebookAccount, FacebookAccountMode } from '../../types';
 import { FacebookProfileExampleCard } from './FacebookProfileExampleCard';
+
+// Legacy product-lane code — resolved from the account's assignedProductId.code
+// (or 'all_products' / 'none') by the caller, since this modal's playbook
+// content below is curated per fixed lane and isn't sourced from the DB.
+type ProductLaneCode = string;
 
 interface SmmGuidelineModalProps {
   isOpen: boolean;
   onClose: () => void;
   account?: FacebookAccount | null;
   initialMode?: FacebookAccountMode;
-  initialProduct?: FacebookAssignedProduct;
+  initialProduct?: ProductLaneCode;
 }
 
 export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
@@ -251,7 +256,10 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
     },
   ];
 
-  const rawAssignedProduct = account?.assignedProduct || initialProduct;
+  const accountProductCode = account?.assignedAllProducts
+    ? 'all_products'
+    : (typeof account?.assignedProductId === 'object' ? account.assignedProductId?.code : undefined);
+  const rawAssignedProduct = accountProductCode || initialProduct;
   const assignedProduct =
     rawAssignedProduct && rawAssignedProduct !== 'none' && rawAssignedProduct !== 'all_products'
       ? rawAssignedProduct
@@ -308,9 +316,9 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
 
               {/* Persona Tags */}
               <div className="flex items-center gap-1.5 flex-wrap">
-                {account.assignedProduct && account.assignedProduct !== 'none' && (
+                {accountProductCode && accountProductCode !== 'none' && (
                   <span className="px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-bold">
-                    Product: {account.assignedProduct.toUpperCase()}
+                    Product: {accountProductCode.toUpperCase()}
                   </span>
                 )}
                 {account.workloadTier && (
@@ -579,7 +587,7 @@ export const SmmGuidelineModal: React.FC<SmmGuidelineModalProps> = ({
 
             <div className={`grid gap-3 ${visibleProducts.length === 1 ? 'grid-cols-1' : 'grid-cols-1 md:grid-cols-2'}`}>
               {visibleProducts.map((p) => {
-                const isAccountProduct = account?.assignedProduct === p.id;
+                const isAccountProduct = accountProductCode === p.id;
                 return (
                   <div
                     key={p.code}

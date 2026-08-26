@@ -80,7 +80,7 @@ export const AccountsPage: React.FC = () => {
         acc.profileUrl.toLowerCase().includes(q) ||
         acc.accountCategory?.toLowerCase().includes(q) ||
         acc.accountMode?.toLowerCase().includes(q) ||
-        acc.assignedProduct?.toLowerCase().includes(q) ||
+        (typeof acc.assignedProductId === 'object' ? acc.assignedProductId?.name : '')?.toLowerCase().includes(q) ||
         acc.profileUid?.toLowerCase().includes(q)
       );
     }

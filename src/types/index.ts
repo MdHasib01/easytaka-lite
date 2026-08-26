@@ -35,8 +35,40 @@ export type AccountApprovalStatus = 'pending' | 'approved' | 'rejected';
 
 // SMM Multi-Persona Roles & Modes from SMM Guideline
 export type FacebookAccountMode = 'reviewer' | 'question' | 'support' | 'navigation' | 'general';
-export type FacebookAssignedProduct = 'milkimom' | 'milkready' | 'smoothflow' | 'stableflow' | 'all_products' | 'none';
 export type FacebookWorkloadTier = 'active' | 'light' | 'rest';
+
+export type BrandProductStatus = 'active' | 'paused' | 'archived';
+
+export interface Brand {
+  _id: string;
+  name: string;
+  logoUrl?: string;
+  brandColor: string;
+  description?: string;
+  totalBudget: number;
+  status: BrandProductStatus;
+  products?: Product[];
+  allocatedBudget?: number;
+  remainingBudget?: number;
+  createdBy?: string | User;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface Product {
+  _id: string;
+  brandId: string | Brand;
+  name: string;
+  code?: string;
+  productImageUrl?: string;
+  productColor: string;
+  description?: string;
+  budget: number;
+  status: BrandProductStatus;
+  createdBy?: string | User;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export interface RoutineTargets {
   feedComments: number;
@@ -71,7 +103,8 @@ export interface FacebookAccount {
   accountCategory?: string;
   targetRegion?: string;
   accountMode?: FacebookAccountMode;
-  assignedProduct?: FacebookAssignedProduct;
+  assignedProductId?: string | Product | null;
+  assignedAllProducts?: boolean;
   workloadTier?: FacebookWorkloadTier;
   childAge?: string;
   purchaseDate?: string;
@@ -100,7 +133,6 @@ export type TaskType =
   | 'custom';
 
 export type TaskTargetMode = 'all' | 'reviewer' | 'question' | 'support' | 'navigation';
-export type TaskTargetProduct = 'all' | 'milkimom' | 'milkready' | 'smoothflow' | 'stableflow' | 'all_products';
 export type TaskStatus = 'active' | 'paused' | 'completed' | 'archived';
 export type SubmissionStatus = 'pending' | 'approved' | 'rejected';
 
@@ -129,7 +161,7 @@ export interface Task {
   description: string;
   taskType: TaskType;
   targetMode?: TaskTargetMode;
-  targetProduct?: TaskTargetProduct;
+  targetProductId?: string | Product | null;
   category: string;
   rewardPoints: number;
   targetUrl?: string;
@@ -270,7 +302,8 @@ export interface DailyRoutineCardData {
     status: AccountStatus;
     approvalStatus?: AccountApprovalStatus;
     accountMode?: FacebookAccountMode;
-    assignedProduct?: FacebookAssignedProduct;
+    assignedProductId?: string | Product | null;
+    assignedAllProducts?: boolean;
     workloadTier?: FacebookWorkloadTier;
     childAge?: string;
     purchaseDate?: string;
@@ -296,7 +329,7 @@ export interface DailyAccountSummary {
   profileUrl?: string;
   avatarUrl?: string;
   accountMode?: string;
-  assignedProduct?: string;
+  assignedProductName?: string;
   completionPercentage: number;
   isCompleted: boolean;
   profilePicUploaded?: boolean;

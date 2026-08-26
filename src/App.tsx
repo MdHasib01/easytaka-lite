@@ -16,6 +16,7 @@ import { ProfilePage } from './pages/ProfilePage';
 import { WithdrawPage } from './pages/WithdrawPage';
 import { AdminSettingsPage } from './pages/AdminSettingsPage';
 import { SmmManagementPage } from './pages/SmmManagementPage';
+import { BrandsPage } from './pages/BrandsPage';
 
 // Protected Route Guard
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -62,6 +63,7 @@ export const App: React.FC = () => {
           <Route path="profile" element={<ProfilePage />} />
           <Route path="settings" element={<AdminSettingsPage />} />
           <Route path="smm-management" element={<SmmManagementPage />} />
+          <Route path="brands" element={<BrandsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </Routes>

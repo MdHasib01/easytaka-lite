@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { useBrandStore } from '../../stores/useBrandStore';
 import api from '../../services/api';
 import {
   Link as LinkIcon,
@@ -22,8 +23,8 @@ import type {
   FacebookAccount,
   User,
   FacebookAccountMode,
-  FacebookAssignedProduct,
   FacebookWorkloadTier,
+  Product,
 } from '../../types';
 import { FacebookProfileExampleCard } from './FacebookProfileExampleCard';
 import { LinkPreview } from '../ui/LinkPreview';
@@ -43,6 +44,7 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
 }) => {
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'admin';
+  const { products, fetchAllProducts } = useBrandStore();
 
   const [profileUrl, setProfileUrl] = useState('');
   const [accountName, setAccountName] = useState('');
@@ -56,7 +58,8 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
   const [smms, setSmms] = useState<User[]>([]);
 
   const [accountMode, setAccountMode] = useState<FacebookAccountMode>('reviewer');
-  const [assignedProduct, setAssignedProduct] = useState<FacebookAssignedProduct>('milkimom');
+  const [assignedProductId, setAssignedProductId] = useState<string>('');
+  const [assignedAllProducts, setAssignedAllProducts] = useState<boolean>(false);
   const [workloadTier, setWorkloadTier] = useState<FacebookWorkloadTier>('active');
   const [childAge, setChildAge] = useState('');
   const [purchaseDate, setPurchaseDate] = useState('');
@@ -70,6 +73,7 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
 
   useEffect(() => {
     if (isOpen && isAdmin) {
+      fetchAllProducts();
       api.get('/auth/smms').then((res) => {
         if (res.data.success) {
           setSmms(res.data.smms || []);
@@ -93,7 +97,12 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       setEmail(initialAccount.emailOrPhone || '');
       setEmailPassword(initialAccount.emailPassword || '');
       setAccountMode(initialAccount.accountMode || 'reviewer');
-      setAssignedProduct(initialAccount.assignedProduct || 'milkimom');
+      const initialProductId =
+        (typeof initialAccount.assignedProductId === 'object' && initialAccount.assignedProductId?._id) ||
+        (typeof initialAccount.assignedProductId === 'string' && initialAccount.assignedProductId) ||
+        '';
+      setAssignedProductId(initialProductId);
+      setAssignedAllProducts(!!initialAccount.assignedAllProducts);
       setWorkloadTier(initialAccount.workloadTier || 'active');
       setChildAge(initialAccount.childAge || '');
       setPurchaseDate(initialAccount.purchaseDate || '');
@@ -118,7 +127,8 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
       setEmailPassword('');
       setAssignedTo('');
       setAccountMode('reviewer');
-      setAssignedProduct('milkimom');
+      setAssignedProductId('');
+      setAssignedAllProducts(false);
       setWorkloadTier('active');
       setChildAge('');
       setPurchaseDate('');
@@ -155,7 +165,8 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
 
     if (isAdmin) {
       payload.accountMode = accountMode;
-      payload.assignedProduct = assignedProduct;
+      payload.assignedProductId = assignedAllProducts ? null : assignedProductId || null;
+      payload.assignedAllProducts = assignedAllProducts;
       payload.workloadTier = workloadTier;
       payload.childAge = childAge.trim();
       payload.purchaseDate = purchaseDate.trim();
@@ -258,16 +269,21 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({
                     Assigned Product:
                   </label>
                   <select
-                    value={assignedProduct}
-                    onChange={(e) => setAssignedProduct(e.target.value as FacebookAssignedProduct)}
+                    value={assignedAllProducts ? 'all_products' : assignedProductId || 'none'}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setAssignedAllProducts(val === 'all_products');
+                      setAssignedProductId(val === 'all_products' || val === 'none' ? '' : val);
+                    }}
                     className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
                   >
-                    <option value="milkimom">🥛 Milkimom (M)</option>
-                    <option value="milkready">🍼 MilkReady (MR)</option>
-                    <option value="smoothflow">💧 SmoothFlow (SF)</option>
-                    <option value="stableflow">🌊 StableFlow (ST)</option>
-                    <option value="all_products">✨ All Products</option>
                     <option value="none">None / General</option>
+                    <option value="all_products">✨ All Products</option>
+                    {products.map((p) => (
+                      <option key={p._id} value={p._id}>
+                        {p.name}
+                      </option>
+                    ))}
                   </select>
                 </div>
 

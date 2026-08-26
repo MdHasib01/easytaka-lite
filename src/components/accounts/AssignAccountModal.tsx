@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { FacebookAccount, User, FacebookAccountMode, FacebookAssignedProduct, FacebookWorkloadTier } from '../../types';
+import { FacebookAccount, User, FacebookAccountMode, FacebookWorkloadTier } from '../../types';
+import { useBrandStore } from '../../stores/useBrandStore';
 import api from '../../services/api';
 import {
   UserCheck,
@@ -30,6 +31,7 @@ export const AssignAccountModal: React.FC<AssignAccountModalProps> = ({
   account,
   onAssignSuccess,
 }) => {
+  const { products, fetchAllProducts } = useBrandStore();
   const [smms, setSmms] = useState<User[]>([]);
   const [isLoadingSmms, setIsLoadingSmms] = useState(false);
   const [selectedSmmId, setSelectedSmmId] = useState<string>('');
@@ -40,7 +42,8 @@ export const AssignAccountModal: React.FC<AssignAccountModalProps> = ({
 
   // SMM Mode & Persona configuration state
   const [accountMode, setAccountMode] = useState<FacebookAccountMode>('reviewer');
-  const [assignedProduct, setAssignedProduct] = useState<FacebookAssignedProduct>('milkimom');
+  const [assignedProductId, setAssignedProductId] = useState<string>('');
+  const [assignedAllProducts, setAssignedAllProducts] = useState<boolean>(false);
   const [workloadTier, setWorkloadTier] = useState<FacebookWorkloadTier>('active');
   const [childAge, setChildAge] = useState('');
   const [purchaseHistory, setPurchaseHistory] = useState('');
@@ -79,13 +82,19 @@ export const AssignAccountModal: React.FC<AssignAccountModalProps> = ({
 
       // Preload current Mode & Persona settings
       setAccountMode(account.accountMode || 'reviewer');
-      setAssignedProduct(account.assignedProduct || 'milkimom');
+      const currentProductId =
+        (typeof account.assignedProductId === 'object' && account.assignedProductId?._id) ||
+        (typeof account.assignedProductId === 'string' && account.assignedProductId) ||
+        '';
+      setAssignedProductId(currentProductId);
+      setAssignedAllProducts(!!account.assignedAllProducts);
       setWorkloadTier(account.workloadTier || 'active');
       setChildAge(account.childAge || '');
       setPurchaseHistory(account.purchaseHistory || '');
       setWritingStyle(account.writingStyle || 'Bangla (বাঙালি মা টোন)');
       setCustomGuideline(account.customGuideline || '');
 
+      fetchAllProducts();
       fetchSmms();
     }
   }, [isOpen, account]);
@@ -132,7 +141,8 @@ export const AssignAccountModal: React.FC<AssignAccountModalProps> = ({
       const res = await api.put(`/accounts/${account._id}/assign`, {
         assignedTo: selectedSmmId,
         accountMode,
-        assignedProduct,
+        assignedProductId: assignedAllProducts ? null : assignedProductId || null,
+        assignedAllProducts,
         workloadTier,
         childAge: childAge.trim(),
         purchaseHistory: purchaseHistory.trim(),
@@ -253,16 +263,21 @@ export const AssignAccountModal: React.FC<AssignAccountModalProps> = ({
                 Assigned Product:
               </label>
               <select
-                value={assignedProduct}
-                onChange={(e) => setAssignedProduct(e.target.value as FacebookAssignedProduct)}
+                value={assignedAllProducts ? 'all_products' : assignedProductId || 'none'}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setAssignedAllProducts(val === 'all_products');
+                  setAssignedProductId(val === 'all_products' || val === 'none' ? '' : val);
+                }}
                 className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs text-white"
               >
-                <option value="milkimom">🥛 Milkimom (M)</option>
-                <option value="milkready">🍼 MilkReady (MR)</option>
-                <option value="smoothflow">💧 SmoothFlow (SF)</option>
-                <option value="stableflow">🌊 StableFlow (ST)</option>
-                <option value="all_products">✨ All Products</option>
                 <option value="none">None / General</option>
+                <option value="all_products">✨ All Products</option>
+                {products.map((p) => (
+                  <option key={p._id} value={p._id}>
+                    {p.name}
+                  </option>
+                ))}
               </select>
             </div>
 

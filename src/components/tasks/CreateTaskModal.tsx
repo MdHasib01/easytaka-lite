@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
-import { Task, TaskType, TaskTargetMode, TaskTargetProduct } from '../../types';
+import { Task, TaskType, TaskTargetMode } from '../../types';
 import { Link as LinkIcon, Calendar, CheckSquare, Sparkles, Award, ShieldCheck, HelpCircle, LifeBuoy, Compass, Milk } from 'lucide-react';
 import { LinkPreview } from '../ui/LinkPreview';
+import { useBrandStore } from '../../stores/useBrandStore';
 
 interface CreateTaskModalProps {
   isOpen: boolean;
@@ -18,13 +19,18 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   onSubmit,
   initialTask,
 }) => {
+  const { products, fetchAllProducts } = useBrandStore();
   const [selectedTitlePreset, setSelectedTitlePreset] = useState<string>('');
   const [customTitle, setCustomTitle] = useState('');
   const [title, setTitle] = useState(initialTask?.title || '');
   const [description, setDescription] = useState(initialTask?.description || '');
   const [taskType, setTaskType] = useState<TaskType>(initialTask?.taskType || 'custom');
   const [targetMode, setTargetMode] = useState<TaskTargetMode>(initialTask?.targetMode || 'all');
-  const [targetProduct, setTargetProduct] = useState<TaskTargetProduct>(initialTask?.targetProduct || 'all');
+  const getInitialTargetProductId = (task?: Task | null) =>
+    (typeof task?.targetProductId === 'object' && task?.targetProductId?._id) ||
+    (typeof task?.targetProductId === 'string' && task.targetProductId) ||
+    '';
+  const [targetProductId, setTargetProductId] = useState<string>(getInitialTargetProductId(initialTask));
   const [category, setCategory] = useState(initialTask?.category || 'Facebook Engagement');
   const [targetUrl, setTargetUrl] = useState(initialTask?.targetUrl || '');
   const [instructions, setInstructions] = useState(initialTask?.instructions || '');
@@ -114,12 +120,18 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   ];
 
   useEffect(() => {
+    if (isOpen) {
+      fetchAllProducts();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     if (initialTask) {
       setTitle(initialTask.title || '');
       setDescription(initialTask.description || '');
       setTaskType(initialTask.taskType || 'custom');
       setTargetMode(initialTask.targetMode || 'all');
-      setTargetProduct(initialTask.targetProduct || 'all');
+      setTargetProductId(getInitialTargetProductId(initialTask));
       setCategory(initialTask.category || 'Facebook Engagement');
       setTargetUrl(initialTask.targetUrl || '');
       setInstructions(initialTask.instructions || '');
@@ -142,6 +154,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       setDescription(defaultPreset.description);
       setTaskType(defaultPreset.taskType);
       setTargetMode(defaultPreset.targetMode);
+      setTargetProductId('');
       setCategory(defaultPreset.category);
       setCustomTitle('');
     }
@@ -184,7 +197,7 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       description: description.trim(),
       taskType,
       targetMode,
-      targetProduct,
+      targetProductId: targetProductId || null,
       category: category.trim(),
       rewardPoints: 0, // Points are awarded through daily routine & account verification
       targetUrl: targetUrl.trim(),
@@ -286,15 +299,16 @@ export const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
               Target Product Lane:
             </label>
             <select
-              value={targetProduct}
-              onChange={(e) => setTargetProduct(e.target.value as TaskTargetProduct)}
+              value={targetProductId || 'all'}
+              onChange={(e) => setTargetProductId(e.target.value === 'all' ? '' : e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl glass-input text-xs text-white bg-slate-900 border border-slate-700 focus:outline-none focus:border-indigo-500"
             >
               <option value="all">✨ All Products / General (সকল প্রোডাক্ট)</option>
-              <option value="milkimom">🥛 Milkimom (M)</option>
-              <option value="milkready">🍼 MilkReady (MR)</option>
-              <option value="smoothflow">💧 SmoothFlow (SF)</option>
-              <option value="stableflow">🌊 StableFlow (ST)</option>
+              {products.map((p) => (
+                <option key={p._id} value={p._id}>
+                  {p.name}
+                </option>
+              ))}
             </select>
           </div>
         </div>
